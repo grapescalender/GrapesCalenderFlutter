@@ -1,0 +1,200 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
+import '../../../../core/design_system/spacing/app_spacing.dart';
+import '../../../../core/design_system/typography/app_typography.dart';
+import '../../domain/entities/plot_entity.dart';
+
+/// Compact Plot Card Widget
+/// Modern, lightweight design inspired by Groww's stock cards
+/// Features: Compact layout, clean spacing, subtle selection state
+class PlotCard extends StatelessWidget {
+  final PlotEntity plot;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const PlotCard({
+    Key? key,
+    required this.plot,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        width: double.infinity,
+        margin: EdgeInsets.only(right: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark 
+                  ? AppColors.primary.withOpacity(0.15)
+                  : AppColors.primaryLight.withOpacity(0.5))
+              : (isDark ? AppColors.darkSurface : AppColors.surface),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.darkOutline : AppColors.outline),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Plot Name Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Plot Name
+                  Expanded(
+                    child: Text(
+                      plot.name,
+                      style: AppTypography.titleMedium(context).copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.onSurface,
+                        fontSize: _responsiveFontSize(context, 15, 16, 17),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  // Running Badge
+                  if (plot.isRunning)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.successLight,
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
+                      ),
+                      child: Text(
+                        'Active',
+                        style: AppTypography.labelSmall(context).copyWith(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              
+              const SizedBox(height: AppSpacing.sm),
+              
+              // Day Count (Highlighted)
+              if (plot.hasPruningDate) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primary.withOpacity(0.1)
+                        : AppColors.primaryLight.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${plot.daysSincePruning}',
+                        style: AppTypography.titleSmall(context).copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: _responsiveFontSize(context, 18, 20, 22),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'days',
+                        style: AppTypography.bodySmall(context).copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: _responsiveFontSize(context, 11, 12, 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+              ],
+              
+              // Pruning Date (Secondary)
+              Text(
+                plot.hasPruningDate
+                    ? _formatDate(plot.pruningDate!)
+                    : 'Not pruned',
+                style: AppTypography.bodySmall(context).copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: _responsiveFontSize(context, 11, 12, 13),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Responsive font size helper
+  double _responsiveFontSize(
+    BuildContext context,
+    double mobile,
+    double tablet,
+    double desktop,
+  ) {
+    final width = MediaQuery.of(context).size.width;
+    if (width >= 1200) return desktop;
+    if (width >= 600) return tablet;
+    return mobile;
+  }
+
+  /// Format date to compact string
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    
+    if (difference == 0) return 'Today';
+    if (difference == 1) return 'Yesterday';
+    if (difference < 7) return '$difference days ago';
+    if (difference < 30) {
+      final weeks = (difference / 7).floor();
+      return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
+    }
+    
+    return DateFormat('MMM dd').format(date);
+  }
+}

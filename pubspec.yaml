@@ -1,0 +1,68 @@
+name: smart_farm_pruning_manager
+description: "A production-ready Farm Management Mobile Application for grape farmers with pruning, scheduling, and activity tracking."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  riverpod: ^2.4.0
+  flutter_riverpod: ^2.4.0
+
+  # Navigation
+  go_router: ^12.0.0
+
+  # UI & Design
+  responsive_framework: ^1.0.0
+  
+  # Localization
+  intl: ^0.20.0
+
+  # Security
+  flutter_secure_storage: ^8.0.0
+
+  # Local Storage (Offline-first)
+  isar: ^3.1.0
+  
+  # Networking
+  dio: ^5.3.0
+  connectivity_plus: ^5.0.0
+
+  # Functional Programming
+  dartz: ^0.10.1
+
+  # Utilities
+  logger: ^2.0.0
+  shared_preferences: ^2.2.0
+  cached_network_image: ^3.2.0
+  
+  # Code generation (for models)
+  freezed_annotation: ^2.4.0
+  json_annotation: ^4.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.0
+  freezed: ^2.4.0
+  json_serializable: ^6.7.0
+  isar_generator: ^3.1.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/i18n/
+    - assets/images/
+    - assets/mock_data/
