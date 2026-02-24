@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/app_card.dart';
@@ -25,6 +24,7 @@ class ActivityStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     // Compute visible activities
     final visibleActivities = _computeVisibleActivities(activities);
     final hasMore = activities.length > visibleActivities.length;
@@ -38,14 +38,14 @@ class ActivityStepper extends StatelessWidget {
               children: [
                 Icon(
                   Icons.timeline_outlined,
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   size: 32,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'No activities found',
                   style: AppTypography.bodyMedium(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
+                    color: cs.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -165,7 +165,7 @@ class ActivityStepper extends StatelessWidget {
 
   /// View All Activities Row
   Widget _buildViewAllRow(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: onViewAll,
@@ -183,9 +183,7 @@ class ActivityStepper extends StatelessWidget {
               Text(
                 'View All Activities',
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: isDark
-                      ? AppColors.darkOnSurfaceVariant
-                      : AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
                 ),
@@ -194,9 +192,7 @@ class ActivityStepper extends StatelessWidget {
               Icon(
                 Icons.arrow_forward,
                 size: 16,
-                color: isDark
-                    ? AppColors.darkOnSurfaceVariant
-                    : AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
               ),
             ],
           ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/design_system/colors/app_colors.dart';
 import '../../core/design_system/spacing/app_spacing.dart';
 import '../../core/design_system/typography/app_typography.dart';
 
@@ -27,15 +26,15 @@ class AppBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final cs = theme.colorScheme;
 
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor ??
-            (isDark ? AppColors.darkSurface : AppColors.background),
+            cs.surface,
         boxShadow: [
           BoxShadow(
-            color: isDark ? AppColors.darkShadow : AppColors.shadow,
+            color: cs.shadow.withOpacity(0.08),
             blurRadius: 8,
             offset: Offset(0, -2),
             spreadRadius: 0,
@@ -74,9 +73,9 @@ class AppBottomNav extends StatelessWidget {
     bool isDark,
     VoidCallback onTap,
   ) {
-    final selectedColorValue = selectedColor ?? AppColors.primary;
-    final unselectedColorValue = unselectedColor ??
-        (isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant);
+    final cs = Theme.of(context).colorScheme;
+    final selectedColorValue = selectedColor ?? cs.primary;
+    final unselectedColorValue = unselectedColor ?? cs.onSurfaceVariant;
 
     return Expanded(
       child: InkWell(
@@ -103,7 +102,7 @@ class AppBottomNav extends StatelessWidget {
                       child: Container(
                         padding: EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: AppColors.error,
+                          color: Theme.of(context).colorScheme.error,
                           shape: BoxShape.circle,
                         ),
                         constraints: BoxConstraints(

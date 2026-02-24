@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
@@ -49,6 +49,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final scheduleState = ref.watch(scheduleNotifierProvider);
     final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
 
@@ -72,7 +73,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.outline,
+                color: cs.outline,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -109,7 +110,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                           children: [
                             Icon(
                               Icons.agriculture,
-                              color: AppColors.primary,
+                              color: cs.primary,
                               size: 20,
                             ),
                             SizedBox(width: AppSpacing.sm),
@@ -196,6 +197,8 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   }
 
   Widget _buildTypeSelector(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     return Row(
       children: [
         Expanded(
@@ -203,7 +206,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             context,
             ScheduleType.spray,
             Icons.water_drop_outlined,
-            AppColors.info,
+            semantic.info,
           ),
         ),
         SizedBox(width: AppSpacing.sm),
@@ -212,7 +215,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             context,
             ScheduleType.nutrition,
             Icons.grass_outlined,
-            AppColors.warning,
+            semantic.warning,
           ),
         ),
         SizedBox(width: AppSpacing.sm),
@@ -221,7 +224,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             context,
             ScheduleType.work,
             Icons.construction_outlined,
-            AppColors.primary,
+            cs.primary,
           ),
         ),
       ],
@@ -235,6 +238,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     Color color,
   ) {
     final isSelected = _selectedType == type;
+    final cs = Theme.of(context).colorScheme;
     
     return GestureDetector(
       onTap: () => setState(() => _selectedType = type),
@@ -243,24 +247,24 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
         decoration: BoxDecoration(
           color: isSelected
               ? color.withOpacity(0.1)
-              : AppColors.surfaceVariant,
+              : cs.surfaceVariant,
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           border: isSelected
               ? Border.all(color: color, width: 2)
-              : Border.all(color: AppColors.outline),
+              : Border.all(color: cs.outline),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: isSelected ? color : AppColors.onSurfaceVariant,
+              color: isSelected ? color : cs.onSurfaceVariant,
               size: 24,
             ),
             SizedBox(height: AppSpacing.xs),
             Text(
               type.displayName,
               style: AppTypography.bodySmall(context).copyWith(
-                color: isSelected ? color : AppColors.onSurface,
+                color: isSelected ? color : cs.onSurface,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
@@ -271,15 +275,16 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   }
 
   Widget _buildDatePicker(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _selectDate(context),
       child: AppCard.flat(
-        border: Border.all(color: AppColors.outline),
+        border: Border.all(color: cs.outline),
         child: Row(
           children: [
             Icon(
               Icons.calendar_today_outlined,
-              color: AppColors.primary,
+              color: cs.primary,
               size: 20,
             ),
             SizedBox(width: AppSpacing.sm),
@@ -290,7 +295,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                   Text(
                     'Date',
                     style: AppTypography.bodySmall(context).copyWith(
-                      color: AppColors.onSurfaceVariant,
+                      color: cs.onSurfaceVariant,
                     ),
                   ),
                   SizedBox(height: AppSpacing.xs),
@@ -303,7 +308,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             ),
             Icon(
               Icons.chevron_right,
-              color: AppColors.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
             ),
           ],
         ),
@@ -312,15 +317,16 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   }
 
   Widget _buildTimePicker(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _selectTime(context),
       child: AppCard.flat(
-        border: Border.all(color: AppColors.outline),
+        border: Border.all(color: cs.outline),
         child: Row(
           children: [
             Icon(
               Icons.access_time_outlined,
-              color: AppColors.primary,
+              color: cs.primary,
               size: 20,
             ),
             SizedBox(width: AppSpacing.sm),
@@ -331,7 +337,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                   Text(
                     'Time',
                     style: AppTypography.bodySmall(context).copyWith(
-                      color: AppColors.onSurfaceVariant,
+                      color: cs.onSurfaceVariant,
                     ),
                   ),
                   SizedBox(height: AppSpacing.xs),
@@ -344,7 +350,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             ),
             Icon(
               Icons.chevron_right,
-              color: AppColors.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
             ),
           ],
         ),
@@ -378,18 +384,19 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
 
   Widget _buildActivitySelector(BuildContext context) {
     final activityState = ref.watch(activityNotifierProvider);
+    final cs = Theme.of(context).colorScheme;
     
     if (activityState.activities.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.surfaceVariant,
+          color: cs.surfaceVariant,
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         child: Text(
           'No activities available. Please create activities first.',
           style: AppTypography.bodySmall(context).copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: cs.onSurfaceVariant,
           ),
         ),
       );
@@ -454,14 +461,14 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Schedule created successfully'),
-          backgroundColor: AppColors.success,
+          backgroundColor: Theme.of(context).extension<AppSemanticColors>()!.success,
         ),
       );
     } else if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(notifier.state.errorMessage ?? 'Failed to create schedule'),
-          backgroundColor: AppColors.error,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }

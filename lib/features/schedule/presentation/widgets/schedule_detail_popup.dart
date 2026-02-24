@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 /// Schedule Detail Popup
@@ -18,15 +18,16 @@ class ScheduleDetailPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final typeColor = _getTypeColor(schedule.type);
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+    final typeColor = _getTypeColor(context, schedule.type);
 
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.surface,
+        color: cs.surface,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
@@ -41,7 +42,7 @@ class ScheduleDetailPopup extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.onSurfaceVariant.withOpacity(0.3),
+                color: cs.onSurfaceVariant.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -154,7 +155,7 @@ class ScheduleDetailPopup extends StatelessWidget {
                         icon: Icons.event_outlined,
                         label: 'Days Until',
                         value: '${_calculateDaysUntil(schedule.scheduledDate)} days',
-                        valueColor: AppColors.primary,
+                        valueColor: cs.primary,
                       ),
                       const SizedBox(height: AppSpacing.md),
                     ],
@@ -166,8 +167,8 @@ class ScheduleDetailPopup extends StatelessWidget {
                       label: 'Status',
                       value: schedule.isCompleted ? 'Completed' : 'Pending',
                       valueColor: schedule.isCompleted
-                          ? AppColors.success
-                          : AppColors.warning,
+                          ? semantic.success
+                          : semantic.warning,
                     ),
                     
                     // Description
@@ -185,15 +186,13 @@ class ScheduleDetailPopup extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.darkSurfaceVariant
-                              : AppColors.surfaceVariant,
+                          color: cs.surfaceVariant,
                           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                         ),
                         child: Text(
                           schedule.description!,
                           style: AppTypography.bodyMedium(context).copyWith(
-                            color: AppColors.onSurfaceVariant,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -215,13 +214,14 @@ class ScheduleDetailPopup extends StatelessWidget {
     required String value,
     Color? valueColor,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
           icon,
           size: 20,
-          color: AppColors.onSurfaceVariant,
+          color: cs.onSurfaceVariant,
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
@@ -231,7 +231,7 @@ class ScheduleDetailPopup extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
@@ -239,7 +239,7 @@ class ScheduleDetailPopup extends StatelessWidget {
               Text(
                 value,
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: valueColor ?? AppColors.onSurface,
+                  color: valueColor ?? cs.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -250,16 +250,13 @@ class ScheduleDetailPopup extends StatelessWidget {
     );
   }
 
-  Color _getTypeColor(ScheduleType type) {
-    if (type == ScheduleType.spray) {
-      return AppColors.info;
-    } else if (type == ScheduleType.nutrition) {
-      return AppColors.warning;
-    } else if (type == ScheduleType.work) {
-      return AppColors.primary;
-    } else {
-      return AppColors.onSurface;
-    }
+  Color _getTypeColor(BuildContext context, ScheduleType type) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+    if (type == ScheduleType.spray) return semantic.info;
+    if (type == ScheduleType.nutrition) return semantic.warning;
+    if (type == ScheduleType.work) return cs.primary;
+    return cs.onSurface;
   }
 
   IconData _getTypeIcon(ScheduleType type) {

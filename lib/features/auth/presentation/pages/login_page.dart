@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
@@ -85,7 +84,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(message),
-                  backgroundColor: AppColors.error,
+                  backgroundColor: Theme.of(context).colorScheme.error,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -236,6 +235,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   /// Header section
   Widget _buildHeader(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
         // Logo/Icon
@@ -243,13 +243,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: cs.primary.withOpacity(0.10),
             borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           ),
           child: Icon(
             Icons.agriculture,
             size: 48,
-            color: AppColors.primary,
+            color: cs.primary,
           ),
         ),
         SizedBox(height: AppSpacing.lg),
@@ -264,7 +264,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         Text(
           'Sign in to continue to your farm',
           style: AppTypography.bodyMedium(context).copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: cs.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
@@ -280,6 +280,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     LoginController loginController,
     AuthNotifier authNotifier,
   ) {
+    final cs = Theme.of(context).colorScheme;
     final isLoading = authState.maybeWhen(
       loading: () => true,
       orElse: () => false,
@@ -297,7 +298,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             decoration: InputDecoration(
               labelText: 'Username',
               hintText: 'Enter your username',
-              prefixIcon: Icon(Icons.person_outline, color: AppColors.onSurfaceVariant),
+              prefixIcon: Icon(Icons.person_outline, color: cs.onSurfaceVariant),
               errorText: formState.usernameError,
               errorMaxLines: 2,
             ),
@@ -318,13 +319,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             decoration: InputDecoration(
               labelText: 'Password',
               hintText: 'Enter your password',
-              prefixIcon: Icon(Icons.lock_outline, color: AppColors.onSurfaceVariant),
+              prefixIcon: Icon(Icons.lock_outline, color: cs.onSurfaceVariant),
               suffixIcon: IconButton(
                 icon: Icon(
                   formState.obscurePassword
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                 ),
                 onPressed: loginController.togglePasswordVisibility,
               ),
@@ -351,7 +352,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: Text(
                 'Forgot Password?',
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.primary,
+                  color: cs.primary,
                 ),
               ),
             ),
@@ -374,13 +375,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   /// Footer section
   Widget _buildFooter(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           "Don't have an account? ",
           style: AppTypography.bodyMedium(context).copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: cs.onSurfaceVariant,
           ),
         ),
         TextButton(
@@ -390,7 +392,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Text(
             'Sign Up',
             style: AppTypography.bodyMedium(context).copyWith(
-              color: AppColors.primary,
+              color: cs.primary,
               fontWeight: FontWeight.w600,
             ),
           ),

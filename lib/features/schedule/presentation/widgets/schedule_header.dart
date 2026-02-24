@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 
@@ -20,6 +19,7 @@ class ScheduleHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
@@ -42,7 +42,7 @@ class ScheduleHeader extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: AppTypography.bodySmall(context).copyWith(
-                      color: AppColors.onSurfaceVariant,
+                      color: cs.onSurfaceVariant,
                       fontSize: 12,
                     ),
                   ),
@@ -56,7 +56,7 @@ class ScheduleHeader extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.add),
               iconSize: 24,
-              color: AppColors.primary,
+              color: cs.primary,
               onPressed: onAddTap,
               tooltip: 'Add Schedule',
               padding: EdgeInsets.zero,

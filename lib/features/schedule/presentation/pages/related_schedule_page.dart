@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
@@ -129,6 +129,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final plotState = ref.watch(plotNotifierProvider);
     final scheduleState = ref.watch(scheduleNotifierProvider);
     final activityInfo = _getActivityInfo();
@@ -151,7 +152,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
           child: Text(
             'No activity information available',
             style: AppTypography.bodyMedium(context).copyWith(
-              color: AppColors.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
             ),
           ),
         ),
@@ -223,6 +224,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     BuildContext context,
     Map<ScheduleType, int> scheduleCounts,
   ) {
+    final cs = Theme.of(context).colorScheme;
     final filters = [
       ScheduleType.all,
       ScheduleType.spray,
@@ -233,14 +235,10 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkSurface
-            : AppColors.surface,
+        color: cs.surface,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkOutline.withOpacity(0.2)
-                : AppColors.outline.withOpacity(0.2),
+            color: cs.outline.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -272,13 +270,13 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primary
-                      : AppColors.surfaceVariant,
+                      ? cs.primary
+                      : cs.surfaceVariant,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                   border: isSelected
                       ? null
                       : Border.all(
-                          color: AppColors.outline,
+                          color: cs.outline,
                           width: 1,
                         ),
                 ),
@@ -289,8 +287,8 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                       filter.displayName,
                       style: AppTypography.bodyMedium(context).copyWith(
                         color: isSelected
-                            ? Colors.white
-                            : AppColors.onSurface,
+                            ? cs.onPrimary
+                            : cs.onSurface,
                         fontWeight: isSelected
                             ? FontWeight.w600
                             : FontWeight.w500,
@@ -305,16 +303,16 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white.withOpacity(0.3)
-                              : AppColors.onSurfaceVariant.withOpacity(0.2),
+                              ? cs.onPrimary.withOpacity(0.22)
+                              : cs.onSurfaceVariant.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                         ),
                         child: Text(
                           count.toString(),
                           style: AppTypography.labelSmall(context).copyWith(
                             color: isSelected
-                                ? Colors.white
-                                : AppColors.onSurfaceVariant,
+                                ? cs.onPrimary
+                                : cs.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                             fontSize: 11,
                           ),
@@ -338,6 +336,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     List<ScheduleEntity> schedules,
     String activityName,
   ) {
+    final cs = Theme.of(context).colorScheme;
     if (scheduleState.isLoading) {
       return _buildSkeletonLoader(context);
     }
@@ -351,14 +350,14 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
             children: [
               Icon(
                 Icons.error_outline,
-                color: AppColors.error,
+                color: cs.error,
                 size: 48,
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 scheduleState.errorMessage!,
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: AppColors.error,
+                  color: cs.error,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -413,7 +412,8 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     DateTime? pruningDate,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final typeColor = _getTypeColor(schedule.type);
+    final cs = Theme.of(context).colorScheme;
+    final typeColor = _getTypeColor(context, schedule.type);
     final typeIcon = _getTypeIcon(schedule.type);
 
     return AppCard.defaultStyle(
@@ -451,9 +451,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                         schedule.title,
                         style: AppTypography.titleMedium(context).copyWith(
                           fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppColors.darkOnSurface
-                              : AppColors.onSurface,
+                          color: cs.onSurface,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -490,13 +488,13 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                 Icon(
                   Icons.calendar_today_outlined,
                   size: 16,
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
                   _formatDate(schedule.scheduledDate),
                   style: AppTypography.bodySmall(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
+                    color: cs.onSurfaceVariant,
                     fontSize: 12,
                   ),
                 ),
@@ -506,7 +504,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                     child: Text(
                       schedule.description!,
                       style: AppTypography.bodySmall(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: cs.onSurfaceVariant,
                         fontSize: 12,
                       ),
                       maxLines: 1,
@@ -525,6 +523,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
   /// Empty State
   Widget _buildEmptyState(BuildContext context, String activityName) {
     final isFiltered = _selectedFilter != ScheduleType.all;
+    final cs = Theme.of(context).colorScheme;
 
     return Center(
       child: Padding(
@@ -534,7 +533,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
           children: [
             Icon(
               Icons.calendar_today_outlined,
-              color: AppColors.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
               size: 64,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -543,7 +542,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                   ? 'No schedules found for selected category'
                   : 'No schedules available for this activity',
               style: AppTypography.titleMedium(context).copyWith(
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
@@ -554,7 +553,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
                   ? 'Try selecting a different filter'
                   : 'Schedules will appear here when added for $activityName',
               style: AppTypography.bodySmall(context).copyWith(
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -566,6 +565,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
 
   /// Skeleton Loader
   Widget _buildSkeletonLoader(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return ListView.builder(
       padding: EdgeInsets.all(AppSpacing.screenHorizontal),
       itemCount: 5,
@@ -574,7 +574,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
           margin: const EdgeInsets.only(bottom: AppSpacing.md),
           height: 120,
           decoration: BoxDecoration(
-            color: AppColors.surfaceVariant,
+            color: cs.surfaceVariant,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
         );
@@ -593,16 +593,13 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
   }
 
   /// Get type color
-  Color _getTypeColor(ScheduleType type) {
-    if (type == ScheduleType.spray) {
-      return AppColors.info;
-    } else if (type == ScheduleType.nutrition) {
-      return AppColors.warning;
-    } else if (type == ScheduleType.work) {
-      return AppColors.primary;
-    } else {
-      return AppColors.onSurface;
-    }
+  Color _getTypeColor(BuildContext context, ScheduleType type) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+    if (type == ScheduleType.spray) return semantic.info;
+    if (type == ScheduleType.nutrition) return semantic.warning;
+    if (type == ScheduleType.work) return cs.primary;
+    return cs.onSurface;
   }
 
   /// Get type icon

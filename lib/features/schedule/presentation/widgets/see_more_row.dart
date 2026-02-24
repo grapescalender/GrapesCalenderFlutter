@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 
@@ -16,7 +15,7 @@ class SeeMoreRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -34,9 +33,7 @@ class SeeMoreRow extends StatelessWidget {
               Text(
                 'See More',
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: isDark
-                      ? AppColors.darkOnSurfaceVariant
-                      : AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
                 ),
@@ -45,9 +42,7 @@ class SeeMoreRow extends StatelessWidget {
               Icon(
                 Icons.arrow_forward,
                 size: 16,
-                color: isDark
-                    ? AppColors.darkOnSurfaceVariant
-                    : AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
               ),
             ],
           ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/design_system/colors/app_colors.dart';
 import '../../core/design_system/spacing/app_spacing.dart';
 
 /// Modern Card Widget
@@ -92,10 +91,9 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final cs = theme.colorScheme;
     
-    final cardColor = color ?? 
-        (isDark ? AppColors.darkSurface : AppColors.surface);
+    final cardColor = color ?? cs.surface;
     final cardElevation = elevation ?? AppSpacing.elevationSubtle;
     final cardBorderRadius = borderRadius ?? AppSpacing.radiusMd;
     final cardPadding = padding ?? const EdgeInsets.all(AppSpacing.cardPadding);
@@ -110,11 +108,9 @@ class AppCard extends StatelessWidget {
         boxShadow: showShadow && cardElevation > 0
             ? [
                 BoxShadow(
-                  color: isDark
-                      ? AppColors.darkShadow
-                      : AppColors.shadow,
-                  blurRadius: cardElevation * 2,
-                  offset: Offset(0, cardElevation),
+                  color: cs.shadow.withOpacity(0.08),
+                  blurRadius: (cardElevation * 2).clamp(2, 12),
+                  offset: Offset(0, (cardElevation).clamp(1, 6)),
                   spreadRadius: 0,
                 ),
               ]

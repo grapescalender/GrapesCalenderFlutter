@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../config/router/app_router.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../../../shared/widgets/app_button.dart';
@@ -26,6 +26,8 @@ class ActivityDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     final isCompleted = activity.isCompleted;
     final isCurrent = activity.isActive;
 
@@ -44,7 +46,7 @@ class ActivityDetailBottomSheet extends StatelessWidget {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.surface,
+        color: cs.surface,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
@@ -59,7 +61,7 @@ class ActivityDetailBottomSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.onSurfaceVariant.withOpacity(0.3),
+                color: cs.onSurfaceVariant.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -78,10 +80,10 @@ class ActivityDetailBottomSheet extends StatelessWidget {
                     height: 56,
                     decoration: BoxDecoration(
                       color: isCurrent
-                          ? AppColors.primaryLight
+                          ? cs.primary.withOpacity(0.10)
                           : isCompleted
-                              ? AppColors.successLight
-                              : AppColors.surfaceVariant,
+                              ? semantic.success.withOpacity(0.14)
+                              : cs.surfaceVariant,
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     ),
                     child: Icon(
@@ -89,10 +91,10 @@ class ActivityDetailBottomSheet extends StatelessWidget {
                           ? Icons.check_circle
                           : activity.type.icon,
                       color: isCurrent
-                          ? AppColors.primary
+                          ? cs.primary
                           : isCompleted
-                              ? AppColors.success
-                              : AppColors.onSurfaceVariant,
+                              ? semantic.success
+                              : cs.onSurfaceVariant,
                       size: 28,
                     ),
                   ),
@@ -116,10 +118,10 @@ class ActivityDetailBottomSheet extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isCurrent
-                                ? AppColors.primaryLight
+                                ? cs.primary.withOpacity(0.10)
                                 : isCompleted
-                                    ? AppColors.successLight
-                                    : AppColors.surfaceVariant,
+                                    ? semantic.success.withOpacity(0.14)
+                                    : cs.surfaceVariant,
                             borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                           ),
                           child: Text(
@@ -130,10 +132,10 @@ class ActivityDetailBottomSheet extends StatelessWidget {
                                     : 'Pending',
                             style: AppTypography.labelSmall(context).copyWith(
                               color: isCurrent
-                                  ? AppColors.primary
+                                  ? cs.primary
                                   : isCompleted
-                                      ? AppColors.success
-                                      : AppColors.onSurfaceVariant,
+                                      ? semantic.success
+                                      : cs.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -245,7 +247,7 @@ class ActivityDetailBottomSheet extends StatelessWidget {
       icon: icon,
       label: label,
       value: dateText,
-      valueColor: isOngoing ? AppColors.primary : null,
+      valueColor: isOngoing ? Theme.of(context).colorScheme.primary : null,
     );
   }
 
@@ -256,13 +258,14 @@ class ActivityDetailBottomSheet extends StatelessWidget {
     required String value,
     Color? valueColor,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
           icon,
           size: 20,
-          color: AppColors.onSurfaceVariant,
+          color: cs.onSurfaceVariant,
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
@@ -272,7 +275,7 @@ class ActivityDetailBottomSheet extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
@@ -280,7 +283,7 @@ class ActivityDetailBottomSheet extends StatelessWidget {
               Text(
                 value,
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: valueColor ?? AppColors.onSurface,
+                  color: valueColor ?? cs.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
               ),

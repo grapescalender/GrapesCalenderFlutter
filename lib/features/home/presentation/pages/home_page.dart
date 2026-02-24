@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/responsive/responsive_utils.dart';
@@ -17,6 +16,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     return SafeArea(
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -27,6 +27,7 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _buildBody(BuildContext context, BoxConstraints constraints) {
+    final cs = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = ResponsiveUtils.isTablet(context);
@@ -77,6 +78,7 @@ class HomePage extends ConsumerWidget {
     bool isTablet,
     bool isSmallPhone,
   ) {
+    final cs = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
     
     // Responsive padding
@@ -127,7 +129,7 @@ class HomePage extends ConsumerWidget {
                     Text(
                       'Good Morning',
                       style: AppTypography.headlineSmall(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                     SizedBox(
@@ -203,7 +205,7 @@ class HomePage extends ConsumerWidget {
                     tablet: 56.0,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: cs.primary.withOpacity(0.10),
                     borderRadius: BorderRadius.circular(
                       ResponsiveUtils.responsiveValue(
                         context: context,
@@ -214,7 +216,7 @@ class HomePage extends ConsumerWidget {
                   ),
                   child: Icon(
                     Icons.agriculture,
-                    color: AppColors.primary,
+                    color: cs.primary,
                     size: ResponsiveUtils.responsiveValue(
                       context: context,
                       mobile: 24.0,
@@ -251,7 +253,7 @@ class HomePage extends ConsumerWidget {
                       Text(
                         '5 Active Plots',
                         style: AppTypography.bodySmall(context).copyWith(
-                          color: AppColors.onSurfaceVariant,
+                          color: cs.onSurfaceVariant,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -262,7 +264,7 @@ class HomePage extends ConsumerWidget {
                 // Arrow Icon
                 Icon(
                   Icons.chevron_right,
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   size: ResponsiveUtils.responsiveValue(
                     context: context,
                     mobile: 20.0,
@@ -285,11 +287,12 @@ class HomePage extends ConsumerWidget {
     required double containerSize,
     required VoidCallback onPressed,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: containerSize,
       height: containerSize,
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: cs.surfaceVariant,
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.responsiveValue(
             context: context,
@@ -300,7 +303,7 @@ class HomePage extends ConsumerWidget {
       ),
       child: IconButton(
         icon: Icon(icon, size: iconSize),
-        color: AppColors.onSurface,
+        color: cs.onSurface,
         onPressed: onPressed,
         padding: EdgeInsets.zero,
       ),

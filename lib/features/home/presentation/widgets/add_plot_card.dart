@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 
@@ -21,6 +20,7 @@ class AddPlotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
@@ -28,22 +28,22 @@ class AddPlotCard extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: isEnabled
-              ? (isDark ? AppColors.darkSurface : AppColors.surfaceVariant)
+              ? cs.surfaceVariant
               : (isDark 
-                  ? AppColors.darkSurface.withOpacity(0.5)
-                  : AppColors.surfaceVariant.withOpacity(0.5)),
+                  ? cs.surfaceVariant.withOpacity(0.5)
+                  : cs.surfaceVariant.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
             color: isEnabled
-                ? (isDark ? AppColors.darkOutline : AppColors.outline)
+                ? cs.outline
                 : (isDark 
-                    ? AppColors.darkOutline.withOpacity(0.3)
-                    : AppColors.outline.withOpacity(0.3)),
+                    ? cs.outline.withOpacity(0.3)
+                    : cs.outline.withOpacity(0.3)),
             width: isEnabled ? 1.5 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+              color: cs.shadow.withOpacity(isDark ? 0.5 : 0.08),
               blurRadius: 4,
               offset: const Offset(0, 1),
             ),
@@ -59,16 +59,16 @@ class AddPlotCard extends StatelessWidget {
                 showStartPlot ? Icons.play_circle_outline : Icons.add_circle_outline,
                 size: 32,
                 color: isEnabled
-                    ? AppColors.primary
-                    : AppColors.onSurfaceDisabled,
+                    ? cs.primary
+                    : cs.onSurface.withOpacity(0.38),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 showStartPlot ? 'Start Plot' : 'Add Plot',
                 style: AppTypography.titleSmall(context).copyWith(
                   color: isEnabled
-                      ? AppColors.onSurface
-                      : AppColors.onSurfaceDisabled,
+                      ? cs.onSurface
+                      : cs.onSurface.withOpacity(0.38),
                   fontWeight: FontWeight.w600,
                   fontSize: _responsiveFontSize(context, 13, 14, 15),
                 ),
@@ -81,7 +81,7 @@ class AddPlotCard extends StatelessWidget {
                 Text(
                   'All running',
                   style: AppTypography.bodySmall(context).copyWith(
-                    color: AppColors.onSurfaceDisabled,
+                    color: cs.onSurface.withOpacity(0.38),
                     fontSize: 10,
                   ),
                   textAlign: TextAlign.center,

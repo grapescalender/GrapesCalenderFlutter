@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 /// Schedule List Item Widget
@@ -22,8 +22,8 @@ class ScheduleListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final typeColor = _getTypeColor(schedule.type);
+    final cs = Theme.of(context).colorScheme;
+    final typeColor = _getTypeColor(context, schedule.type);
     final typeIcon = _getTypeIcon(schedule.type);
     final daysSincePruning = _calculateDaysSincePruning(
       schedule.scheduledDate,
@@ -68,7 +68,7 @@ class ScheduleListItem extends StatelessWidget {
                     style: AppTypography.titleSmall(context).copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: isDark ? AppColors.darkOnSurface : AppColors.onSurface,
+                      color: cs.onSurface,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -78,9 +78,7 @@ class ScheduleListItem extends StatelessWidget {
                   Text(
                     _formatDate(schedule.scheduledDate),
                     style: AppTypography.bodySmall(context).copyWith(
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.onSurfaceVariant,
+                      color: cs.onSurfaceVariant,
                       fontSize: 12,
                     ),
                   ),
@@ -120,17 +118,13 @@ class ScheduleListItem extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkSurfaceVariant
-                          : AppColors.surfaceVariant,
+                      color: cs.surfaceVariant,
                       borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                     ),
                     child: Text(
                       schedule.isCompleted ? 'Done' : 'Pending',
                       style: AppTypography.labelSmall(context).copyWith(
-                        color: isDark
-                            ? AppColors.darkOnSurfaceVariant
-                            : AppColors.onSurfaceVariant,
+                        color: cs.onSurfaceVariant,
                         fontWeight: FontWeight.w600,
                         fontSize: 11,
                       ),
@@ -143,9 +137,7 @@ class ScheduleListItem extends StatelessWidget {
                       ? 'Completed'
                       : _formatRelativeDate(schedule.scheduledDate),
                   style: AppTypography.bodySmall(context).copyWith(
-                    color: isDark
-                        ? AppColors.darkOnSurfaceVariant
-                        : AppColors.onSurfaceVariant,
+                    color: cs.onSurfaceVariant,
                     fontSize: 10,
                   ),
                 ),
@@ -158,15 +150,18 @@ class ScheduleListItem extends StatelessWidget {
   }
 
   /// Get type color
-  Color _getTypeColor(ScheduleType type) {
+  Color _getTypeColor(BuildContext context, ScheduleType type) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+
     if (type == ScheduleType.spray) {
-      return AppColors.info;
+      return semantic.info;
     } else if (type == ScheduleType.nutrition) {
-      return AppColors.warning;
+      return semantic.warning;
     } else if (type == ScheduleType.work) {
-      return AppColors.primary;
+      return cs.primary;
     } else {
-      return AppColors.onSurface;
+      return cs.onSurface;
     }
   }
 

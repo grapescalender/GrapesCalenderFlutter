@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/responsive/responsive_utils.dart';
@@ -33,6 +32,7 @@ class _PlotsSectionState extends ConsumerState<PlotsSection> {
   Widget build(BuildContext context) {
     final plotState = ref.watch(plotNotifierProvider);
     final plotNotifier = ref.read(plotNotifierProvider.notifier);
+    final cs = Theme.of(context).colorScheme;
 
     // Get running plots or all plots
     final displayPlots = plotNotifier.hasRunningPlots
@@ -94,6 +94,7 @@ class _PlotsSectionState extends ConsumerState<PlotsSection> {
     PlotState plotState,
     PlotNotifier plotNotifier,
   ) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () => plotNotifier.toggleSortOrder(),
       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -110,7 +111,7 @@ class _PlotsSectionState extends ConsumerState<PlotsSection> {
                   ? Icons.arrow_downward
                   : Icons.arrow_upward,
               size: 14,
-              color: AppColors.primary,
+              color: cs.primary,
             ),
             const SizedBox(width: 4),
             Text(
@@ -118,7 +119,7 @@ class _PlotsSectionState extends ConsumerState<PlotsSection> {
                   ? 'High to Low'
                   : 'Low to High',
               style: AppTypography.bodySmall(context).copyWith(
-                color: AppColors.primary,
+                color: cs.primary,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),

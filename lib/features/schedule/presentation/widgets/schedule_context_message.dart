@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 
@@ -28,7 +27,7 @@ class ScheduleContextMessage extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     final isToday = _isToday(endDate!);
 
     // Build message text
@@ -43,9 +42,7 @@ class ScheduleContextMessage extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.darkSurfaceVariant
-            : AppColors.surfaceVariant,
+        color: cs.surfaceVariant,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       ),
       child: Row(
@@ -53,16 +50,14 @@ class ScheduleContextMessage extends StatelessWidget {
           Icon(
             Icons.info_outline,
             size: 20,
-            color: AppColors.primary,
+            color: cs.primary,
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               message,
               style: AppTypography.bodySmall(context).copyWith(
-                color: isDark
-                    ? AppColors.darkOnSurfaceVariant
-                    : AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
                 fontSize: 12,
               ),
             ),

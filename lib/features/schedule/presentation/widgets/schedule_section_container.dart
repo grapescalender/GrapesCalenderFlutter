@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 
 /// Schedule Section Container
@@ -17,22 +16,20 @@ class ScheduleSectionContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg), // 16-20 radius
         border: Border.all(
-          color: isDark
-              ? AppColors.darkOutline.withOpacity(0.1)
-              : AppColors.outline.withOpacity(0.1),
+          color: cs.outline.withOpacity(0.12),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withOpacity(0.05),
+            color: cs.shadow.withOpacity(0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

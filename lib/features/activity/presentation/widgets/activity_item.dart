@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/activity_entity.dart';
 
 /// Activity Item Widget
@@ -28,6 +28,7 @@ class ActivityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: (isCompleted || isCurrent) ? onTap : null,
@@ -58,12 +59,8 @@ class ActivityItem extends StatelessWidget {
                     style: AppTypography.titleMedium(context).copyWith(
                       fontWeight: FontWeight.w600,
                       color: isUpcoming
-                          ? (isDark
-                              ? AppColors.darkOnSurfaceDisabled
-                              : AppColors.onSurfaceDisabled)
-                          : (isDark
-                              ? AppColors.darkOnSurface
-                              : AppColors.onSurface),
+                          ? cs.onSurface.withOpacity(0.38)
+                          : cs.onSurface,
                       fontSize: 15,
                     ),
                   ),
@@ -81,28 +78,26 @@ class ActivityItem extends StatelessWidget {
 
   /// Circular Icon
   Widget _buildCircularIcon(BuildContext context, bool isDark) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     Color backgroundColor;
     Color iconColor;
     double size;
     IconData icon;
 
     if (isCompleted) {
-      backgroundColor = AppColors.successLight;
-      iconColor = AppColors.success;
+      backgroundColor = semantic.success.withOpacity(0.14);
+      iconColor = semantic.success;
       size = 40;
       icon = Icons.check_circle;
     } else if (isCurrent) {
-      backgroundColor = AppColors.primaryLight;
-      iconColor = AppColors.primary;
+      backgroundColor = cs.primary.withOpacity(0.10);
+      iconColor = cs.primary;
       size = 48; // Slightly larger for current
       icon = activity.type.icon;
     } else {
-      backgroundColor = isDark
-          ? AppColors.darkSurfaceVariant
-          : AppColors.surfaceVariant;
-      iconColor = isDark
-          ? AppColors.darkOnSurfaceDisabled
-          : AppColors.onSurfaceDisabled;
+      backgroundColor = cs.surfaceVariant;
+      iconColor = cs.onSurface.withOpacity(0.38);
       size = 40;
       icon = activity.type.icon;
     }
@@ -117,14 +112,14 @@ class ActivityItem extends StatelessWidget {
         color: backgroundColor,
         border: isCurrent
             ? Border.all(
-                color: AppColors.primary,
+                color: cs.primary,
                 width: 2,
               )
             : null,
         boxShadow: isCurrent
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: cs.primary.withOpacity(0.22),
                   blurRadius: 8,
                   spreadRadius: 2,
                 ),
@@ -141,15 +136,15 @@ class ActivityItem extends StatelessWidget {
 
   /// Vertical Connector Line
   Widget _buildConnector(BuildContext context, bool isDark) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     Color lineColor;
     if (isCompleted) {
-      lineColor = AppColors.success;
+      lineColor = semantic.success;
     } else if (isCurrent) {
-      lineColor = AppColors.primary.withOpacity(0.3);
+      lineColor = cs.primary.withOpacity(0.3);
     } else {
-      lineColor = isDark
-          ? AppColors.darkOutline.withOpacity(0.3)
-          : AppColors.outline.withOpacity(0.3);
+      lineColor = cs.outline.withOpacity(0.3);
     }
 
     return Container(
@@ -165,11 +160,13 @@ class ActivityItem extends StatelessWidget {
 
   /// Status Label
   Widget _buildStatusLabel(BuildContext context, bool isDark) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     if (isCompleted) {
       return Text(
         'Completed',
         style: AppTypography.bodySmall(context).copyWith(
-          color: AppColors.success,
+          color: semantic.success,
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
@@ -178,7 +175,7 @@ class ActivityItem extends StatelessWidget {
       return Text(
         'In Progress',
         style: AppTypography.bodySmall(context).copyWith(
-          color: AppColors.primary,
+          color: cs.primary,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -187,9 +184,7 @@ class ActivityItem extends StatelessWidget {
       return Text(
         'Upcoming',
         style: AppTypography.bodySmall(context).copyWith(
-          color: isDark
-              ? AppColors.darkOnSurfaceDisabled
-              : AppColors.onSurfaceDisabled,
+          color: cs.onSurface.withOpacity(0.38),
           fontSize: 12,
         ),
       );

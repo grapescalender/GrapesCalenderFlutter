@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
@@ -111,6 +110,7 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
 
   /// Section Header
   Widget _buildSectionHeader(BuildContext context, String plotName) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
@@ -130,13 +130,13 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
                     Icon(
                       Icons.timeline,
                       size: 16,
-                      color: AppColors.onSurfaceVariant,
+                      color: cs.onSurfaceVariant,
                     ),
                     SizedBox(width: AppSpacing.xs),
                     Text(
                       plotName,
                       style: AppTypography.bodyMedium(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -168,19 +168,20 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     }
 
     if (activityState.errorMessage != null) {
+      final cs = Theme.of(context).colorScheme;
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.errorLight,
+            color: cs.errorContainer,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
           child: Row(
             children: [
               Icon(
                 Icons.error_outline,
-                color: AppColors.error,
+                color: cs.error,
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -188,7 +189,7 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
                 child: Text(
                   activityState.errorMessage!,
                   style: AppTypography.bodySmall(context).copyWith(
-                    color: AppColors.error,
+                    color: cs.onErrorContainer,
                   ),
                 ),
               ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/design_system/colors/app_colors.dart';
 import '../../core/design_system/spacing/app_spacing.dart';
 import '../../core/design_system/typography/app_typography.dart';
 
@@ -94,6 +93,7 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final cs = theme.colorScheme;
     
     final buttonStyle = _getButtonStyle(context, isDark);
     final buttonSize = _getButtonSize();
@@ -136,8 +136,9 @@ class AppButton extends StatelessWidget {
   }
 
   ButtonStyle _getButtonStyle(BuildContext context, bool isDark) {
-    final bgColor = backgroundColor ?? AppColors.primary;
-    final fgColor = foregroundColor ?? Colors.white;
+    final cs = Theme.of(context).colorScheme;
+    final bgColor = backgroundColor ?? cs.primary;
+    final fgColor = foregroundColor ?? cs.onPrimary;
     
     switch (variant) {
       case AppButtonVariant.primary:
@@ -149,12 +150,8 @@ class AppButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
-          disabledBackgroundColor: isDark
-              ? AppColors.darkOnSurfaceDisabled
-              : AppColors.onSurfaceDisabled,
-          disabledForegroundColor: isDark
-              ? AppColors.darkOnSurfaceDisabled
-              : AppColors.onSurfaceDisabled,
+          disabledBackgroundColor: cs.onSurface.withOpacity(0.12),
+          disabledForegroundColor: cs.onSurface.withOpacity(0.38),
         );
       case AppButtonVariant.secondary:
         return OutlinedButton.styleFrom(
@@ -164,9 +161,7 @@ class AppButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
           side: BorderSide(color: bgColor),
-          disabledForegroundColor: isDark
-              ? AppColors.darkOnSurfaceDisabled
-              : AppColors.onSurfaceDisabled,
+          disabledForegroundColor: cs.onSurface.withOpacity(0.38),
         );
       case AppButtonVariant.text:
         return TextButton.styleFrom(
@@ -175,9 +170,7 @@ class AppButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
-          disabledForegroundColor: isDark
-              ? AppColors.darkOnSurfaceDisabled
-              : AppColors.onSurfaceDisabled,
+          disabledForegroundColor: cs.onSurface.withOpacity(0.38),
         );
     }
   }
@@ -216,6 +209,7 @@ class AppButton extends StatelessWidget {
   }
 
   Widget _buildButtonContent(BuildContext context, TextStyle textStyle) {
+    final cs = Theme.of(context).colorScheme;
     if (isLoading) {
       return SizedBox(
         height: 20,
@@ -224,8 +218,8 @@ class AppButton extends StatelessWidget {
           strokeWidth: 2,
           valueColor: AlwaysStoppedAnimation<Color>(
             variant == AppButtonVariant.primary
-                ? Colors.white
-                : AppColors.primary,
+                ? cs.onPrimary
+                : cs.primary,
           ),
         ),
       );

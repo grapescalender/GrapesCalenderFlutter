@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
@@ -65,6 +64,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final plotState = ref.watch(plotNotifierProvider);
     final activityState = ref.watch(activityNotifierProvider);
 
@@ -113,13 +113,13 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
                         Icon(
                           Icons.agriculture,
                           size: 16,
-                          color: AppColors.onSurfaceVariant,
+                          color: cs.onSurfaceVariant,
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(
                           selectedPlot.name,
                           style: AppTypography.bodySmall(context).copyWith(
-                            color: AppColors.onSurfaceVariant,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -144,6 +144,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
     ActivityState activityState,
     PlotEntity? selectedPlot,
   ) {
+    final cs = Theme.of(context).colorScheme;
     if (activityState.isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -159,14 +160,14 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
             children: [
               Icon(
                 Icons.error_outline,
-                color: AppColors.error,
+                color: cs.error,
                 size: 48,
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 activityState.errorMessage!,
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: AppColors.error,
+                  color: cs.error,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -185,14 +186,14 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
             children: [
               Icon(
                 Icons.timeline_outlined,
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
                 size: 48,
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 'No activities found',
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                 ),
               ),
             ],
@@ -213,9 +214,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkSurface
-            : AppColors.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       ),
       child: ListView.separated(

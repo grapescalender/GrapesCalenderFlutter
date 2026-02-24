@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
@@ -23,6 +22,7 @@ class ActivitySelectorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +40,7 @@ class ActivitySelectorWidget extends StatelessWidget {
             Text(
               '(Select 1-2)',
               style: AppTypography.bodySmall(context).copyWith(
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
                 fontSize: 12,
               ),
             ),
@@ -72,24 +72,20 @@ class ActivitySelectorWidget extends StatelessWidget {
                       onSelectionChanged(newSelection);
                     }
                   : null,
-              selectedColor: AppColors.primaryLight,
-              checkmarkColor: AppColors.primary,
+              selectedColor: cs.primary.withOpacity(0.10),
+              checkmarkColor: cs.primary,
               labelStyle: AppTypography.bodySmall(context).copyWith(
                 color: isSelected
-                    ? AppColors.primary
-                    : (isDark
-                        ? AppColors.darkOnSurface
-                        : AppColors.onSurface),
+                    ? cs.primary
+                    : cs.onSurface,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
               avatar: Icon(
                 activity.type.icon,
                 size: 18,
                 color: isSelected
-                    ? AppColors.primary
-                    : (isDark
-                        ? AppColors.darkOnSurfaceVariant
-                        : AppColors.onSurfaceVariant),
+                    ? cs.primary
+                    : cs.onSurfaceVariant,
               ),
             );
           }).toList(),
@@ -101,7 +97,7 @@ class ActivitySelectorWidget extends StatelessWidget {
           Text(
             errorText!,
             style: AppTypography.bodySmall(context).copyWith(
-              color: AppColors.error,
+              color: cs.error,
               fontSize: 12,
             ),
           ),
@@ -112,7 +108,7 @@ class ActivitySelectorWidget extends StatelessWidget {
         Text(
           'Select at least 1 activity. Maximum 2 activities allowed.',
           style: AppTypography.bodySmall(context).copyWith(
-            color: AppColors.onSurfaceVariant,
+            color: cs.onSurfaceVariant,
             fontSize: 11,
           ),
         ),

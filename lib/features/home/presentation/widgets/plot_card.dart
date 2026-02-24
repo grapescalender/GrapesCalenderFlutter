@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/plot_entity.dart';
 
 /// Compact Plot Card Widget
@@ -23,6 +23,8 @@ class PlotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     
     return GestureDetector(
       onTap: onTap,
@@ -34,27 +36,27 @@ class PlotCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark 
-                  ? AppColors.primary.withOpacity(0.15)
-                  : AppColors.primaryLight.withOpacity(0.5))
-              : (isDark ? AppColors.darkSurface : AppColors.surface),
+                  ? cs.primary.withOpacity(0.18)
+                  : cs.primary.withOpacity(0.06))
+              : cs.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
             color: isSelected
-                ? AppColors.primary
-                : (isDark ? AppColors.darkOutline : AppColors.outline),
+                ? cs.primary
+                : cs.outline,
             width: isSelected ? 1.5 : 1.0,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.2),
+                    color: cs.primary.withOpacity(0.18),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                    color: cs.shadow.withOpacity(isDark ? 0.5 : 0.08),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -78,8 +80,8 @@ class PlotCard extends StatelessWidget {
                       style: AppTypography.titleMedium(context).copyWith(
                         fontWeight: FontWeight.w600,
                         color: isSelected
-                            ? AppColors.primary
-                            : AppColors.onSurface,
+                            ? cs.primary
+                            : cs.onSurface,
                         fontSize: _responsiveFontSize(context, 15, 16, 17),
                       ),
                       maxLines: 1,
@@ -94,13 +96,13 @@ class PlotCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.successLight,
+                        color: semantic.success.withOpacity(0.14),
                         borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                       ),
                       child: Text(
                         'Active',
                         style: AppTypography.labelSmall(context).copyWith(
-                          color: AppColors.success,
+                          color: semantic.success,
                           fontWeight: FontWeight.w600,
                           fontSize: 10,
                         ),
@@ -120,8 +122,8 @@ class PlotCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primary.withOpacity(0.1)
-                        : AppColors.primaryLight.withOpacity(0.3),
+                        ? cs.primary.withOpacity(0.10)
+                        : cs.primary.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   ),
                   child: Row(
@@ -130,7 +132,7 @@ class PlotCard extends StatelessWidget {
                       Text(
                         '${plot.daysSincePruning}',
                         style: AppTypography.titleSmall(context).copyWith(
-                          color: AppColors.primary,
+                          color: cs.primary,
                           fontWeight: FontWeight.w700,
                           fontSize: _responsiveFontSize(context, 18, 20, 22),
                         ),
@@ -139,7 +141,7 @@ class PlotCard extends StatelessWidget {
                       Text(
                         'days',
                         style: AppTypography.bodySmall(context).copyWith(
-                          color: AppColors.primary,
+                          color: cs.primary,
                           fontWeight: FontWeight.w500,
                           fontSize: _responsiveFontSize(context, 11, 12, 13),
                         ),
@@ -156,7 +158,7 @@ class PlotCard extends StatelessWidget {
                     ? _formatDate(plot.pruningDate!)
                     : 'Not pruned',
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   fontSize: _responsiveFontSize(context, 11, 12, 13),
                 ),
                 maxLines: 1,

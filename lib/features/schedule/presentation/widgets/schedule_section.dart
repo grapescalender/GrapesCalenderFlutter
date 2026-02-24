@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
@@ -201,6 +200,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     ScheduleState scheduleState,
     PlotEntity selectedPlot,
   ) {
+    final cs = Theme.of(context).colorScheme;
     if (scheduleState.isLoading) {
       return Padding(
         padding: EdgeInsets.symmetric(
@@ -219,14 +219,14 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.errorLight,
+            color: cs.errorContainer,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
           child: Row(
             children: [
               Icon(
                 Icons.error_outline,
-                color: AppColors.error,
+                color: cs.error,
                 size: 20,
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -234,7 +234,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
                 child: Text(
                   scheduleState.errorMessage!,
                   style: AppTypography.bodySmall(context).copyWith(
-                    color: AppColors.error,
+                    color: cs.onErrorContainer,
                   ),
                 ),
               ),
@@ -257,14 +257,14 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
               children: [
                 Icon(
                   Icons.calendar_today_outlined,
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                   size: 32,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'No schedules found',
                   style: AppTypography.bodyMedium(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
+                    color: cs.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -305,9 +305,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
             thickness: 1,
             indent: 56, // After icon (40) + spacing (16)
             endIndent: 0,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkOutline.withOpacity(0.3)
-                : AppColors.outline.withOpacity(0.3),
+            color: cs.outline.withOpacity(0.3),
           );
         },
         itemBuilder: (context, index) {

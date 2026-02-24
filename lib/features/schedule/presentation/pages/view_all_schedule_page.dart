@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
@@ -97,6 +96,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final plotState = ref.watch(plotNotifierProvider);
     final scheduleState = ref.watch(scheduleNotifierProvider);
     final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
@@ -159,13 +159,13 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
                         Icon(
                           Icons.agriculture,
                           size: 16,
-                          color: AppColors.onSurfaceVariant,
+                          color: cs.onSurfaceVariant,
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(
                           selectedPlot.name,
                           style: AppTypography.bodySmall(context).copyWith(
-                            color: AppColors.onSurfaceVariant,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -265,6 +265,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
     BuildContext context,
     ScheduleState scheduleState,
   ) {
+    final cs = Theme.of(context).colorScheme;
     if (scheduleState.isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -280,14 +281,14 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
             children: [
               Icon(
                 Icons.error_outline,
-                color: AppColors.error,
+                color: cs.error,
                 size: 48,
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 scheduleState.errorMessage!,
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: AppColors.error,
+                  color: cs.error,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -379,7 +380,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
             children: [
               Icon(
                 Icons.calendar_today_outlined,
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
                 size: 48,
               ),
               const SizedBox(height: AppSpacing.md),
@@ -388,7 +389,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
                     ? 'No schedules available for this activity period'
                     : 'No schedules found',
                 style: AppTypography.bodyMedium(context).copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -397,7 +398,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
                 Text(
                   'Try selecting a different activity or date range',
                   style: AppTypography.bodySmall(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
+                    color: cs.onSurfaceVariant,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -410,9 +411,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkSurface
-            : AppColors.surface,
+        color: cs.surface,
       ),
       child: ListView.separated(
         padding: EdgeInsets.zero,
@@ -422,9 +421,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
           thickness: 1,
           indent: AppSpacing.screenHorizontal + 4,
           endIndent: AppSpacing.screenHorizontal,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.darkOutline
-              : AppColors.outline,
+          color: cs.outline,
         ),
         itemBuilder: (context, index) {
           final schedule = filteredSchedules[index];

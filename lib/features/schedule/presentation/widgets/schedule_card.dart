@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 /// Schedule Card Widget
@@ -20,6 +20,8 @@ class ScheduleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     return AppCard.defaultStyle(
       onTap: onTap,
       child: Column(
@@ -33,12 +35,12 @@ class ScheduleCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: _getTypeColor(schedule.type).withOpacity(0.1),
+                  color: _getTypeColor(context, schedule.type).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                 ),
                 child: Icon(
                   _getTypeIcon(schedule.type),
-                  color: _getTypeColor(schedule.type),
+                  color: _getTypeColor(context, schedule.type),
                   size: 20,
                 ),
               ),
@@ -58,7 +60,7 @@ class ScheduleCard extends StatelessWidget {
                     Text(
                       schedule.type.displayName,
                       style: AppTypography.bodySmall(context).copyWith(
-                        color: _getTypeColor(schedule.type),
+                        color: _getTypeColor(context, schedule.type),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -73,13 +75,13 @@ class ScheduleCard extends StatelessWidget {
                     vertical: AppSpacing.xs,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.successLight,
+                    color: semantic.success.withOpacity(0.14),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                   ),
                   child: Text(
                     'Done',
                     style: AppTypography.labelSmall(context).copyWith(
-                      color: AppColors.success,
+                      color: semantic.success,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -91,7 +93,7 @@ class ScheduleCard extends StatelessWidget {
             Text(
               schedule.description!,
               style: AppTypography.bodySmall(context).copyWith(
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -104,7 +106,7 @@ class ScheduleCard extends StatelessWidget {
               Icon(
                 Icons.calendar_today_outlined,
                 size: 16,
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
               ),
               SizedBox(width: AppSpacing.xs),
               Text(
@@ -117,13 +119,13 @@ class ScheduleCard extends StatelessWidget {
               Icon(
                 Icons.access_time_outlined,
                 size: 16,
-                color: AppColors.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
               ),
               SizedBox(width: AppSpacing.xs),
               Text(
                 _formatTime(schedule.scheduledDate),
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.onSurfaceVariant,
+                  color: cs.onSurfaceVariant,
                 ),
               ),
             ],
@@ -133,16 +135,13 @@ class ScheduleCard extends StatelessWidget {
     );
   }
 
-  Color _getTypeColor(ScheduleType type) {
-    if (type == ScheduleType.spray) {
-      return AppColors.info;
-    } else if (type == ScheduleType.nutrition) {
-      return AppColors.warning;
-    } else if (type == ScheduleType.work) {
-      return AppColors.primary;
-    } else {
-      return AppColors.onSurface;
-    }
+  Color _getTypeColor(BuildContext context, ScheduleType type) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+    if (type == ScheduleType.spray) return semantic.info;
+    if (type == ScheduleType.nutrition) return semantic.warning;
+    if (type == ScheduleType.work) return cs.primary;
+    return cs.onSurface;
   }
 
   IconData _getTypeIcon(ScheduleType type) {

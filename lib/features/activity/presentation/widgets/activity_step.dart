@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/activity_entity.dart';
 
 /// Activity Step Widget
@@ -44,6 +44,8 @@ class ActivityStep extends StatelessWidget {
 
   /// Timeline indicator (vertical line + icon)
   Widget _buildTimelineIndicator(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     return Column(
       children: [
         // Icon circle
@@ -54,17 +56,17 @@ class ActivityStep extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: _getIndicatorColor(),
+            color: _getIndicatorColor(context),
             border: isActive
                 ? Border.all(
-                    color: AppColors.primary,
+                    color: cs.primary,
                     width: 3,
                   )
                 : null,
             boxShadow: isActive
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: cs.primary.withOpacity(0.22),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -73,7 +75,7 @@ class ActivityStep extends StatelessWidget {
           ),
           child: Icon(
             activity.type.icon,
-            color: _getIconColor(),
+            color: _getIconColor(context),
             size: 24,
           ),
         ),
@@ -85,8 +87,8 @@ class ActivityStep extends StatelessWidget {
             margin: EdgeInsets.symmetric(vertical: AppSpacing.xs),
             decoration: BoxDecoration(
               color: isCompleted
-                  ? AppColors.success
-                  : AppColors.outline.withOpacity(0.3),
+                  ? semantic.success
+                  : cs.outline.withOpacity(0.3),
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -96,17 +98,18 @@ class ActivityStep extends StatelessWidget {
 
   /// Content card
   Widget _buildContentCard(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       child: AppCard.defaultStyle(
         onTap: onTap,
         color: isActive
-            ? AppColors.primaryLight.withOpacity(0.2)
+            ? cs.primary.withOpacity(0.06)
             : null,
         border: isActive
             ? Border.all(
-                color: AppColors.primary,
+                color: cs.primary,
                 width: 2,
               )
             : null,
@@ -121,8 +124,8 @@ class ActivityStep extends StatelessWidget {
                     activity.type.displayName,
                     style: AppTypography.headlineSmall(context).copyWith(
                       color: isActive
-                          ? AppColors.primary
-                          : AppColors.onBackground,
+                          ? cs.primary
+                          : cs.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -142,6 +145,8 @@ class ActivityStep extends StatelessWidget {
 
   /// Status badge
   Widget _buildStatusBadge(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     if (isCompleted) {
       return Container(
         padding: EdgeInsets.symmetric(
@@ -149,7 +154,7 @@ class ActivityStep extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: AppColors.successLight,
+          color: semantic.success.withOpacity(0.14),
           borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
         ),
         child: Row(
@@ -158,13 +163,13 @@ class ActivityStep extends StatelessWidget {
             Icon(
               Icons.check_circle,
               size: 14,
-              color: AppColors.success,
+              color: semantic.success,
             ),
             SizedBox(width: AppSpacing.xs),
             Text(
               'Done',
               style: AppTypography.labelSmall(context).copyWith(
-                color: AppColors.success,
+                color: semantic.success,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -178,7 +183,7 @@ class ActivityStep extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: cs.primary.withOpacity(0.10),
           borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
         ),
         child: Row(
@@ -189,14 +194,14 @@ class ActivityStep extends StatelessWidget {
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary,
+                color: cs.primary,
               ),
             ),
             SizedBox(width: AppSpacing.xs),
             Text(
               'Active',
               style: AppTypography.labelSmall(context).copyWith(
-                color: AppColors.primary,
+                color: cs.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -209,19 +214,20 @@ class ActivityStep extends StatelessWidget {
 
   /// Status info
   Widget _buildStatusInfo(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     if (isCompleted && activity.completedAt != null) {
       return Row(
         children: [
           Icon(
             Icons.check_circle_outline,
             size: 14,
-            color: AppColors.onSurfaceVariant,
+            color: cs.onSurfaceVariant,
           ),
           SizedBox(width: AppSpacing.xs),
           Text(
             'Completed ${_formatDate(activity.completedAt!)}',
             style: AppTypography.bodySmall(context).copyWith(
-              color: AppColors.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
             ),
           ),
         ],
@@ -232,13 +238,13 @@ class ActivityStep extends StatelessWidget {
           Icon(
             Icons.play_circle_outline,
             size: 14,
-            color: AppColors.primary,
+            color: cs.primary,
           ),
           SizedBox(width: AppSpacing.xs),
           Text(
             'Started ${_formatDate(activity.startedAt!)}',
             style: AppTypography.bodySmall(context).copyWith(
-              color: AppColors.primary,
+              color: cs.primary,
             ),
           ),
         ],
@@ -249,13 +255,13 @@ class ActivityStep extends StatelessWidget {
           Icon(
             Icons.schedule_outlined,
             size: 14,
-            color: AppColors.onSurfaceVariant,
+            color: cs.onSurfaceVariant,
           ),
           SizedBox(width: AppSpacing.xs),
           Text(
             'Pending',
             style: AppTypography.bodySmall(context).copyWith(
-              color: AppColors.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
             ),
           ),
         ],
@@ -264,25 +270,21 @@ class ActivityStep extends StatelessWidget {
   }
 
   /// Get indicator color
-  Color _getIndicatorColor() {
-    if (isActive) {
-      return AppColors.primaryLight;
-    } else if (isCompleted) {
-      return AppColors.successLight;
-    } else {
-      return AppColors.surfaceVariant;
-    }
+  Color _getIndicatorColor(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+    if (isActive) return cs.primary.withOpacity(0.10);
+    if (isCompleted) return semantic.success.withOpacity(0.14);
+    return cs.surfaceVariant;
   }
 
   /// Get icon color
-  Color _getIconColor() {
-    if (isActive) {
-      return AppColors.primary;
-    } else if (isCompleted) {
-      return AppColors.success;
-    } else {
-      return AppColors.onSurfaceDisabled;
-    }
+  Color _getIconColor(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+    if (isActive) return cs.primary;
+    if (isCompleted) return semantic.success;
+    return cs.onSurface.withOpacity(0.38);
   }
 
   /// Format date
