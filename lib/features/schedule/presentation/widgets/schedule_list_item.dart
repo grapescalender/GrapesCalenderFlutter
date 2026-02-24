@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
+import '../../../../core/design_system/theme/app_status_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 /// Schedule List Item Widget
@@ -23,12 +24,28 @@ class ScheduleListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final statusColors = Theme.of(context).extension<AppStatusColors>()!;
     final typeColor = _getTypeColor(context, schedule.type);
     final typeIcon = _getTypeIcon(schedule.type);
     final daysSincePruning = _calculateDaysSincePruning(
       schedule.scheduledDate,
       pruningDate,
     );
+    final now = DateTime.now();
+    final isUpcoming = !schedule.isCompleted && schedule.scheduledDate.isAfter(now);
+    final isPending = !schedule.isCompleted && !isUpcoming;
+
+    final statusLabel = schedule.isCompleted
+        ? 'Completed'
+        : isUpcoming
+            ? 'Upcoming'
+            : 'Pending';
+
+    final statusColor = schedule.isCompleted
+        ? statusColors.completed
+        : isUpcoming
+            ? statusColors.upcoming
+            : statusColors.pending;
 
     return InkWell(
       onTap: onTap,
@@ -91,51 +108,33 @@ class ScheduleListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Day Count (highlighted)
-                if (daysSincePruning != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: typeColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                    ),
-                    child: Text(
-                      'Day $daysSincePruning',
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: typeColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: cs.surfaceVariant,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                    ),
-                    child: Text(
-                      schedule.isCompleted ? 'Done' : 'Pending',
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                      ),
+                // Status chip (Pending / Completed / Upcoming)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: AppTypography.labelSmall(context).copyWith(
+                      color: schedule.isCompleted
+                          ? statusColor
+                          : isPending
+                              ? statusColor
+                              : cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
                     ),
                   ),
+                ),
                 const SizedBox(height: 4),
                 // Secondary Info (status or date)
                 Text(
-                  schedule.isCompleted
-                      ? 'Completed'
-                      : _formatRelativeDate(schedule.scheduledDate),
+                  daysSincePruning != null ? 'Day $daysSincePruning' : _formatRelativeDate(schedule.scheduledDate),
                   style: AppTypography.bodySmall(context).copyWith(
                     color: cs.onSurfaceVariant,
                     fontSize: 10,

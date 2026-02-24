@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
+import '../../../../shared/widgets/app_shimmer.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
@@ -203,12 +204,17 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     final cs = Theme.of(context).colorScheme;
     if (scheduleState.isLoading) {
       return Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenHorizontal,
-          vertical: AppSpacing.xl,
-        ),
-        child: const Center(
-          child: CircularProgressIndicator(),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+        child: AppShimmer(
+          child: Column(
+            children: List.generate(
+              5,
+              (i) => Padding(
+                padding: EdgeInsets.only(bottom: i == 4 ? 0 : AppSpacing.sm),
+                child: ShimmerBox(height: 56, radius: 16),
+              ),
+            ),
+          ),
         ),
       );
     }

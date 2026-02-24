@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'core/constants/app_constants.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/di/injection_container.dart';
 import 'core/design_system/theme/app_theme.dart';
@@ -34,6 +35,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Smart Farm Pruning Manager',
       debugShowCheckedModeBanner: false,
+      themeAnimationDuration: AppConstants.normalAnimationDuration,
+      themeAnimationCurve: Curves.easeInOutCubic,
       
       // Theme configuration
       theme: themeData,

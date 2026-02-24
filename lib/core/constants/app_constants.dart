@@ -1,7 +1,14 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 /// Constants used throughout the application
 class AppConstants {
   // API Configuration
-  static const String apiBaseUrl = 'https://api.drakshsetu.com/v1';
+  // Web note: browsers enforce CORS. For local dev, run the included proxy
+  // on http://localhost:3000 to forward to http://localhost:8080.
+  static String get apiBaseUrl {
+    if (kIsWeb) return 'http://localhost:3000';
+    return 'http://localhost:8080';
+  }
   static const int apiTimeoutSeconds = 30;
   static const int retryAttempts = 3;
 
@@ -12,6 +19,7 @@ class AppConstants {
   static const String themeKey = 'app_theme';
   static const String languageKey = 'app_language';
   static const String farmerIdKey = 'farmer_id';
+  static const String userIdKey = 'user_id';
 
   // App Configuration
   static const String appName = 'Drakshsetu';

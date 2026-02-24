@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/responsive/responsive_utils.dart';
+import '../../../../shared/widgets/app_shimmer.dart';
 import '../../domain/entities/plot_entity.dart';
 import '../providers/plot_notifier.dart';
 import '../providers/plot_state.dart';
@@ -32,7 +33,42 @@ class _PlotsSectionState extends ConsumerState<PlotsSection> {
   Widget build(BuildContext context) {
     final plotState = ref.watch(plotNotifierProvider);
     final plotNotifier = ref.read(plotNotifierProvider.notifier);
-    final cs = Theme.of(context).colorScheme;
+
+    // Loading
+    if (plotState.isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, plotState, plotNotifier),
+          SizedBox(height: AppSpacing.md),
+          _buildLoadingState(context),
+        ],
+      );
+    }
+
+    // Error
+    if (plotState.errorMessage != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, plotState, plotNotifier),
+          SizedBox(height: AppSpacing.md),
+          _buildErrorState(context, plotState.errorMessage!, plotNotifier),
+        ],
+      );
+    }
+
+    // Empty
+    if (plotState.plots.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, plotState, plotNotifier),
+          SizedBox(height: AppSpacing.md),
+          _buildEmptyState(context),
+        ],
+      );
+    }
 
     // Get running plots or all plots
     final displayPlots = plotNotifier.hasRunningPlots
@@ -225,6 +261,100 @@ class _PlotsSectionState extends ConsumerState<PlotsSection> {
       targetPosition,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = ResponsiveUtils.isTablet(context);
+    final cardWidth = (isTablet ? screenWidth * 0.32 : screenWidth * 0.65).clamp(200.0, 280.0);
+    final cardHeight = isTablet ? 130.0 : 120.0;
+
+    return AppShimmer(
+      child: SizedBox(
+        height: cardHeight,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+          itemCount: 3,
+          separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.md),
+          itemBuilder: (context, index) => SizedBox(
+            width: cardWidth,
+            child: ShimmerBox(height: cardHeight, radius: 16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String message, PlotNotifier notifier) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: cs.errorContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cs.error.withOpacity(0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, color: cs.error),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Failed to load plots',
+              style: AppTypography.bodyLarge(context).copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodySmall(context).copyWith(color: cs.onErrorContainer),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            ElevatedButton.icon(
+              onPressed: () => notifier.loadPlots(),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cs.outline.withOpacity(0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.agriculture_outlined, color: cs.onSurfaceVariant, size: 40),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'No plots found',
+              style: AppTypography.bodyLarge(context).copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Add your first plot to get started',
+              style: AppTypography.bodySmall(context).copyWith(color: cs.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

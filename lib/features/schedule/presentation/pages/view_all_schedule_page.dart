@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
@@ -409,35 +410,56 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       );
     }
 
+    // Group schedules by date (Groww-style list sections)
+    final groups = <DateTime, List<ScheduleEntity>>{};
+    for (final s in filteredSchedules) {
+      final d = DateTime(s.scheduledDate.year, s.scheduledDate.month, s.scheduledDate.day);
+      (groups[d] ??= <ScheduleEntity>[]).add(s);
+    }
+    final dates = groups.keys.toList()..sort();
+
+    final items = <Object>[];
+    for (final d in dates) {
+      items.add(d);
+      final list = groups[d]!;
+      list.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+      items.addAll(list);
+    }
+
+    // Get selected plot for pruning date (once)
+    final plotState = ref.read(plotNotifierProvider);
+    PlotEntity? selectedPlot;
+    try {
+      selectedPlot = plotState.plots.firstWhere(
+        (plot) => plot.id == plotState.selectedPlotId,
+      );
+    } catch (e) {
+      if (plotState.plots.isNotEmpty) selectedPlot = plotState.plots.first;
+    }
+
     return Container(
-      decoration: BoxDecoration(
-        color: cs.surface,
-      ),
+      color: cs.surface,
       child: ListView.separated(
         padding: EdgeInsets.zero,
-        itemCount: filteredSchedules.length,
-        separatorBuilder: (context, index) => Divider(
-          height: 1,
-          thickness: 1,
-          indent: AppSpacing.screenHorizontal + 4,
-          endIndent: AppSpacing.screenHorizontal,
-          color: cs.outline,
-        ),
+        itemCount: items.length,
+        separatorBuilder: (context, index) {
+          // No divider after date header
+          if (items[index] is DateTime) return const SizedBox.shrink();
+          // Divider between schedule rows (indented after icon)
+          return Divider(
+            height: 1,
+            thickness: 1,
+            indent: AppSpacing.screenHorizontal + 4,
+            endIndent: AppSpacing.screenHorizontal,
+            color: cs.outline.withOpacity(0.7),
+          );
+        },
         itemBuilder: (context, index) {
-          final schedule = filteredSchedules[index];
-          // Get selected plot for pruning date
-          final plotState = ref.read(plotNotifierProvider);
-          PlotEntity? selectedPlot;
-          try {
-            selectedPlot = plotState.plots.firstWhere(
-              (plot) => plot.id == plotState.selectedPlotId,
-            );
-          } catch (e) {
-            if (plotState.plots.isNotEmpty) {
-              selectedPlot = plotState.plots.first;
-            }
+          final item = items[index];
+          if (item is DateTime) {
+            return _DateHeader(date: item);
           }
-          
+          final schedule = item as ScheduleEntity;
           return ScheduleListItem(
             key: ValueKey('schedule_${schedule.id}'),
             schedule: schedule,
@@ -468,6 +490,44 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       builder: (context) => AddScheduleForm(
         plotId: plotId,
         plotName: plotName,
+      ),
+    );
+  }
+}
+
+class _DateHeader extends StatelessWidget {
+  final DateTime date;
+
+  const _DateHeader({required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = date.difference(today).inDays;
+
+    final label = diff == 0
+        ? 'Today'
+        : diff == 1
+            ? 'Tomorrow'
+            : diff == -1
+                ? 'Yesterday'
+                : DateFormat('EEE, d MMM').format(date);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.md,
+        AppSpacing.screenHorizontal,
+        AppSpacing.xs,
+      ),
+      child: Text(
+        label,
+        style: AppTypography.titleSmall(context).copyWith(
+          color: cs.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

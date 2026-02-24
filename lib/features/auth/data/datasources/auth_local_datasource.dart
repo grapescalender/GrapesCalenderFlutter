@@ -14,6 +14,11 @@ abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);
   Future<String?> getToken();
   Future<void> clearToken();
+  Future<void> saveFarmerId(String farmerId);
+  Future<String?> getFarmerId();
+  Future<void> saveUserId(String userId);
+  Future<String?> getUserId();
+  Future<void> clearIds();
 }
 
 /// Implementation of AuthLocalDataSource
@@ -84,6 +89,58 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       await secureStorage.delete(key: AppConstants.tokenKey);
     } catch (e) {
       throw CacheException('Failed to clear token: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> saveFarmerId(String farmerId) async {
+    try {
+      await secureStorage.write(
+        key: AppConstants.farmerIdKey,
+        value: farmerId,
+      );
+    } catch (e) {
+      throw CacheException('Failed to save farmer id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<String?> getFarmerId() async {
+    try {
+      return await secureStorage.read(key: AppConstants.farmerIdKey);
+    } catch (e) {
+      throw CacheException('Failed to get farmer id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> saveUserId(String userId) async {
+    try {
+      await secureStorage.write(
+        key: AppConstants.userIdKey,
+        value: userId,
+      );
+    } catch (e) {
+      throw CacheException('Failed to save user id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<String?> getUserId() async {
+    try {
+      return await secureStorage.read(key: AppConstants.userIdKey);
+    } catch (e) {
+      throw CacheException('Failed to get user id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> clearIds() async {
+    try {
+      await secureStorage.delete(key: AppConstants.farmerIdKey);
+      await secureStorage.delete(key: AppConstants.userIdKey);
+    } catch (e) {
+      throw CacheException('Failed to clear ids: ${e.toString()}');
     }
   }
 }

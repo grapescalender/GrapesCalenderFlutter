@@ -376,8 +376,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   /// Footer section
   Widget _buildFooter(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
           "Don't have an account? ",

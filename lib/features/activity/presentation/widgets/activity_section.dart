@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
+import '../../../../shared/widgets/app_shimmer.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../domain/entities/activity_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
@@ -158,10 +159,18 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     if (activityState.isLoading) {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-        child: Center(
+        child: AppShimmer(
           child: Padding(
             padding: EdgeInsets.all(AppSpacing.xl),
-            child: const CircularProgressIndicator(),
+            child: Column(
+              children: const [
+                ShimmerBox(height: 64, radius: 16),
+                SizedBox(height: AppSpacing.sm),
+                ShimmerBox(height: 64, radius: 16),
+                SizedBox(height: AppSpacing.sm),
+                ShimmerBox(height: 64, radius: 16),
+              ],
+            ),
           ),
         ),
       );

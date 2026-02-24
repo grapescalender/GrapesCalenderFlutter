@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/design_system/theme/app_branding.dart';
 import '../../../../shared/responsive/responsive_utils.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../activity/presentation/widgets/activity_section.dart';
 import '../../../schedule/presentation/widgets/schedule_section.dart';
 import '../widgets/plots_section.dart';
+import '../widgets/plot_location_section.dart';
 
 /// Home Page
 /// Main dashboard with header, plots, schedule, and activity sections
@@ -59,6 +61,10 @@ class HomePage extends ConsumerWidget {
           // Plots Section
           _buildPlotsSection(context),
           SizedBox(height: sectionSpacing),
+
+          // Map / Location Section (updates with selected plot)
+          //const PlotLocationSection(),
+          //SizedBox(height: sectionSpacing),
           
           // Schedule Section
           const ScheduleSection(),
@@ -79,6 +85,7 @@ class HomePage extends ConsumerWidget {
     bool isSmallPhone,
   ) {
     final cs = Theme.of(context).colorScheme;
+    final branding = Theme.of(context).extension<AppBranding>()!;
     final screenWidth = MediaQuery.of(context).size.width;
     
     // Responsive padding
@@ -109,9 +116,23 @@ class HomePage extends ConsumerWidget {
     );
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalPadding,
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        left: horizontalPadding,
+        right: horizontalPadding,
+        top: verticalPadding,
+        bottom: ResponsiveUtils.responsiveValue(
+          context: context,
+          mobile: AppSpacing.lg,
+          tablet: AppSpacing.xl,
+        ),
+      ),
+      decoration: BoxDecoration(
+        gradient: branding.headerGradient,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,9 +148,10 @@ class HomePage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Good Morning',
+                      'Hello, Sharad 👋',
                       style: AppTypography.headlineSmall(context).copyWith(
-                        color: cs.onSurfaceVariant,
+                        color: cs.onPrimary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     SizedBox(
@@ -140,8 +162,11 @@ class HomePage extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'John Doe', // Placeholder
-                      style: AppTypography.displaySmall(context),
+                      'Here’s your farm overview for today',
+                      style: AppTypography.bodyMedium(context).copyWith(
+                        color: cs.onPrimary.withOpacity(0.85),
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -190,6 +215,7 @@ class HomePage extends ConsumerWidget {
           ),
           // Farm Info Card
           AppCard.defaultStyle(
+            color: cs.surface.withOpacity(0.92),
             child: Row(
               children: [
                 // Farm Icon
@@ -292,7 +318,7 @@ class HomePage extends ConsumerWidget {
       width: containerSize,
       height: containerSize,
       decoration: BoxDecoration(
-        color: cs.surfaceVariant,
+        color: cs.onPrimary.withOpacity(0.14),
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.responsiveValue(
             context: context,
@@ -303,7 +329,7 @@ class HomePage extends ConsumerWidget {
       ),
       child: IconButton(
         icon: Icon(icon, size: iconSize),
-        color: cs.onSurface,
+        color: cs.onPrimary,
         onPressed: onPressed,
         padding: EdgeInsets.zero,
       ),

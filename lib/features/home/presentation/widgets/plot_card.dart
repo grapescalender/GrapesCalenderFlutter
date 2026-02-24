@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
+import '../../../../core/design_system/theme/app_status_colors.dart';
 import '../../domain/entities/plot_entity.dart';
 
 /// Compact Plot Card Widget
@@ -25,6 +26,7 @@ class PlotCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
     final semantic = Theme.of(context).extension<AppSemanticColors>()!;
+    final status = Theme.of(context).extension<AppStatusColors>()!;
     
     return GestureDetector(
       onTap: onTap,
@@ -89,31 +91,41 @@ class PlotCard extends StatelessWidget {
                     ),
                   ),
                   // Running Badge
-                  if (plot.isRunning)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: semantic.success.withOpacity(0.14),
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                      ),
-                      child: Text(
-                        'Active',
-                        style: AppTypography.labelSmall(context).copyWith(
-                          color: semantic.success,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: (plot.isRunning ? status.completed : status.upcoming).withOpacity(0.14),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
+                    ),
+                    child: Text(
+                      plot.isRunning ? 'Active' : 'Inactive',
+                      style: AppTypography.labelSmall(context).copyWith(
+                        color: plot.isRunning ? status.completed : cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
                       ),
                     ),
+                  ),
                 ],
               ),
               
               const SizedBox(height: AppSpacing.sm),
+
+              // Crop / variety line (primary info for Groww-style cards)
+              Text(
+                plot.cropType.isNotEmpty ? plot.cropType : 'Crop',
+                style: AppTypography.bodySmall(context).copyWith(
+                  color: cs.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               
-              // Day Count (Highlighted)
+              // Day Count (Highlighted) - kept if pruning exists
               if (plot.hasPruningDate) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(

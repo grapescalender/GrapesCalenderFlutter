@@ -38,6 +38,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Cache user locally
       await localDataSource.cacheUser(userModel);
+      // Store ids securely (used across features)
+      await localDataSource.saveUserId(userModel.id);
+      await localDataSource.saveFarmerId('1'); // TODO: Replace with backend farmer id
 
       // Convert model to entity
       final userEntity = UserMapper.toEntity(userModel);
@@ -69,6 +72,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.logout();
       await localDataSource.clearCache();
       await localDataSource.clearToken();
+      await localDataSource.clearIds();
       return const Right(null);
     } catch (e) {
       return Left(Failure.unknown(

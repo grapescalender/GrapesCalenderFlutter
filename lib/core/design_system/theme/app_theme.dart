@@ -4,6 +4,8 @@ import '../colors/app_colors.dart';
 import '../spacing/app_spacing.dart';
 import '../typography/app_typography.dart';
 import 'app_semantic_colors.dart';
+import 'app_branding.dart';
+import 'app_status_colors.dart';
 
 /// Modern App Theme Configuration (Material 3)
 /// Indigo/Blue fintech-inspired light & dark themes
@@ -21,6 +23,11 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.background,
       extensions: const <ThemeExtension<dynamic>>[
         AppSemanticColors.light,
+        AppStatusColors.light,
+        AppBranding(
+          gradientStart: AppColors.primary,
+          gradientEnd: AppColors.secondary,
+        ),
       ],
 
       // App Bar - minimal, surface/transparent background
@@ -190,6 +197,11 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.background,
       extensions: const <ThemeExtension<dynamic>>[
         AppSemanticColors.dark,
+        AppStatusColors.dark,
+        AppBranding(
+          gradientStart: AppColors.primaryDark,
+          gradientEnd: AppColors.secondary,
+        ),
       ],
 
       // App Bar

@@ -27,6 +27,9 @@ class PlotNotifier extends StateNotifier<PlotState> {
     _sortPlots();
   }
 
+  /// Public reload (used by UI retry states)
+  Future<void> loadPlots() => _loadPlots();
+
   /// Generate mock plots for development
   List<PlotEntity> _generateMockPlots() {
     final now = DateTime.now();
@@ -37,6 +40,8 @@ class PlotNotifier extends StateNotifier<PlotState> {
         area: 2.5,
         location: 'Field A',
         cropType: 'Grapes',
+        latitude: 19.9975,
+        longitude: 73.7898,
         pruningDate: now.subtract(const Duration(days: 15)),
         isRunning: true,
         createdAt: now.subtract(const Duration(days: 100)),
@@ -48,6 +53,8 @@ class PlotNotifier extends StateNotifier<PlotState> {
         area: 3.0,
         location: 'Field B',
         cropType: 'Grapes',
+        latitude: 20.0060,
+        longitude: 73.8026,
         pruningDate: now.subtract(const Duration(days: 8)),
         isRunning: true,
         createdAt: now.subtract(const Duration(days: 90)),
@@ -59,6 +66,8 @@ class PlotNotifier extends StateNotifier<PlotState> {
         area: 1.8,
         location: 'Field C',
         cropType: 'Grapes',
+        latitude: 19.9852,
+        longitude: 73.7751,
         pruningDate: now.subtract(const Duration(days: 25)),
         isRunning: true,
         createdAt: now.subtract(const Duration(days: 80)),
@@ -70,6 +79,8 @@ class PlotNotifier extends StateNotifier<PlotState> {
         area: 2.2,
         location: 'Field D',
         cropType: 'Grapes',
+        latitude: 20.0154,
+        longitude: 73.7815,
         pruningDate: null, // Not pruned yet
         isRunning: false,
         createdAt: now.subtract(const Duration(days: 70)),
