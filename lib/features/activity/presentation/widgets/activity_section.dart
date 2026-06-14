@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
-import '../../../../shared/widgets/app_shimmer.dart';
+import '../../../../shared/widgets/app_ui.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../domain/entities/activity_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
@@ -15,7 +15,7 @@ import '../providers/activity_notifier.dart';
 import '../providers/activity_providers.dart';
 import '../providers/activity_state.dart';
 import 'activity_detail_bottom_sheet.dart';
-import 'activity_stepper.dart';
+import 'horizontal_activity_stepper.dart';
 
 /// Activity Section Widget
 /// Modern vertical stepper/timeline UI showing activity progression
@@ -156,74 +156,45 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     ActivityState activityState,
     PlotEntity selectedPlot,
   ) {
+    AsyncViewStatus status;
     if (activityState.isLoading) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-        child: AppShimmer(
-          child: Padding(
-            padding: EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              children: const [
-                ShimmerBox(height: 64, radius: 16),
-                SizedBox(height: AppSpacing.sm),
-                ShimmerBox(height: 64, radius: 16),
-                SizedBox(height: AppSpacing.sm),
-                ShimmerBox(height: 64, radius: 16),
-              ],
-            ),
-          ),
-        ),
-      );
+      status = AsyncViewStatus.loading;
+    } else if (activityState.errorMessage != null) {
+      status = AsyncViewStatus.error;
+    } else if (activityState.activities.isEmpty) {
+      status = AsyncViewStatus.empty;
+    } else {
+      status = AsyncViewStatus.success;
     }
 
-    if (activityState.errorMessage != null) {
-      final cs = Theme.of(context).colorScheme;
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: cs.errorContainer,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: cs.error,
-                size: 20,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  activityState.errorMessage!,
-                  style: AppTypography.bodySmall(context).copyWith(
-                    color: cs.onErrorContainer,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-      child: ActivityStepper(
+    return AppAsyncContent(
+      status: status,
+      errorTitle: 'Failed to load activities',
+      errorMessage: activityState.errorMessage,
+      inlineError: true,
+      emptyIcon: Icons.timeline_outlined,
+      emptyTitle: 'No activities found',
+      emptySubtitle: 'Activities will appear once your plot cycle starts',
+      compactEmpty: true,
+      loading: AppLoadingState.blocks(heights: const [80, 100]),
+      builder: (context) => HorizontalActivityStepper(
         activities: activityState.activities,
-        onActivityTap: (activity) {
+        onStepTapped: (activity) {
           _showActivityDetail(
             context,
             activity,
             selectedPlot.id,
           );
         },
-        onViewAll: () {
+        onViewAllActivities: () {
           if (context.mounted) {
             context.push(AppRoutes.viewAllActivities);
           }
         },
+        selectedActivity: activityState.activities.firstWhere(
+          (a) => a.isActive,
+          orElse: () => activityState.activities.first,
+        ),
       ),
     );
   }

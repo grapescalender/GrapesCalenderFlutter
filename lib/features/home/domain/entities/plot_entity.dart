@@ -5,8 +5,6 @@ class PlotEntity {
   final double area;
   final String location;
   final String cropType;
-  final double? latitude;
-  final double? longitude;
   final DateTime? pruningDate; // Nullable for plots without pruning
   final bool isRunning; // Whether plot is currently running
   final DateTime createdAt;
@@ -18,8 +16,6 @@ class PlotEntity {
     required this.area,
     required this.location,
     required this.cropType,
-    this.latitude,
-    this.longitude,
     this.pruningDate,
     this.isRunning = false,
     required this.createdAt,
@@ -36,6 +32,4 @@ class PlotEntity {
 
   /// Check if plot has pruning date
   bool get hasPruningDate => pruningDate != null;
-
-  bool get hasLocation => latitude != null && longitude != null;
 }

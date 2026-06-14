@@ -41,6 +41,11 @@ class ActivityDetailBottomSheet extends StatelessWidget {
         ? activity_date_utils.ActivityDateUtils.calculateDay(pruningDate, endDate)
         : null;
 
+    // Calculate duration
+    final duration = activity.startedAt != null && endDate != null
+        ? endDate.difference(activity.startedAt!).inDays + 1
+        : 0;
+
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -66,25 +71,53 @@ class ActivityDetailBottomSheet extends StatelessWidget {
               ),
             ),
             
-            // Header
-            Padding(
+            // Header with gradient background for current activity
+            Container(
+              decoration: isCurrent
+                  ? BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          cs.primary.withOpacity(0.08),
+                          cs.secondary.withOpacity(0.05),
+                        ],
+                      ),
+                    )
+                  : null,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenHorizontal,
                 vertical: AppSpacing.md,
               ),
               child: Row(
                 children: [
-                  // Activity Icon
+                  // Activity Icon with background
                   Container(
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
+                      gradient: isCurrent
+                          ? LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                cs.primary.withOpacity(0.15),
+                                cs.secondary.withOpacity(0.10),
+                              ],
+                            )
+                          : null,
                       color: isCurrent
-                          ? cs.primary.withOpacity(0.10)
+                          ? null
                           : isCompleted
                               ? semantic.success.withOpacity(0.14)
                               : cs.surfaceVariant,
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      border: isCurrent
+                          ? Border.all(
+                              color: cs.primary.withOpacity(0.2),
+                              width: 1,
+                            )
+                          : null,
                     ),
                     child: Icon(
                       isCompleted
@@ -108,6 +141,7 @@ class ActivityDetailBottomSheet extends StatelessWidget {
                           activity.type.displayName,
                           style: AppTypography.headlineMedium(context).copyWith(
                             fontWeight: FontWeight.w600,
+                            color: isCurrent ? cs.primary : cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -122,6 +156,11 @@ class ActivityDetailBottomSheet extends StatelessWidget {
                                 : isCompleted
                                     ? semantic.success.withOpacity(0.14)
                                     : cs.surfaceVariant,
+                            border: isCurrent
+                                ? Border.all(
+                                    color: cs.primary.withOpacity(0.2),
+                                  )
+                                : null,
                             borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                           ),
                           child: Text(
@@ -162,6 +201,38 @@ class ActivityDetailBottomSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Duration badge
+                    if (duration > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                        decoration: BoxDecoration(
+                          color: cs.surfaceVariant,
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.hourglass_bottom,
+                              size: 16,
+                              color: cs.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(
+                              'Duration: $duration days',
+                              style: AppTypography.labelSmall(context).copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (duration > 0)
+                      const SizedBox(height: AppSpacing.md),
+
                     // Start Date with Day count
                     if (activity.startedAt != null) ...[
                       _buildDateWithDayRow(

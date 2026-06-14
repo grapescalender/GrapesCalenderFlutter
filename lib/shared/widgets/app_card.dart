@@ -120,11 +120,16 @@ class AppCard extends StatelessWidget {
     );
 
     if (onTap != null) {
-      cardContent = InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(cardBorderRadius),
-        child: cardContent,
+      cardContent = Semantics(
+        button: true,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(cardBorderRadius),
+          child: cardContent,
+        ),
       );
+    } else {
+      cardContent = Semantics(container: true, child: cardContent);
     }
 
     if (cardMargin != EdgeInsets.zero) {

@@ -8,7 +8,6 @@ import '../../../../shared/widgets/app_card.dart';
 import '../../../activity/presentation/widgets/activity_section.dart';
 import '../../../schedule/presentation/widgets/schedule_section.dart';
 import '../widgets/plots_section.dart';
-import '../widgets/plot_location_section.dart';
 
 /// Home Page
 /// Main dashboard with header, plots, schedule, and activity sections
@@ -61,10 +60,6 @@ class HomePage extends ConsumerWidget {
           // Plots Section
           _buildPlotsSection(context),
           SizedBox(height: sectionSpacing),
-
-          // Map / Location Section (updates with selected plot)
-          //const PlotLocationSection(),
-          //SizedBox(height: sectionSpacing),
           
           // Schedule Section
           const ScheduleSection(),

@@ -15,6 +15,7 @@ class AppButton extends StatelessWidget {
   final bool isFullWidth;
   final Color? backgroundColor;
   final Color? foregroundColor;
+  final String? semanticLabel;
 
   const AppButton({
     Key? key,
@@ -27,6 +28,7 @@ class AppButton extends StatelessWidget {
     this.isFullWidth = false,
     this.backgroundColor,
     this.foregroundColor,
+    this.semanticLabel,
   }) : super(key: key);
 
   /// Primary button (filled)
@@ -132,7 +134,12 @@ class AppButton extends StatelessWidget {
       );
     }
 
-    return button;
+    return Semantics(
+      button: true,
+      label: semanticLabel ?? label,
+      enabled: onPressed != null && !isLoading,
+      child: button,
+    );
   }
 
   ButtonStyle _getButtonStyle(BuildContext context, bool isDark) {

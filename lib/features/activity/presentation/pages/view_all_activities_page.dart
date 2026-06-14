@@ -15,7 +15,7 @@ import '../providers/activity_notifier.dart';
 import '../providers/activity_providers.dart';
 import '../providers/activity_state.dart';
 import '../widgets/activity_detail_bottom_sheet.dart';
-import '../widgets/activity_item.dart';
+import '../widgets/vertical_activity_stepper.dart';
 
 /// View All Activities Page
 /// Shows complete list of activities with vertical stepper
@@ -202,45 +202,27 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
       );
     }
 
-    // Sort activities by order
+    // Sort activities by type order
     final orderedTypes = ActivityType.orderedTypes;
-    final sortedActivities = orderedTypes
-        .map((type) => activityState.activities.firstWhere(
-              (activity) => activity.type == type,
-              orElse: () => activityState.activities.first,
-            ))
-        .toList();
+    final sortedActivities = <ActivityEntity>[];
+    
+    for (final type in orderedTypes) {
+      try {
+        final activity = activityState.activities.firstWhere(
+          (a) => a.type == type,
+        );
+        sortedActivities.add(activity);
+      } catch (e) {
+        // Type not found in activities, skip it
+      }
+    }
 
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      ),
-      child: ListView.separated(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        itemCount: sortedActivities.length,
-        separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (context, index) {
-          final activity = sortedActivities[index];
-          final isLast = index == sortedActivities.length - 1;
-
-          return ActivityItem(
-            key: ValueKey('activity_${activity.id}'),
-            activity: activity,
-            isCompleted: activity.isCompleted,
-            isCurrent: activity.isActive,
-            isUpcoming: activity.isPending,
-            showConnector: !isLast,
-            onTap: (activity.isCompleted || activity.isActive)
-                ? () => _showActivityDetail(
-                      context,
-                      activity,
-                      selectedPlot?.id ?? '',
-                    )
-                : null,
-          );
-        },
+    return VerticalActivityStepper(
+      activities: sortedActivities,
+      onActivityTapped: (activity) => _showActivityDetail(
+        context,
+        activity,
+        selectedPlot?.id ?? '',
       ),
     );
   }

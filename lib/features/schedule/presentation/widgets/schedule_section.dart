@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
-import '../../../../shared/widgets/app_shimmer.dart';
+import '../../../../shared/widgets/app_ui.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
@@ -201,86 +201,39 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     ScheduleState scheduleState,
     PlotEntity selectedPlot,
   ) {
-    final cs = Theme.of(context).colorScheme;
+    AsyncViewStatus status;
     if (scheduleState.isLoading) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-        child: AppShimmer(
-          child: Column(
-            children: List.generate(
-              5,
-              (i) => Padding(
-                padding: EdgeInsets.only(bottom: i == 4 ? 0 : AppSpacing.sm),
-                child: ShimmerBox(height: 56, radius: 16),
-              ),
-            ),
-          ),
-        ),
-      );
+      status = AsyncViewStatus.loading;
+    } else if (scheduleState.errorMessage != null) {
+      status = AsyncViewStatus.error;
+    } else if (scheduleState.schedules.isEmpty) {
+      status = AsyncViewStatus.empty;
+    } else {
+      status = AsyncViewStatus.success;
     }
 
-    if (scheduleState.errorMessage != null) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: cs.errorContainer,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: cs.error,
-                size: 20,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  scheduleState.errorMessage!,
-                  style: AppTypography.bodySmall(context).copyWith(
-                    color: cs.onErrorContainer,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    return AppAsyncContent(
+      status: status,
+      errorTitle: 'Failed to load schedules',
+      errorMessage: scheduleState.errorMessage,
+      onRetry: () => _loadSchedulesForSelectedPlot(),
+      inlineError: true,
+      emptyIcon: Icons.calendar_today_outlined,
+      emptyTitle: 'No schedules found',
+      emptySubtitle: 'Add a schedule to plan your farm tasks',
+      compactEmpty: true,
+      loading: const AppLoadingState.listRows(itemCount: 5, itemHeight: 56),
+      builder: (context) => _buildScheduleList(context, scheduleState, selectedPlot),
+    );
+  }
 
-    // scheduleState.schedules is already filtered by the API based on selectedFilter
-    // So we can use it directly for "See More" logic
+  Widget _buildScheduleList(
+    BuildContext context,
+    ScheduleState scheduleState,
+    PlotEntity selectedPlot,
+  ) {
+    final cs = Theme.of(context).colorScheme;
     final filteredSchedules = scheduleState.schedules;
-
-    if (filteredSchedules.isEmpty) {
-      return ScheduleSectionContainer(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.calendar_today_outlined,
-                  color: cs.onSurfaceVariant,
-                  size: 32,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'No schedules found',
-                  style: AppTypography.bodyMedium(context).copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Apply "See More" logic ONLY on filteredSchedules
     // If filteredSchedules.length > 5, show first 5 + "See More"
     // If filteredSchedules.length <= 5, show all + NO "See More"
     final totalFilteredSchedules = filteredSchedules.length;
