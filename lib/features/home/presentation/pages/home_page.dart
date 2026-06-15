@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_branding.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../shared/responsive/responsive_utils.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../activity/presentation/widgets/activity_section.dart';
 import '../../../schedule/presentation/widgets/schedule_section.dart';
 import '../widgets/plots_section.dart';
+import '../widgets/market_insight_section.dart';
 
 /// Home Page
 /// Main dashboard with header, plots, schedule, and activity sections
@@ -47,6 +49,13 @@ class HomePage extends ConsumerWidget {
       tablet: AppSpacing.xxl,
     );
 
+    // compute horizontal padding once and reuse so sections align
+      final horizontalPadding = ResponsiveUtils.responsiveValue(
+        context: context,
+        mobile: isSmallPhone ? AppSpacing.md : AppSpacing.screenHorizontal,
+        tablet: AppSpacing.xl,
+      );
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -54,15 +63,21 @@ class HomePage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Section
-          _buildHeader(context, isTablet, isSmallPhone),
+          _buildHeader(context, isTablet, isSmallPhone, horizontalPadding),
           SizedBox(height: sectionSpacing),
           
           // Plots Section
-          _buildPlotsSection(context),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: _buildPlotsSection(context),
+          ),
           SizedBox(height: sectionSpacing),
           
           // Schedule Section
           const ScheduleSection(),
+          SizedBox(height: sectionSpacing),
+          // Market Intelligence (flagship)
+          const MarketInsightSection(),
           SizedBox(height: sectionSpacing),
           
           // Activity Section
@@ -78,6 +93,7 @@ class HomePage extends ConsumerWidget {
     BuildContext context,
     bool isTablet,
     bool isSmallPhone,
+    double horizontalPadding,
   ) {
     final cs = Theme.of(context).colorScheme;
     final branding = Theme.of(context).extension<AppBranding>()!;
@@ -96,205 +112,82 @@ class HomePage extends ConsumerWidget {
       tablet: AppSpacing.lg,
     );
 
-    // Responsive icon size
+    // Icon sizes
     final iconSize = ResponsiveUtils.responsiveValue(
       context: context,
-      mobile: 20.0,
-      tablet: 24.0,
+      mobile: 18.0,
+      tablet: 22.0,
     );
 
-    // Responsive icon container size
     final iconContainerSize = ResponsiveUtils.responsiveValue(
       context: context,
-      mobile: 40.0,
-      tablet: 48.0,
+      mobile: 38.0,
+      tablet: 46.0,
     );
 
+    // Compact header: single top row with brand, title and actions.
+    // Removed search row per request and removed corner rounding.
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(
-        left: horizontalPadding,
-        right: horizontalPadding,
-        top: verticalPadding,
-        bottom: ResponsiveUtils.responsiveValue(
-          context: context,
-          mobile: AppSpacing.lg,
-          tablet: AppSpacing.xl,
-        ),
-      ),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
       decoration: BoxDecoration(
         gradient: branding.headerGradient,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.zero,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Greeting and Actions Row
+          // single top row: menu + brand + title + actions
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
+              // Menu button (top-left) - opens app drawer if available
+              _buildHeaderIconButton(
+                context,
+                icon: Icons.menu,
+                iconSize: iconSize,
+                containerSize: iconContainerSize,
+                onPressed: () => Scaffold.maybeOf(context)?.openDrawer(),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [BoxShadow(color: cs.shadow.withOpacity(0.06), blurRadius: 6, offset: const Offset(0,4))],
+                ),
+                child: const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 22),
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Hello, Sharad 👋',
-                      style: AppTypography.headlineSmall(context).copyWith(
-                        color: cs.onPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(
-                      height: ResponsiveUtils.responsiveValue(
-                        context: context,
-                        mobile: AppSpacing.xs,
-                        tablet: AppSpacing.sm,
-                      ),
-                    ),
-                    Text(
-                      'Here’s your farm overview for today',
-                      style: AppTypography.bodyMedium(context).copyWith(
-                        color: cs.onPrimary.withOpacity(0.85),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text('Grapes', style: AppTypography.titleLarge(context).copyWith(color: cs.onPrimary, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text('Manage plots, schedules & insights', style: AppTypography.bodySmall(context).copyWith(color: cs.onPrimary.withOpacity(0.92), fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
-              // Action Buttons
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildHeaderIconButton(
-                    context,
-                    icon: Icons.notifications_outlined,
-                    iconSize: iconSize,
-                    containerSize: iconContainerSize,
-                    onPressed: () {
-                      // TODO: Navigate to notifications
-                    },
-                  ),
-                  SizedBox(
-                    width: ResponsiveUtils.responsiveValue(
-                      context: context,
-                      mobile: AppSpacing.sm,
-                      tablet: AppSpacing.md,
-                    ),
-                  ),
-                  _buildHeaderIconButton(
-                    context,
-                    icon: Icons.search_outlined,
-                    iconSize: iconSize,
-                    containerSize: iconContainerSize,
-                    onPressed: () {
-                      // TODO: Open search
-                    },
-                  ),
-                ],
+              const SizedBox(width: AppSpacing.sm),
+              CircleAvatar(
+                radius: ResponsiveUtils.responsiveValue(context: context, mobile: 18.0, tablet: 22.0),
+                backgroundColor: cs.onPrimary.withOpacity(0.14),
+                child: Text('S', style: AppTypography.bodyLarge(context).copyWith(color: cs.onPrimary, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _buildHeaderIconButton(
+                context,
+                icon: Icons.notifications_outlined,
+                iconSize: iconSize,
+                containerSize: iconContainerSize,
+                onPressed: () {},
               ),
             ],
           ),
-          SizedBox(
-            height: ResponsiveUtils.responsiveValue(
-              context: context,
-              mobile: AppSpacing.md,
-              tablet: AppSpacing.lg,
-            ),
-          ),
-          // Farm Info Card
-          AppCard.defaultStyle(
-            color: cs.surface.withOpacity(0.92),
-            child: Row(
-              children: [
-                // Farm Icon
-                Container(
-                  width: ResponsiveUtils.responsiveValue(
-                    context: context,
-                    mobile: 48.0,
-                    tablet: 56.0,
-                  ),
-                  height: ResponsiveUtils.responsiveValue(
-                    context: context,
-                    mobile: 48.0,
-                    tablet: 56.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: cs.primary.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(
-                      ResponsiveUtils.responsiveValue(
-                        context: context,
-                        mobile: AppSpacing.radiusMd,
-                        tablet: AppSpacing.radiusLg,
-                      ),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.agriculture,
-                    color: cs.primary,
-                    size: ResponsiveUtils.responsiveValue(
-                      context: context,
-                      mobile: 24.0,
-                      tablet: 28.0,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: ResponsiveUtils.responsiveValue(
-                    context: context,
-                    mobile: AppSpacing.md,
-                    tablet: AppSpacing.lg,
-                  ),
-                ),
-                // Farm Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Green Valley Farm',
-                        style: AppTypography.headlineSmall(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(
-                        height: ResponsiveUtils.responsiveValue(
-                          context: context,
-                          mobile: AppSpacing.xs,
-                          tablet: AppSpacing.sm,
-                        ),
-                      ),
-                      Text(
-                        '5 Active Plots',
-                        style: AppTypography.bodySmall(context).copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                // Arrow Icon
-                Icon(
-                  Icons.chevron_right,
-                  color: cs.onSurfaceVariant,
-                  size: ResponsiveUtils.responsiveValue(
-                    context: context,
-                    mobile: 20.0,
-                    tablet: 24.0,
-                  ),
-                ),
-              ],
-            ),
-          ),
+
+          // Removed inline plot-name UI per request; plots selector is in the hero section now.
         ],
       ),
     );
@@ -333,6 +226,6 @@ class HomePage extends ConsumerWidget {
 
   /// Plots Section - Horizontal Scrollable
   Widget _buildPlotsSection(BuildContext context) {
-    return const PlotsSection();
+    return PlotsSection();
   }
 }

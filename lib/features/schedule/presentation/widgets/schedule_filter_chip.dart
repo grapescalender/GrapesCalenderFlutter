@@ -26,8 +26,8 @@ class ScheduleFilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.sm, // make chips slightly narrower
+          vertical: 6, // reduced vertical padding for smaller height
         ),
         decoration: BoxDecoration(
           color: isSelected
