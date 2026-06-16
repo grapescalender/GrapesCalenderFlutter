@@ -23,7 +23,7 @@ import '../widgets/schedule_list_item.dart';
 /// Shows complete list of schedules with filters
 /// Compact, modern design inspired by Groww
 class ViewAllSchedulePage extends ConsumerStatefulWidget {
-  const ViewAllSchedulePage({Key? key}) : super(key: key);
+  const ViewAllSchedulePage({super.key});
 
   @override
   ConsumerState<ViewAllSchedulePage> createState() =>
@@ -56,16 +56,14 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
         selectedPlot = plotState.plots.first;
       }
 
-      if (selectedPlot != null) {
-        // Load all schedules (no limit)
-        scheduleNotifier.loadSchedules(
-          plotId: plotState.selectedPlotId!,
-          plotName: selectedPlot.name,
-          filterType: ScheduleType.all,
-          limit: null, // No limit - show all
-        );
-      }
-    }
+      // Load all schedules (no limit)
+      scheduleNotifier.loadSchedules(
+        plotId: plotState.selectedPlotId!,
+        plotName: selectedPlot.name,
+        filterType: ScheduleType.all,
+        limit: null, // No limit - show all
+      );
+        }
   }
 
   /// Get date filter, day range, and activity filter from route extra
@@ -230,7 +228,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
         itemCount: filters.length,
         separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
@@ -251,7 +249,6 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
                   plotId: plotState.selectedPlotId!,
                   plotName: plot.name,
                   filterType: filter,
-                  limit: null,
                 );
               }
             },
@@ -275,7 +272,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 
     if (scheduleState.errorMessage != null) {
       return Padding(
-        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -301,7 +298,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 
     // Get date and activity filter if available
     final dateFilter = _getDateFilter();
-    List<ScheduleEntity> filteredSchedules = scheduleState.schedules;
+    var filteredSchedules = scheduleState.schedules;
 
     // Apply filtering if provided (from Activity context)
     if (dateFilter != null) {
@@ -331,9 +328,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       } else {
         // Fallback: Apply filters separately if not all parameters are available
         if (activityId != null) {
-          filteredSchedules = filteredSchedules.where((schedule) {
-            return schedule.activityIds.contains(activityId);
-          }).toList();
+          filteredSchedules = filteredSchedules.where((schedule) => schedule.activityIds.contains(activityId)).toList();
         }
 
         if (startDate != null || endDate != null) {
@@ -374,7 +369,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       final activityName = dateFilter?['activityName'] as String?;
       
       return Padding(
-        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -496,9 +491,9 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 }
 
 class _DateHeader extends StatelessWidget {
-  final DateTime date;
 
   const _DateHeader({required this.date});
+  final DateTime date;
 
   @override
   Widget build(BuildContext context) {

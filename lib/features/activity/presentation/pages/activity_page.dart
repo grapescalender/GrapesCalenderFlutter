@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 
 /// Activity page
 class ActivityPage extends StatelessWidget {
-  const ActivityPage({Key? key}) : super(key: key);
+  const ActivityPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+  Widget build(BuildContext context) => Column(
       children: [
         AppBar(
           title: const Text('Activities'),
@@ -37,5 +36,4 @@ class ActivityPage extends StatelessWidget {
         ),
       ],
     );
-  }
 }

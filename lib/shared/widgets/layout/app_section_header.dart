@@ -6,13 +6,6 @@ import '../app_button.dart';
 
 /// Standard section header with optional trailing action.
 class AppSectionHeader extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final Widget? trailing;
-  final String? actionLabel;
-  final IconData? actionIcon;
-  final VoidCallback? onAction;
-  final EdgeInsetsGeometry? padding;
 
   const AppSectionHeader({
     super.key,
@@ -24,12 +17,19 @@ class AppSectionHeader extends StatelessWidget {
     this.onAction,
     this.padding,
   });
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final VoidCallback? onAction;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    Widget? actionWidget = trailing;
+    var actionWidget = trailing;
     if (actionWidget == null && actionLabel != null && onAction != null) {
       actionWidget = AppButton.text(
         label: actionLabel!,

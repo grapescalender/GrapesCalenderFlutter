@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../config/router/app_router.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../config/router/app_router.dart';
-import '../../../../shared/widgets/app_ui.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
-import '../../domain/entities/activity_entity.dart';
+import '../../../../shared/widgets/app_ui.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
 import '../../../home/presentation/providers/plot_state.dart';
 import '../../../schedule/presentation/providers/schedule_providers.dart';
+import '../../domain/entities/activity_entity.dart';
 import '../providers/activity_notifier.dart';
 import '../providers/activity_providers.dart';
 import '../providers/activity_state.dart';
 import 'activity_detail_bottom_sheet.dart';
 import 'horizontal_activity_stepper.dart';
 
-/// Activity Section Widget
-/// Modern vertical stepper/timeline UI showing activity progression
+/// Activity Section — home screen widget
+/// All functionality preserved; only visual chrome updated.
 class ActivitySection extends ConsumerStatefulWidget {
-  const ActivitySection({Key? key}) : super(key: key);
+  const ActivitySection({super.key});
 
   @override
   ConsumerState<ActivitySection> createState() => _ActivitySectionState();
@@ -30,38 +31,26 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
   @override
   void initState() {
     super.initState();
-    // Load activities when plot is selected
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadActivitiesForSelectedPlot();
-      }
+      if (mounted) _loadActivities();
     });
   }
 
-  void _loadActivitiesForSelectedPlot() {
+  void _loadActivities() {
     if (!mounted) return;
-    
     final plotState = ref.read(plotNotifierProvider);
-    final activityNotifier = ref.read(activityNotifierProvider.notifier);
+    final notifier = ref.read(activityNotifierProvider.notifier);
+    if (plotState.selectedPlotId == null || plotState.plots.isEmpty) return;
 
-    if (plotState.selectedPlotId != null && plotState.plots.isNotEmpty) {
-      // Get plot name from plots list
-      PlotEntity? selectedPlot;
-      try {
-        selectedPlot = plotState.plots.firstWhere(
-          (plot) => plot.id == plotState.selectedPlotId,
-        );
-      } catch (e) {
-        selectedPlot = plotState.plots.first;
-      }
-
-      if (selectedPlot != null) {
-        activityNotifier.loadActivities(
-          plotId: plotState.selectedPlotId!,
-          plotName: selectedPlot.name,
-        );
-      }
+    PlotEntity? plot;
+    try {
+      plot = plotState.plots
+          .firstWhere((p) => p.id == plotState.selectedPlotId);
+    } catch (_) {
+      plot = plotState.plots.first;
     }
+    notifier.loadActivities(
+        plotId: plotState.selectedPlotId!, plotName: plot.name);
   }
 
   @override
@@ -69,27 +58,20 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     final plotState = ref.watch(plotNotifierProvider);
     final activityState = ref.watch(activityNotifierProvider);
 
-    // Listen to plot selection changes in build method
-    ref.listen<PlotState>(plotNotifierProvider, (previous, next) {
-      if (mounted && previous?.selectedPlotId != next.selectedPlotId) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            _loadActivitiesForSelectedPlot();
-          }
-        });
+    // Reload on plot switch
+    ref.listen<PlotState>(plotNotifierProvider, (prev, next) {
+      if (mounted && prev?.selectedPlotId != next.selectedPlotId) {
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) { if (mounted) _loadActivities(); });
       }
     });
 
-    // Get selected plot name
     PlotEntity? selectedPlot;
     try {
-      selectedPlot = plotState.plots.firstWhere(
-        (plot) => plot.id == plotState.selectedPlotId,
-      );
-    } catch (e) {
-      if (plotState.plots.isNotEmpty) {
-        selectedPlot = plotState.plots.first;
-      }
+      selectedPlot = plotState.plots
+          .firstWhere((p) => p.id == plotState.selectedPlotId);
+    } catch (_) {
+      if (plotState.plots.isNotEmpty) selectedPlot = plotState.plots.first;
     }
 
     if (selectedPlot == null || plotState.selectedPlotId == null) {
@@ -99,69 +81,21 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
-        _buildSectionHeader(context, selectedPlot.name),
-        SizedBox(height: AppSpacing.md),
-        
-        // Activity Stepper
-        _buildActivityStepper(context, activityState, selectedPlot),
+        _SectionHeader(plotName: selectedPlot.name),
+        const SizedBox(height: AppSpacing.smMd),
+        _buildStepper(context, activityState, selectedPlot),
       ],
     );
   }
 
-  /// Section Header
-  Widget _buildSectionHeader(BuildContext context, String plotName) {
-    final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Activities',
-                  style: AppTypography.headlineLarge(context),
-                ),
-                SizedBox(height: AppSpacing.xs),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.timeline,
-                      size: 16,
-                      color: cs.onSurfaceVariant,
-                    ),
-                    SizedBox(width: AppSpacing.xs),
-                    Text(
-                      plotName,
-                      style: AppTypography.bodyMedium(context).copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Activity Stepper
-  Widget _buildActivityStepper(
-    BuildContext context,
-    ActivityState activityState,
-    PlotEntity selectedPlot,
-  ) {
+  Widget _buildStepper(
+      BuildContext context, ActivityState state, PlotEntity plot) {
     AsyncViewStatus status;
-    if (activityState.isLoading) {
+    if (state.isLoading) {
       status = AsyncViewStatus.loading;
-    } else if (activityState.errorMessage != null) {
+    } else if (state.errorMessage != null) {
       status = AsyncViewStatus.error;
-    } else if (activityState.activities.isEmpty) {
+    } else if (state.activities.isEmpty) {
       status = AsyncViewStatus.empty;
     } else {
       status = AsyncViewStatus.success;
@@ -170,126 +104,137 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     return AppAsyncContent(
       status: status,
       errorTitle: 'Failed to load activities',
-      errorMessage: activityState.errorMessage,
+      errorMessage: state.errorMessage,
       inlineError: true,
       emptyIcon: Icons.timeline_outlined,
       emptyTitle: 'No activities found',
       emptySubtitle: 'Activities will appear once your plot cycle starts',
       compactEmpty: true,
       loading: AppLoadingState.blocks(heights: const [80, 100]),
-      builder: (context) => HorizontalActivityStepper(
-        activities: activityState.activities,
-        onStepTapped: (activity) {
-          _showActivityDetail(
-            context,
-            activity,
-            selectedPlot.id,
-          );
-        },
-        onViewAllActivities: () {
-          if (context.mounted) {
-            context.push(AppRoutes.viewAllActivities);
-          }
-        },
-        selectedActivity: activityState.activities.firstWhere(
-          (a) => a.isActive,
-          orElse: () => activityState.activities.first,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenHorizontal),
+        child: HorizontalActivityStepper(
+          activities: state.activities,
+          selectedActivity: state.activities.firstWhere(
+            (a) => a.isActive,
+            orElse: () => state.activities.first,
+          ),
+          onStepTapped: (a) => _showDetail(context, a, plot.id),
+          onViewAllActivities: () {
+            if (context.mounted) context.push(AppRoutes.viewAllActivities);
+          },
         ),
       ),
     );
   }
 
-  /// Show Activity Detail Bottom Sheet
-  void _showActivityDetail(
-    BuildContext context,
-    ActivityEntity activity,
-    String plotId,
-  ) {
-    // Get plot for pruning date
+  void _showDetail(BuildContext context, ActivityEntity activity, String plotId) {
     final plotState = ref.read(plotNotifierProvider);
-    PlotEntity? selectedPlot;
+    PlotEntity? plot;
     try {
-      selectedPlot = plotState.plots.firstWhere(
-        (plot) => plot.id == plotId,
-      );
-    } catch (e) {
-      if (plotState.plots.isNotEmpty) {
-        selectedPlot = plotState.plots.first;
-      }
+      plot = plotState.plots.firstWhere((p) => p.id == plotId);
+    } catch (_) {
+      if (plotState.plots.isNotEmpty) plot = plotState.plots.first;
     }
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ActivityDetailBottomSheet(
+      builder: (_) => ActivityDetailBottomSheet(
         activity: activity,
-        pruningDate: selectedPlot?.pruningDate,
-        onViewSchedules: () => _navigateToRelatedSchedules(
-          context,
-          activity,
-          plotId,
-          selectedPlot?.pruningDate,
-        ),
+        pruningDate: plot?.pruningDate,
+        onViewSchedules: () => _navigateToSchedules(
+            context, activity, plotId, plot?.pruningDate),
       ),
     );
   }
 
-  /// Navigate to Related Schedules with date filtering
-  void _navigateToRelatedSchedules(
-    BuildContext context,
-    ActivityEntity activity,
-    String plotId,
-    DateTime? pruningDate,
-  ) {
-    final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
+  void _navigateToSchedules(BuildContext context, ActivityEntity activity,
+      String plotId, DateTime? pruningDate) {
     final plotState = ref.read(plotNotifierProvider);
-    
-    PlotEntity? selectedPlot;
+    PlotEntity? plot;
     try {
-      selectedPlot = plotState.plots.firstWhere(
-        (plot) => plot.id == plotId,
-      );
-    } catch (e) {
-      if (plotState.plots.isNotEmpty) {
-        selectedPlot = plotState.plots.first;
-      }
+      plot = plotState.plots.firstWhere((p) => p.id == plotId);
+    } catch (_) {
+      if (plotState.plots.isNotEmpty) plot = plotState.plots.first;
     }
+    if (plot == null) return;
 
-    if (selectedPlot == null) return;
+    final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
+    scheduleNotifier.loadSchedules(plotId: plotId, plotName: plot.name);
 
-    // Calculate day counts
     final startDate = activity.startedAt;
     final endDate = activity.isActive ? DateTime.now() : activity.completedAt;
-    
-    final startDay = startDate != null && pruningDate != null
-        ? activity_date_utils.ActivityDateUtils.calculateDay(pruningDate, startDate)
-        : null;
-    final endDay = endDate != null && pruningDate != null
-        ? activity_date_utils.ActivityDateUtils.calculateDay(pruningDate, endDate)
-        : null;
-
-    // Load all schedules (will be filtered by date in ViewAllSchedulePage)
-    scheduleNotifier.loadSchedules(
-      plotId: plotId,
-      plotName: selectedPlot.name,
-      filterType: null, // Show all types
-      limit: null, // Show all
-    );
-
-    // Navigate to RelatedSchedulePage with activity date range, day counts, and activity info
     if (context.mounted && startDate != null && endDate != null) {
-      context.push(
-        AppRoutes.relatedSchedules,
-        extra: {
-          'startDate': startDate,
-          'endDate': endDate,
-          'startDay': startDay,
-          'endDay': endDay,
-          'activityId': activity.id,
-          'activityName': activity.type.displayName,
-        },
-      );
+      final startDay = pruningDate != null
+          ? activity_date_utils.ActivityDateUtils.calculateDay(
+              pruningDate, startDate)
+          : null;
+      final endDay = pruningDate != null
+          ? activity_date_utils.ActivityDateUtils.calculateDay(
+              pruningDate, endDate)
+          : null;
+      context.push(AppRoutes.relatedSchedules, extra: {
+        'startDate': startDate,
+        'endDate': endDate,
+        'startDay': startDay,
+        'endDay': endDay,
+        'activityId': activity.id,
+        'activityName': activity.type.displayName,
+      });
     }
+  }
+}
+
+// ── Section header ────────────────────────────────────────────────────────
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.plotName});
+  final String plotName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screenHorizontal),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Icon badge
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            ),
+            child: const Icon(Icons.timeline_rounded,
+                color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Activities',
+                    style: AppTypography.headlineSmall(context)
+                        .copyWith(fontWeight: FontWeight.w700)),
+                Row(
+                  children: [
+                    const Icon(Icons.agriculture_rounded,
+                        size: 12, color: AppColors.onSurface),
+                    const SizedBox(width: 3),
+                    Text(plotName,
+                        style: AppTypography.bodySmall(context)
+                            .copyWith(color: AppColors.onSurface)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -12,19 +12,13 @@ import '../network/network_info.dart';
 /// These are initialized at app startup
 
 /// SharedPreferences provider
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
-  return await SharedPreferences.getInstance();
-});
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async => await SharedPreferences.getInstance());
 
 /// FlutterSecureStorage provider
-final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
-  return const FlutterSecureStorage();
-});
+final secureStorageProvider = Provider<FlutterSecureStorage>((ref) => const FlutterSecureStorage());
 
 /// Connectivity provider
-final connectivityProvider = Provider<Connectivity>((ref) {
-  return Connectivity();
-});
+final connectivityProvider = Provider<Connectivity>((ref) => Connectivity());
 
 /// NetworkInfo provider
 final networkInfoProvider = FutureProvider<NetworkInfo>((ref) async {

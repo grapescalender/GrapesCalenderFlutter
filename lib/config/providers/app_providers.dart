@@ -15,9 +15,7 @@ final localizationServiceProvider = FutureProvider<LocalizationService>((ref) as
 });
 
 /// Theme Mode Provider (Light/Dark)
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, bool>((ref) {
-  return ThemeModeNotifier();
-});
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, bool>((ref) => ThemeModeNotifier());
 
 class ThemeModeNotifier extends StateNotifier<bool> {
   ThemeModeNotifier() : super(false) {
@@ -46,9 +44,7 @@ class ThemeModeNotifier extends StateNotifier<bool> {
 }
 
 /// Language Provider
-final languageProvider = StateNotifierProvider<LanguageNotifier, String>((ref) {
-  return LanguageNotifier();
-});
+final languageProvider = StateNotifierProvider<LanguageNotifier, String>((ref) => LanguageNotifier());
 
 class LanguageNotifier extends StateNotifier<String> {
   LanguageNotifier() : super('en') {
@@ -77,9 +73,7 @@ class LanguageNotifier extends StateNotifier<String> {
 }
 
 /// GoRouter Provider
-final goRouterProvider = Provider<GoRouter>((ref) {
-  return appRouter;
-});
+final goRouterProvider = Provider<GoRouter>((ref) => appRouter);
 
 /// Authentication Token Provider
 final authTokenProvider = FutureProvider<String?>((ref) async {
@@ -95,9 +89,7 @@ final authTokenProvider = FutureProvider<String?>((ref) async {
 // Note: These are legacy providers. New features should use feature-specific providers.
 
 /// All plots provider (using mock data model)
-final allPlotsProvider = StateProvider<List<mock.PlotModel>>((ref) {
-  return mock.MockData.mockPlots;
-});
+final allPlotsProvider = StateProvider<List<mock.PlotModel>>((ref) => mock.MockData.mockPlots);
 
 /// Selected plot provider
 final selectedPlotProvider = StateProvider<mock.PlotModel?>((ref) {

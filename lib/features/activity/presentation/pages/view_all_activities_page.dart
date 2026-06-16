@@ -20,7 +20,7 @@ import '../widgets/vertical_activity_stepper.dart';
 /// View All Activities Page
 /// Shows complete list of activities with vertical stepper
 class ViewAllActivitiesPage extends ConsumerStatefulWidget {
-  const ViewAllActivitiesPage({Key? key}) : super(key: key);
+  const ViewAllActivitiesPage({super.key});
 
   @override
   ConsumerState<ViewAllActivitiesPage> createState() =>
@@ -53,13 +53,11 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
         selectedPlot = plotState.plots.first;
       }
 
-      if (selectedPlot != null) {
-        activityNotifier.loadActivities(
-          plotId: plotState.selectedPlotId!,
-          plotName: selectedPlot.name,
-        );
-      }
-    }
+      activityNotifier.loadActivities(
+        plotId: plotState.selectedPlotId!,
+        plotName: selectedPlot.name,
+      );
+        }
   }
 
   @override
@@ -153,7 +151,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
 
     if (activityState.errorMessage != null) {
       return Padding(
-        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -179,7 +177,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
 
     if (activityState.activities.isEmpty) {
       return Padding(
-        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -301,8 +299,6 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
     scheduleNotifier.loadSchedules(
       plotId: plotId,
       plotName: selectedPlot.name,
-      filterType: null, // Show all types
-      limit: null, // Show all
     );
 
     // Navigate to RelatedSchedulePage with activity date range, day counts, and activity info

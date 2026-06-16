@@ -8,12 +8,6 @@ import '../../domain/entities/activity_entity.dart';
 /// Individual activity node in the vertical stepper
 /// Shows circular icon, activity name, and status
 class ActivityItem extends StatelessWidget {
-  final ActivityEntity activity;
-  final bool isCompleted;
-  final bool isCurrent;
-  final bool isUpcoming;
-  final bool showConnector;
-  final VoidCallback? onTap;
 
   const ActivityItem({
     Key? key,
@@ -24,6 +18,12 @@ class ActivityItem extends StatelessWidget {
     this.showConnector = true,
     this.onTap,
   }) : super(key: key);
+  final ActivityEntity activity;
+  final bool isCompleted;
+  final bool isCurrent;
+  final bool isUpcoming;
+  final bool showConnector;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +96,7 @@ class ActivityItem extends StatelessWidget {
       size = 48; // Slightly larger for current
       icon = activity.type.icon;
     } else {
-      backgroundColor = cs.surfaceVariant;
+      backgroundColor = cs.surfaceContainerHighest;
       iconColor = cs.onSurface.withOpacity(0.38);
       size = 40;
       icon = activity.type.icon;

@@ -8,11 +8,6 @@ import '../../domain/entities/activity_entity.dart';
 /// Activity Step Widget
 /// Individual step in the activity timeline
 class ActivityStep extends StatelessWidget {
-  final ActivityEntity activity;
-  final bool isActive;
-  final bool isCompleted;
-  final bool isLast;
-  final VoidCallback? onTap;
 
   const ActivityStep({
     Key? key,
@@ -22,10 +17,14 @@ class ActivityStep extends StatelessWidget {
     required this.isLast,
     this.onTap,
   }) : super(key: key);
+  final ActivityEntity activity;
+  final bool isActive;
+  final bool isCompleted;
+  final bool isLast;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
+  Widget build(BuildContext context) => GestureDetector(
       onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +39,6 @@ class ActivityStep extends StatelessWidget {
         ],
       ),
     );
-  }
 
   /// Timeline indicator (vertical line + icon)
   Widget _buildTimelineIndicator(BuildContext context) {
@@ -84,7 +82,7 @@ class ActivityStep extends StatelessWidget {
           Container(
             width: 2,
             height: 60,
-            margin: EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
             decoration: BoxDecoration(
               color: isCompleted
                   ? semantic.success
@@ -134,7 +132,7 @@ class ActivityStep extends StatelessWidget {
                 _buildStatusBadge(context),
               ],
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             // Status info
             _buildStatusInfo(context),
           ],
@@ -149,7 +147,7 @@ class ActivityStep extends StatelessWidget {
     final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     if (isCompleted) {
       return Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
         ),
@@ -165,7 +163,7 @@ class ActivityStep extends StatelessWidget {
               size: 14,
               color: semantic.success,
             ),
-            SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: AppSpacing.xs),
             Text(
               'Done',
               style: AppTypography.labelSmall(context).copyWith(
@@ -178,7 +176,7 @@ class ActivityStep extends StatelessWidget {
       );
     } else if (isActive) {
       return Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
         ),
@@ -197,7 +195,7 @@ class ActivityStep extends StatelessWidget {
                 color: cs.primary,
               ),
             ),
-            SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: AppSpacing.xs),
             Text(
               'Active',
               style: AppTypography.labelSmall(context).copyWith(
@@ -223,7 +221,7 @@ class ActivityStep extends StatelessWidget {
             size: 14,
             color: cs.onSurfaceVariant,
           ),
-          SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             'Completed ${_formatDate(activity.completedAt!)}',
             style: AppTypography.bodySmall(context).copyWith(
@@ -240,7 +238,7 @@ class ActivityStep extends StatelessWidget {
             size: 14,
             color: cs.primary,
           ),
-          SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             'Started ${_formatDate(activity.startedAt!)}',
             style: AppTypography.bodySmall(context).copyWith(
@@ -257,7 +255,7 @@ class ActivityStep extends StatelessWidget {
             size: 14,
             color: cs.onSurfaceVariant,
           ),
-          SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             'Pending',
             style: AppTypography.bodySmall(context).copyWith(
@@ -275,7 +273,7 @@ class ActivityStep extends StatelessWidget {
     final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     if (isActive) return cs.primary.withOpacity(0.10);
     if (isCompleted) return semantic.success.withOpacity(0.14);
-    return cs.surfaceVariant;
+    return cs.surfaceContainerHighest;
   }
 
   /// Get icon color

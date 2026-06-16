@@ -21,7 +21,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.background,
+      scaffoldBackgroundColor: colorScheme.surface,
       extensions: <ThemeExtension<dynamic>>[
         AppSemanticColors.light,
         AppStatusColors.light,
@@ -64,8 +64,8 @@ class AppTheme {
       // Input Decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceVariant,
-        contentPadding: EdgeInsets.symmetric(
+        fillColor: colorScheme.surfaceContainerHighest,
+        contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.inputPaddingHorizontal,
           vertical: AppSpacing.inputPaddingVertical,
         ),
@@ -103,7 +103,7 @@ class AppTheme {
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
           elevation: 2,
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
           ),
@@ -118,7 +118,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
           ),
@@ -136,7 +136,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
           ),
@@ -196,7 +196,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.background,
+      scaffoldBackgroundColor: colorScheme.surface,
       extensions: <ThemeExtension<dynamic>>[
         AppSemanticColors.dark,
         AppStatusColors.dark,
@@ -239,8 +239,8 @@ class AppTheme {
       // Input Decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceVariant,
-        contentPadding: EdgeInsets.symmetric(
+        fillColor: colorScheme.surfaceContainerHighest,
+        contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.inputPaddingHorizontal,
           vertical: AppSpacing.inputPaddingVertical,
         ),
@@ -278,7 +278,7 @@ class AppTheme {
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
           elevation: 2,
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
           ),
@@ -293,7 +293,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
           ),
@@ -311,7 +311,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPaddingHorizontal,
             vertical: AppSpacing.buttonPaddingVertical,
           ),
@@ -365,10 +365,9 @@ class AppTheme {
 
   /// Light Color Scheme (Material 3, from seed)
   static ColorScheme get _lightColorScheme =>
-      ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.light).copyWith(
-        background: AppColors.background,
+      ColorScheme.fromSeed(seedColor: AppColors.primary).copyWith(
         surface: AppColors.surface,
-        surfaceVariant: AppColors.surfaceVariant,
+        surfaceContainerHighest: AppColors.surfaceVariant,
         primaryContainer: AppColors.primaryContainer,
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryLight,
@@ -378,9 +377,8 @@ class AppTheme {
   /// Dark Color Scheme (Material 3, from seed)
   static ColorScheme get _darkColorScheme =>
       ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark).copyWith(
-        background: AppColors.darkBackground,
         surface: AppColors.darkSurface,
-        surfaceVariant: AppColors.darkSurfaceVariant,
+        surfaceContainerHighest: AppColors.darkSurfaceVariant,
         primaryContainer: AppColors.primaryDark,
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryDark,
@@ -388,8 +386,7 @@ class AppTheme {
       );
 
   /// Build Text Theme for Light Mode
-  static TextTheme _buildTextTheme() {
-    return TextTheme(
+  static TextTheme _buildTextTheme() => TextTheme(
       displayLarge: AppTypography.displayLarge(null),
       displayMedium: AppTypography.displayMedium(null),
       displaySmall: AppTypography.displaySmall(null),
@@ -406,11 +403,9 @@ class AppTheme {
       labelMedium: AppTypography.labelMedium(null),
       labelSmall: AppTypography.labelSmall(null),
     );
-  }
 
   /// Build Text Theme for Dark Mode
-  static TextTheme _buildDarkTextTheme() {
-    return TextTheme(
+  static TextTheme _buildDarkTextTheme() => TextTheme(
       displayLarge: AppTypography.displayLarge(null).copyWith(
         color: AppColors.darkOnBackground,
       ),
@@ -455,5 +450,4 @@ class AppTheme {
         color: AppColors.darkOnSurfaceVariant,
       ),
     );
-  }
 }

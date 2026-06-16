@@ -64,7 +64,5 @@ class ActivityConstants {
         dipping,
       ];
 
-  static int getSequenceOrder(String activity) {
-    return getActivitySequence().indexOf(activity);
-  }
+  static int getSequenceOrder(String activity) => getActivitySequence().indexOf(activity);
 }

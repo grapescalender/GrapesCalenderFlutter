@@ -5,9 +5,6 @@ import '../constants/app_constants.dart';
 
 /// Dio HTTP client with interceptors for token management and error handling
 class DioClient {
-  final Dio _dio;
-  final FlutterSecureStorage _secureStorage;
-  final Logger _logger;
 
   DioClient({
     Dio? dio,
@@ -16,12 +13,15 @@ class DioClient {
   })  : _dio = dio ?? Dio(),
         _secureStorage = secureStorage ?? const FlutterSecureStorage(),
         _logger = logger ?? Logger();
+  final Dio _dio;
+  final FlutterSecureStorage _secureStorage;
+  final Logger _logger;
 
   void init() {
     _dio.options = BaseOptions(
       baseUrl: AppConstants.apiBaseUrl,
-      connectTimeout: Duration(seconds: AppConstants.apiTimeoutSeconds),
-      receiveTimeout: Duration(seconds: AppConstants.apiTimeoutSeconds),
+      connectTimeout: const Duration(seconds: AppConstants.apiTimeoutSeconds),
+      receiveTimeout: const Duration(seconds: AppConstants.apiTimeoutSeconds),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -39,10 +39,10 @@ class DioClient {
 
 /// Interceptor for handling JWT token attachment and refresh
 class _TokenInterceptor extends Interceptor {
-  final FlutterSecureStorage _secureStorage;
-  final Logger _logger;
 
   _TokenInterceptor(this._secureStorage, this._logger);
+  final FlutterSecureStorage _secureStorage;
+  final Logger _logger;
 
   @override
   Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
@@ -71,9 +71,9 @@ class _TokenInterceptor extends Interceptor {
 
 /// Interceptor for centralized error handling
 class _ErrorHandlingInterceptor extends Interceptor {
-  final Logger _logger;
 
   _ErrorHandlingInterceptor(this._logger);
+  final Logger _logger;
 
   @override
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
@@ -84,9 +84,9 @@ class _ErrorHandlingInterceptor extends Interceptor {
 
 /// Interceptor for logging API requests and responses
 class _LoggingInterceptor extends Interceptor {
-  final Logger _logger;
 
   _LoggingInterceptor(this._logger);
+  final Logger _logger;
 
   @override
   Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
@@ -115,15 +115,15 @@ class _LoggingInterceptor extends Interceptor {
 
 /// Custom exception for API errors
 class ApiException implements Exception {
-  final String message;
-  final int? statusCode;
-  final dynamic originalException;
 
   ApiException({
     required this.message,
     this.statusCode,
     this.originalException,
   });
+  final String message;
+  final int? statusCode;
+  final dynamic originalException;
 
   @override
   String toString() => 'ApiException: $message (Status: $statusCode)';

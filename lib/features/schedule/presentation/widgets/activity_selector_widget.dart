@@ -6,10 +6,6 @@ import '../../../activity/domain/entities/activity_entity.dart';
 /// Activity Selector Widget
 /// Multi-select widget for selecting 1-2 activities
 class ActivitySelectorWidget extends StatelessWidget {
-  final List<ActivityEntity> activities;
-  final List<String> selectedActivityIds;
-  final Function(List<String>) onSelectionChanged;
-  final String? errorText;
 
   const ActivitySelectorWidget({
     Key? key,
@@ -18,6 +14,10 @@ class ActivitySelectorWidget extends StatelessWidget {
     required this.onSelectionChanged,
     this.errorText,
   }) : super(key: key);
+  final List<ActivityEntity> activities;
+  final List<String> selectedActivityIds;
+  final Function(List<String>) onSelectionChanged;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {

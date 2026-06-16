@@ -39,9 +39,9 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
 
     // Find which activity should be active (mock logic)
     // In real app, this would come from backend
-    int activeIndex = 1; // Flooring is active
+    var activeIndex = 1; // Flooring is active
 
-    for (int i = 0; i < orderedTypes.length; i++) {
+    for (var i = 0; i < orderedTypes.length; i++) {
       final type = orderedTypes[i];
       ActivityStatus status;
       DateTime? startedAt;

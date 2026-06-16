@@ -1,24 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 
-/// Activity step state enum (renamed from StepState to avoid conflict with Material's Stepper)
-enum ActivityStepState {
-  completed,
-  current,
-  upcoming,
-}
+/// Activity step state enum
+enum ActivityStepState { completed, current, upcoming }
 
-/// Reusable Step Indicator Widget
-/// Can be used in both horizontal and vertical steppers
+/// Modern pill-shaped step indicator
 class StepIndicator extends StatelessWidget {
-  final ActivityStepState state;
-  final int stepNumber;
-  final IconData? icon;
-  final bool isLast;
-  final VoidCallback? onTap;
-  final bool isClickable;
-  final double size;
-
   const StepIndicator({
     Key? key,
     required this.state,
@@ -30,92 +18,79 @@ class StepIndicator extends StatelessWidget {
     this.size = 40.0,
   }) : super(key: key);
 
+  final ActivityStepState state;
+  final int stepNumber;
+  final IconData? icon;
+  final bool isLast;
+  final VoidCallback? onTap;
+  final bool isClickable;
+  final double size;
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final canTap = isClickable && (state == ActivityStepState.completed || state == ActivityStepState.current);
+    final canTap = isClickable &&
+        (state == ActivityStepState.completed ||
+            state == ActivityStepState.current);
 
     return GestureDetector(
       onTap: canTap ? onTap : null,
-      child: MouseRegion(
-        cursor: canTap ? SystemMouseCursors.click : MouseCursor.defer,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _getBackgroundColor(cs),
-            border: Border.all(
-              color: _getBorderColor(cs),
-              width: state == ActivityStepState.upcoming ? 2.0 : 0.0,
-            ),
-            boxShadow: state == ActivityStepState.current
-                ? [
-                    BoxShadow(
-                      color: cs.primary.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: _buildContent(cs),
-          ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _bg,
+          border: state == ActivityStepState.upcoming
+              ? Border.all(color: AppColors.outline, width: 1.5)
+              : null,
+          boxShadow: state == ActivityStepState.current
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.22),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
+        child: Center(child: _buildIcon),
       ),
     );
   }
 
-  /// Get background color based on state
-  Color _getBackgroundColor(ColorScheme cs) {
+  Color get _bg {
     switch (state) {
       case ActivityStepState.completed:
-        return cs.secondary; // Green/Success
+        return AppColors.success;
       case ActivityStepState.current:
-        return cs.primary; // Indigo
+        return AppColors.primary;
       case ActivityStepState.upcoming:
-        return Colors.transparent;
+        return AppColors.surface;
     }
   }
 
-  /// Get border color based on state
-  Color _getBorderColor(ColorScheme cs) {
+  Widget get _buildIcon {
     switch (state) {
       case ActivityStepState.completed:
-        return cs.secondary;
+        return Icon(Icons.check_rounded, color: Colors.white, size: size * 0.48);
       case ActivityStepState.current:
-        return cs.primary;
-      case ActivityStepState.upcoming:
-        return cs.outlineVariant;
-    }
-  }
-
-  /// Build the content inside the circle
-  Widget _buildContent(ColorScheme cs) {
-    switch (state) {
-      case ActivityStepState.completed:
-        return Icon(
-          Icons.check,
-          color: Colors.white,
-          size: size * 0.5,
-        );
-      case ActivityStepState.current:
-        return Text(
-          stepNumber.toString(),
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: size * 0.4,
-            fontWeight: FontWeight.w600,
-          ),
-        );
+        return icon != null
+            ? Icon(icon, color: Colors.white, size: size * 0.48)
+            : Text(
+                '$stepNumber',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: size * 0.4,
+                  fontWeight: FontWeight.w700,
+                ),
+              );
       case ActivityStepState.upcoming:
         return Text(
-          stepNumber.toString(),
+          '$stepNumber',
           style: TextStyle(
-            color: cs.outlineVariant,
-            fontSize: size * 0.4,
+            color: AppColors.onSurface,
+            fontSize: size * 0.38,
             fontWeight: FontWeight.w500,
           ),
         );

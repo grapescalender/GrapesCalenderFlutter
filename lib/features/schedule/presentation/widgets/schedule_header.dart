@@ -6,9 +6,6 @@ import '../../../../core/design_system/typography/app_typography.dart';
 /// Clean header with title on left and Add Schedule icon button on right
 /// Minimal, inline design
 class ScheduleHeader extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final VoidCallback? onAddTap;
 
   const ScheduleHeader({
     Key? key,
@@ -16,12 +13,15 @@ class ScheduleHeader extends StatelessWidget {
     this.subtitle,
     this.onAddTap,
   }) : super(key: key);
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onAddTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

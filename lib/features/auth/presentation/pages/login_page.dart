@@ -15,7 +15,7 @@ import '../providers/auth_state.dart';
 /// Login Page
 /// Modern, responsive login screen with form validation
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -131,8 +131,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     AuthState authState,
     LoginController loginController,
     AuthNotifier authNotifier,
-  ) {
-    return SingleChildScrollView(
+  ) => SingleChildScrollView(
       padding: EdgeInsets.all(AppSpacing.screenHorizontal),
       child: Form(
         key: _formKey,
@@ -155,7 +154,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
       ),
     );
-  }
 
   /// Tablet layout
   Widget _buildTabletLayout(
@@ -164,8 +162,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     AuthState authState,
     LoginController loginController,
     AuthNotifier authNotifier,
-  ) {
-    return Center(
+  ) => Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: SingleChildScrollView(
@@ -193,7 +190,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
       ),
     );
-  }
 
   /// Desktop layout
   Widget _buildDesktopLayout(
@@ -202,8 +198,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     AuthState authState,
     LoginController loginController,
     AuthNotifier authNotifier,
-  ) {
-    return Center(
+  ) => Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 450),
         child: SingleChildScrollView(
@@ -231,7 +226,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
       ),
     );
-  }
 
   /// Header section
   Widget _buildHeader(BuildContext context) {
@@ -252,14 +246,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             color: cs.primary,
           ),
         ),
-        SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.lg),
         // Title
         Text(
           'Welcome Back',
           style: AppTypography.displaySmall(context),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         // Subtitle
         Text(
           'Sign in to continue to your farm',
@@ -309,7 +303,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             },
             validator: (_) => formState.usernameError,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           // Password field
           TextFormField(
             controller: _passwordController,
@@ -341,7 +335,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             },
             validator: (_) => formState.passwordError,
           ),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           // Forgot password
           Align(
             alignment: Alignment.centerRight,
@@ -357,7 +351,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           // Login button
           AppButton.primary(
             label: 'Sign In',

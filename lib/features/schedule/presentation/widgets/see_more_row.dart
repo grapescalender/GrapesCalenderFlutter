@@ -6,12 +6,12 @@ import '../../../../core/design_system/typography/app_typography.dart';
 /// Styled as a LIST ROW (not a button)
 /// Center aligned "See More >" with subtle text color
 class SeeMoreRow extends StatelessWidget {
-  final VoidCallback onTap;
 
   const SeeMoreRow({
     Key? key,
     required this.onTap,
   }) : super(key: key);
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

@@ -3,9 +3,9 @@ import 'package:shimmer/shimmer.dart';
 
 /// Reusable shimmer wrapper with indigo-tinted base/highlight.
 class AppShimmer extends StatelessWidget {
-  final Widget child;
 
   const AppShimmer({super.key, required this.child});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +23,6 @@ class AppShimmer extends StatelessWidget {
 }
 
 class ShimmerBox extends StatelessWidget {
-  final double height;
-  final double? width;
-  final double radius;
 
   const ShimmerBox({
     super.key,
@@ -33,6 +30,9 @@ class ShimmerBox extends StatelessWidget {
     this.width,
     this.radius = 16,
   });
+  final double height;
+  final double? width;
+  final double radius;
 
   @override
   Widget build(BuildContext context) {

@@ -11,9 +11,7 @@ import 'activity_notifier.dart';
 import 'activity_state.dart';
 
 /// Activity remote data source provider
-final activityRemoteDataSourceProvider = Provider<ActivityRemoteDataSource>((ref) {
-  return ActivityRemoteDataSourceImpl();
-});
+final activityRemoteDataSourceProvider = Provider<ActivityRemoteDataSource>((ref) => ActivityRemoteDataSourceImpl());
 
 /// Activity repository provider
 final activityRepositoryProvider = FutureProvider<ActivityRepository>((ref) async {
@@ -46,10 +44,8 @@ final completeActivityUseCaseProvider = FutureProvider<CompleteActivityUseCase>(
 
 /// Activity notifier provider
 /// Note: Uses async providers - notifier fetches use cases when needed
-final activityNotifierProvider = StateNotifierProvider<ActivityNotifier, ActivityState>((ref) {
-  return ActivityNotifier(
+final activityNotifierProvider = StateNotifierProvider<ActivityNotifier, ActivityState>((ref) => ActivityNotifier(
     getGetActivitiesUseCase: () => ref.read(getActivitiesUseCaseProvider.future),
     getStartActivityUseCase: () => ref.read(startActivityUseCaseProvider.future),
     getCompleteActivityUseCase: () => ref.read(completeActivityUseCaseProvider.future),
-  );
-});
+  ));

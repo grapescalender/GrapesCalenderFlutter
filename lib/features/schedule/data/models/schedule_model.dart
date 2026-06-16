@@ -10,15 +10,15 @@ class ScheduleModel with _$ScheduleModel {
   const factory ScheduleModel({
     required String id,
     required String plotId,
-    @Default('') String plotName,
-    required String type, // spray, nutrition, work
+    required String type,
     required String title,
-    @Default('') String description,
     required DateTime scheduledDate,
-    @Default(false) bool isCompleted,
-    @Default([]) List<String> activityIds, // 1-2 activity IDs
     required DateTime createdAt,
     required DateTime updatedAt,
+    @Default('') String plotName,
+    @Default('') String description,
+    @Default(false) bool isCompleted,
+    @Default([]) List<String> activityIds,
   }) = _ScheduleModel;
 
   factory ScheduleModel.fromJson(Map<String, dynamic> json) =>

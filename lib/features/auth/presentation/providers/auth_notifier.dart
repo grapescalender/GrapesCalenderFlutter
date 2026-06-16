@@ -5,11 +5,11 @@ import 'auth_state.dart';
 
 /// Auth notifier that manages authentication state
 class AuthNotifier extends StateNotifier<AuthState> {
-  final Future<LoginUseCase> Function() getLoginUseCase;
 
   AuthNotifier(this.getLoginUseCase) : super(const AuthState.initial()) {
     _checkAuthStatus();
   }
+  final Future<LoginUseCase> Function() getLoginUseCase;
 
   Future<void> _checkAuthStatus() async {
     // TODO: Check if user is already authenticated
@@ -43,8 +43,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState.unauthenticated();
   }
 
-  String _mapFailureToMessage(Failure failure) {
-    return failure.when(
+  String _mapFailureToMessage(Failure failure) => failure.when(
       network: (message, _) => message,
       server: (message, _) => message,
       cache: (message) => message,
@@ -53,5 +52,4 @@ class AuthNotifier extends StateNotifier<AuthState> {
       validation: (message, _) => message,
       unknown: (message, _) => message,
     );
-  }
 }

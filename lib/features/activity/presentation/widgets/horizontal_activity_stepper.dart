@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../domain/entities/activity_entity.dart';
 import 'activity_card.dart';
 import 'step_indicator.dart';
 
-/// Horizontal Activity Stepper Widget
-/// Shows activities in a horizontal layout at the top of home screen
-/// Features:
-/// - Circular step indicators with progress line
-/// - Tappable completed and current steps
-/// - Selected activity summary card
+/// Redesigned Horizontal Activity Stepper
+///
+/// Layout:
+///   ┌──────────────────────────────────────────────┐
+///   │  [●]──[●]──[◉]──[○]──[○]   View All →        │
+///   │  Cut  Floor Form Harv Dip                     │
+///   └──────────────────────────────────────────────┘
+///   └── Selected ActivityCard ──────────────────────┘
 class HorizontalActivityStepper extends StatefulWidget {
-  final List<ActivityEntity> activities;
-  final Function(ActivityEntity) onStepTapped;
-  final VoidCallback onViewAllActivities;
-  final ActivityEntity? selectedActivity;
-
   const HorizontalActivityStepper({
     Key? key,
     required this.activities,
@@ -25,80 +23,118 @@ class HorizontalActivityStepper extends StatefulWidget {
     this.selectedActivity,
   }) : super(key: key);
 
+  final List<ActivityEntity> activities;
+  final Function(ActivityEntity) onStepTapped;
+  final VoidCallback onViewAllActivities;
+  final ActivityEntity? selectedActivity;
+
   @override
   State<HorizontalActivityStepper> createState() =>
       _HorizontalActivityStepperState();
 }
 
-class _HorizontalActivityStepperState extends State<HorizontalActivityStepper> {
-  late ActivityEntity selectedActivity;
+class _HorizontalActivityStepperState
+    extends State<HorizontalActivityStepper> {
+  late ActivityEntity _selected;
 
   @override
   void initState() {
     super.initState();
-    selectedActivity = widget.selectedActivity ??
-        (widget.activities.isNotEmpty ? widget.activities.first : null) as ActivityEntity;
+    _selected = widget.selectedActivity ??
+        (widget.activities.isNotEmpty ? widget.activities.first : null)!;
   }
 
   @override
-  void didUpdateWidget(HorizontalActivityStepper oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedActivity != oldWidget.selectedActivity &&
-        widget.selectedActivity != null) {
-      selectedActivity = widget.selectedActivity!;
+  void didUpdateWidget(HorizontalActivityStepper old) {
+    super.didUpdateWidget(old);
+    if (widget.selectedActivity != null &&
+        widget.selectedActivity != old.selectedActivity) {
+      _selected = widget.selectedActivity!;
     }
+  }
+
+  ActivityStepState _stepState(ActivityEntity a) {
+    if (a.isCompleted) return ActivityStepState.completed;
+    if (a.isActive) return ActivityStepState.current;
+    return ActivityStepState.upcoming;
+  }
+
+  int _dayCount() {
+    if (_selected.startedAt == null) return 0;
+    final end = _selected.completedAt ?? DateTime.now();
+    return end.difference(_selected.startedAt!).inDays + 1;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.activities.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final cs = Theme.of(context).colorScheme;
+    if (widget.activities.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Horizontal Stepper
+        // ── Stepper rail ────────────────────────────────────────────────
         Container(
-          color: Colors.white,
-          padding: EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            border: Border.all(color: AppColors.outline),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.md),
           child: Column(
             children: [
-              // Progress stepper with indicators and line
-              _buildProgressStepper(context),
-              SizedBox(height: AppSpacing.lg),
+              // Progress track row
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: _buildTrack(context),
+              ),
 
-              // View all activities button
-              SizedBox(
-                width: double.infinity,
-                height: 40,
-                child: FilledButton.tonal(
-                  onPressed: widget.onViewAllActivities,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('View All Activities'),
-                      SizedBox(width: AppSpacing.sm),
-                      const Icon(Icons.arrow_forward, size: 18),
-                    ],
-                  ),
+              const SizedBox(height: AppSpacing.smMd),
+              const Divider(height: 1, color: AppColors.outline),
+              const SizedBox(height: AppSpacing.smMd),
+
+              // "View all" row
+              GestureDetector(
+                onTap: widget.onViewAllActivities,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'View All Activities',
+                      style: AppTypography.bodySmall(context).copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_forward_rounded,
+                        size: 14, color: AppColors.primary),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-        SizedBox(height: AppSpacing.md),
 
-        // Selected Activity Summary Card
+        const SizedBox(height: AppSpacing.smMd),
+
+        // ── Selected activity card ───────────────────────────────────────
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal),
           child: ActivityCard(
-            activity: selectedActivity,
+            activity: _selected,
             isSelected: true,
             isClickable: false,
-            dayCount: _calculateDayCount(),
+            dayCount: _dayCount(),
             startDay: 1,
           ),
         ),
@@ -106,89 +142,128 @@ class _HorizontalActivityStepperState extends State<HorizontalActivityStepper> {
     );
   }
 
-  /// Build horizontal progress stepper
-  Widget _buildProgressStepper(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final totalSteps = widget.activities.length;
+  /// Builds the horizontal step indicators with connector lines + labels
+  Widget _buildTrack(BuildContext context) {
+    final total = widget.activities.length;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(total * 2 - 1, (i) {
+        // Odd indices = connector lines
+        if (i.isOdd) {
+          final stepIdx = i ~/ 2;
+          final a = widget.activities[stepIdx];
+          final filled = _stepState(a) == ActivityStepState.completed;
+          return _Connector(filled: filled);
+        }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(
-            totalSteps * 2 - 1,
-            (index) {
-              // Even indices are step indicators, odd indices are connector lines
-              if (index.isEven) {
-                final stepIndex = index ~/ 2;
-                final activity = widget.activities[stepIndex];
-                final isSelected = selectedActivity.id == activity.id;
-                final stepState = _getStepState(activity);
-                final isClickable = stepState != ActivityStepState.upcoming;
+        // Even indices = step + label
+        final stepIdx = i ~/ 2;
+        final activity = widget.activities[stepIdx];
+        final state = _stepState(activity);
+        final isClickable = state != ActivityStepState.upcoming;
+        final isSelectedStep = _selected.id == activity.id;
 
-                return GestureDetector(
-                  onTap: isClickable
-                      ? () => _onStepTapped(activity)
-                      : null,
-                  child: StepIndicator(
-                    state: stepState,
-                    stepNumber: stepIndex + 1,
-                    icon: activity.type.icon,
-                    isLast: stepIndex == totalSteps - 1,
-                    isClickable: isClickable,
-                    size: 36,
-                  ),
-                );
-              } else {
-                // Connector line
-                final stepIndex = index ~/ 2;
-                final activity = widget.activities[stepIndex];
-                final nextActivity = widget.activities[stepIndex + 1];
-                
-                final isFilled = _getStepState(activity) == ActivityStepState.completed ||
-                    (_getStepState(activity) == ActivityStepState.current &&
-                        _getStepState(nextActivity) != ActivityStepState.upcoming);
+        return _StepWithLabel(
+          activity: activity,
+          state: state,
+          stepNumber: stepIdx + 1,
+          isClickable: isClickable,
+          isSelected: isSelectedStep,
+          onTap: isClickable
+              ? () {
+                  setState(() => _selected = activity);
+                  widget.onStepTapped(activity);
+                }
+              : null,
+        );
+      }),
+    );
+  }
+}
 
-                return Container(
-                  width: 30,
-                  height: 3,
-                  margin: EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    color: isFilled ? cs.primary : cs.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                );
-              }
-            },
-          ),
+// ── Connector line ────────────────────────────────────────────────────────
+class _Connector extends StatelessWidget {
+  const _Connector({required this.filled});
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 28,
+        height: 2,
+        margin: const EdgeInsets.only(top: 18, left: 2, right: 2),
+        decoration: BoxDecoration(
+          color: filled ? AppColors.success : AppColors.outline,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      );
+}
+
+// ── Step + label column ───────────────────────────────────────────────────
+class _StepWithLabel extends StatelessWidget {
+  const _StepWithLabel({
+    required this.activity,
+    required this.state,
+    required this.stepNumber,
+    required this.isClickable,
+    required this.isSelected,
+    this.onTap,
+  });
+
+  final ActivityEntity activity;
+  final ActivityStepState state;
+  final int stepNumber;
+  final bool isClickable;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 58,
+        child: Column(
+          children: [
+            // Glow ring for selected active step
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: isSelected && state == ActivityStepState.current
+                  ? const EdgeInsets.all(3)
+                  : EdgeInsets.zero,
+              decoration: isSelected && state == ActivityStepState.current
+                  ? BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                    )
+                  : null,
+              child: StepIndicator(
+                state: state,
+                stepNumber: stepNumber,
+                icon: activity.type.icon,
+                isClickable: isClickable,
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              activity.type.displayName,
+              style: AppTypography.bodySmall(context).copyWith(
+                fontSize: 10,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w400,
+                color: isSelected ? AppColors.primary : AppColors.onSurface,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  /// Get step state based on activity status
-  ActivityStepState _getStepState(ActivityEntity activity) {
-    if (activity.isCompleted) return ActivityStepState.completed;
-    if (activity.isActive) return ActivityStepState.current;
-    return ActivityStepState.upcoming;
-  }
-
-  /// Handle step tapped
-  void _onStepTapped(ActivityEntity activity) {
-    setState(() {
-      selectedActivity = activity;
-    });
-    widget.onStepTapped(activity);
-  }
-
-  /// Calculate day count for the selected activity
-  int _calculateDayCount() {
-    if (selectedActivity.startedAt == null) return 0;
-    
-    final endDate = selectedActivity.completedAt ?? DateTime.now();
-    return endDate.difference(selectedActivity.startedAt!).inDays + 1;
   }
 }

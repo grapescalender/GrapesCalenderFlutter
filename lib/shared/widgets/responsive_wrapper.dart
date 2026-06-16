@@ -3,9 +3,6 @@ import '../responsive/responsive_utils.dart';
 
 /// Responsive wrapper widget that adapts layout based on screen size
 class ResponsiveWrapper extends StatelessWidget {
-  final Widget mobile;
-  final Widget? tablet;
-  final Widget? desktop;
 
   const ResponsiveWrapper({
     Key? key,
@@ -13,6 +10,9 @@ class ResponsiveWrapper extends StatelessWidget {
     this.tablet,
     this.desktop,
   }) : super(key: key);
+  final Widget mobile;
+  final Widget? tablet;
+  final Widget? desktop;
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +27,12 @@ class ResponsiveWrapper extends StatelessWidget {
 
 /// Responsive builder widget
 class ResponsiveBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context, bool isMobile, bool isTablet, bool isDesktop) builder;
 
   const ResponsiveBuilder({
     Key? key,
     required this.builder,
   }) : super(key: key);
+  final Widget Function(BuildContext context, bool isMobile, bool isTablet, bool isDesktop) builder;
 
   @override
   Widget build(BuildContext context) {

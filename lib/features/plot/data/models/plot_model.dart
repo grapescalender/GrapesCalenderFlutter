@@ -1,12 +1,5 @@
 /// Plot model representing a vineyard plot
 class PlotModel {
-  final String id;
-  final String plotName;
-  final String location;
-  final double areaInAcres;
-  final String grapeVariety;
-  final DateTime pruningDate;
-  final bool isSelected;
 
   PlotModel({
     required this.id,
@@ -17,6 +10,13 @@ class PlotModel {
     required this.pruningDate,
     this.isSelected = false,
   });
+  final String id;
+  final String plotName;
+  final String location;
+  final double areaInAcres;
+  final String grapeVariety;
+  final DateTime pruningDate;
+  final bool isSelected;
 
   /// Days since pruning
   int get calculatedDaysFromPruning {
@@ -33,8 +33,7 @@ class PlotModel {
     String? grapeVariety,
     DateTime? pruningDate,
     bool? isSelected,
-  }) {
-    return PlotModel(
+  }) => PlotModel(
       id: id ?? this.id,
       plotName: plotName ?? this.plotName,
       location: location ?? this.location,
@@ -43,7 +42,6 @@ class PlotModel {
       pruningDate: pruningDate ?? this.pruningDate,
       isSelected: isSelected ?? this.isSelected,
     );
-  }
 
   @override
   String toString() => 'PlotModel(id: $id, plotName: $plotName, location: $location)';

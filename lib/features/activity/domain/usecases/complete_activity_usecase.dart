@@ -6,19 +6,17 @@ import '../repositories/activity_repository.dart';
 
 /// Parameters for CompleteActivityUseCase
 class CompleteActivityParams {
-  final String activityId;
 
   CompleteActivityParams({required this.activityId});
+  final String activityId;
 }
 
 /// Use case to complete an activity
 class CompleteActivityUseCase implements UseCase<ActivityEntity, CompleteActivityParams> {
-  final ActivityRepository repository;
 
   CompleteActivityUseCase(this.repository);
+  final ActivityRepository repository;
 
   @override
-  Future<Either<Failure, ActivityEntity>> call(CompleteActivityParams params) async {
-    return await repository.completeActivity(activityId: params.activityId);
-  }
+  Future<Either<Failure, ActivityEntity>> call(CompleteActivityParams params) async => await repository.completeActivity(activityId: params.activityId);
 }

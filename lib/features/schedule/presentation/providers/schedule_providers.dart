@@ -10,9 +10,7 @@ import 'schedule_notifier.dart';
 import 'schedule_state.dart';
 
 /// Schedule remote data source provider
-final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((ref) {
-  return ScheduleRemoteDataSourceImpl();
-});
+final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((ref) => ScheduleRemoteDataSourceImpl());
 
 /// Schedule repository provider
 final scheduleRepositoryProvider = FutureProvider<ScheduleRepository>((ref) async {
@@ -39,9 +37,7 @@ final createScheduleUseCaseProvider = FutureProvider<CreateScheduleUseCase>((ref
 
 /// Schedule notifier provider
 /// Note: Uses async providers - notifier fetches use cases when needed
-final scheduleNotifierProvider = StateNotifierProvider<ScheduleNotifier, ScheduleState>((ref) {
-  return ScheduleNotifier(
+final scheduleNotifierProvider = StateNotifierProvider<ScheduleNotifier, ScheduleState>((ref) => ScheduleNotifier(
     getGetSchedulesUseCase: () => ref.watch(getSchedulesUseCaseProvider.future),
     getCreateScheduleUseCase: () => ref.watch(createScheduleUseCaseProvider.future),
-  );
-});
+  ));

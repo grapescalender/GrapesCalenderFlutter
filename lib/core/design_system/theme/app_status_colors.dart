@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 /// UI status colors for schedules/activities (pending/completed/upcoming/active).
 class AppStatusColors extends ThemeExtension<AppStatusColors> {
-  final Color pending;
-  final Color completed;
-  final Color upcoming;
-  final Color active;
 
   const AppStatusColors({
     required this.pending,
@@ -13,6 +9,10 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
     required this.upcoming,
     required this.active,
   });
+  final Color pending;
+  final Color completed;
+  final Color upcoming;
+  final Color active;
 
   static const AppStatusColors light = AppStatusColors(
     pending: Colors.orange,
@@ -34,14 +34,12 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
     Color? completed,
     Color? upcoming,
     Color? active,
-  }) {
-    return AppStatusColors(
+  }) => AppStatusColors(
       pending: pending ?? this.pending,
       completed: completed ?? this.completed,
       upcoming: upcoming ?? this.upcoming,
       active: active ?? this.active,
     );
-  }
 
   @override
   AppStatusColors lerp(ThemeExtension<AppStatusColors>? other, double t) {

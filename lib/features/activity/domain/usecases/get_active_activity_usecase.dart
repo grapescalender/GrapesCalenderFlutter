@@ -6,19 +6,17 @@ import '../repositories/activity_repository.dart';
 
 /// Parameters for GetActiveActivityUseCase
 class GetActiveActivityParams {
-  final String plotId;
 
   GetActiveActivityParams({required this.plotId});
+  final String plotId;
 }
 
 /// Use case to get active activity for a plot
 class GetActiveActivityUseCase implements UseCase<ActivityEntity?, GetActiveActivityParams> {
-  final ActivityRepository repository;
 
   GetActiveActivityUseCase(this.repository);
+  final ActivityRepository repository;
 
   @override
-  Future<Either<Failure, ActivityEntity?>> call(GetActiveActivityParams params) async {
-    return await repository.getActiveActivity(plotId: params.plotId);
-  }
+  Future<Either<Failure, ActivityEntity?>> call(GetActiveActivityParams params) async => await repository.getActiveActivity(plotId: params.plotId);
 }

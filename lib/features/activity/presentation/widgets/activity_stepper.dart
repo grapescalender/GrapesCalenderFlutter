@@ -11,9 +11,6 @@ import 'activity_item.dart';
 /// - 1 current activity
 /// - 1 next upcoming activity
 class ActivityStepper extends StatelessWidget {
-  final List<ActivityEntity> activities;
-  final Function(ActivityEntity)? onActivityTap;
-  final VoidCallback? onViewAll;
 
   const ActivityStepper({
     Key? key,
@@ -21,6 +18,9 @@ class ActivityStepper extends StatelessWidget {
     this.onActivityTap,
     this.onViewAll,
   }) : super(key: key);
+  final List<ActivityEntity> activities;
+  final Function(ActivityEntity)? onActivityTap;
+  final VoidCallback? onViewAll;
 
   @override
   Widget build(BuildContext context) {
@@ -128,25 +128,23 @@ class ActivityStepper extends StatelessWidget {
 
     // Get next upcoming activity
     ActivityEntity? nextUpcoming;
-    if (current != null) {
-      final currentIndex = orderedTypes.indexOf(current.type);
-      if (currentIndex >= 0 && currentIndex < orderedTypes.length - 1) {
-        final nextType = orderedTypes[currentIndex + 1];
-        try {
-          final next = sorted.firstWhere((a) => a.type == nextType);
-          if (next.isPending) {
-            nextUpcoming = next;
-          }
-        } catch (e) {
-          // Next activity not found
+    final currentIndex = orderedTypes.indexOf(current.type);
+    if (currentIndex >= 0 && currentIndex < orderedTypes.length - 1) {
+      final nextType = orderedTypes[currentIndex + 1];
+      try {
+        final next = sorted.firstWhere((a) => a.type == nextType);
+        if (next.isPending) {
+          nextUpcoming = next;
         }
+      } catch (e) {
+        // Next activity not found
       }
     }
-
+  
     // Combine: last 2 completed + current + next upcoming
     final visible = <ActivityEntity>[];
     visible.addAll(last2Completed);
-    if (current != null && !visible.contains(current)) {
+    if (!visible.contains(current)) {
       visible.add(current);
     }
     if (nextUpcoming != null && !visible.contains(nextUpcoming)) {

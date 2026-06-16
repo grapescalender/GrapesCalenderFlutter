@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 /// Semantic colors that are NOT part of Material ColorScheme (success/warning/info).
 /// Kept in Theme to avoid hardcoding colors in widgets.
 class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
-  final Color success;
-  final Color warning;
-  final Color info;
 
   const AppSemanticColors({
     required this.success,
     required this.warning,
     required this.info,
   });
+  final Color success;
+  final Color warning;
+  final Color info;
 
   static const AppSemanticColors light = AppSemanticColors(
     success: Colors.green,
@@ -30,13 +30,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     Color? success,
     Color? warning,
     Color? info,
-  }) {
-    return AppSemanticColors(
+  }) => AppSemanticColors(
       success: success ?? this.success,
       warning: warning ?? this.warning,
       info: info ?? this.info,
     );
-  }
 
   @override
   AppSemanticColors lerp(ThemeExtension<AppSemanticColors>? other, double t) {

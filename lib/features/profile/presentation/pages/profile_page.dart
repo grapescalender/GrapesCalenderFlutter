@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 
 /// Profile page
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+  Widget build(BuildContext context) => Column(
       children: [
         AppBar(
           title: const Text('Profile'),
@@ -96,5 +95,4 @@ class ProfilePage extends StatelessWidget {
         ),
       ],
     );
-  }
 }

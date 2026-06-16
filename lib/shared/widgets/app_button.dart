@@ -6,16 +6,6 @@ import '../../core/design_system/typography/app_typography.dart';
 /// Minimal, clean button design with multiple variants
 /// Supports primary, secondary, and text button styles
 class AppButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  final AppButtonVariant variant;
-  final AppButtonSize size;
-  final bool isLoading;
-  final IconData? icon;
-  final bool isFullWidth;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
-  final String? semanticLabel;
 
   const AppButton({
     Key? key,
@@ -90,6 +80,16 @@ class AppButton extends StatelessWidget {
           icon: icon,
           isFullWidth: isFullWidth,
         );
+  final String label;
+  final VoidCallback? onPressed;
+  final AppButtonVariant variant;
+  final AppButtonSize size;
+  final bool isLoading;
+  final IconData? icon;
+  final bool isFullWidth;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -185,17 +185,17 @@ class AppButton extends StatelessWidget {
   EdgeInsets _getButtonSize() {
     switch (size) {
       case AppButtonSize.small:
-        return EdgeInsets.symmetric(
+        return const EdgeInsets.symmetric(
           horizontal: AppSpacing.buttonPaddingHorizontalSmall,
           vertical: AppSpacing.sm,
         );
       case AppButtonSize.medium:
-        return EdgeInsets.symmetric(
+        return const EdgeInsets.symmetric(
           horizontal: AppSpacing.buttonPaddingHorizontal,
           vertical: AppSpacing.buttonPaddingVertical,
         );
       case AppButtonSize.large:
-        return EdgeInsets.symmetric(
+        return const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
         );
@@ -238,7 +238,7 @@ class AppButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 18),
-          SizedBox(width: AppSpacing.iconSpacing),
+          const SizedBox(width: AppSpacing.iconSpacing),
           Text(label, style: textStyle),
         ],
       );

@@ -5,13 +5,7 @@ import '../entities/schedule_entity.dart';
 import '../repositories/schedule_repository.dart';
 
 /// Create schedule use case parameters
-class CreateScheduleParams {
-  final String plotId;
-  final ScheduleType type;
-  final String title;
-  final DateTime scheduledDate;
-  final String? description;
-  final List<String> activityIds; // 1-2 activity IDs
+class CreateScheduleParams { // 1-2 activity IDs
 
   CreateScheduleParams({
     required this.plotId,
@@ -21,17 +15,22 @@ class CreateScheduleParams {
     this.description,
     this.activityIds = const [],
   });
+  final String plotId;
+  final ScheduleType type;
+  final String title;
+  final DateTime scheduledDate;
+  final String? description;
+  final List<String> activityIds;
 }
 
 /// Create schedule use case
 class CreateScheduleUseCase implements UseCase<ScheduleEntity, CreateScheduleParams> {
-  final ScheduleRepository repository;
 
   CreateScheduleUseCase(this.repository);
+  final ScheduleRepository repository;
 
   @override
-  Future<Either<Failure, ScheduleEntity>> call(CreateScheduleParams params) async {
-    return await repository.createSchedule(
+  Future<Either<Failure, ScheduleEntity>> call(CreateScheduleParams params) async => await repository.createSchedule(
       plotId: params.plotId,
       type: params.type,
       title: params.title,
@@ -39,5 +38,4 @@ class CreateScheduleUseCase implements UseCase<ScheduleEntity, CreateSchedulePar
       description: params.description,
       activityIds: params.activityIds,
     );
-  }
 }

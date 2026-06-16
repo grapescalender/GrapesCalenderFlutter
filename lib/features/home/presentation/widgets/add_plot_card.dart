@@ -6,9 +6,6 @@ import '../../../../core/design_system/typography/app_typography.dart';
 /// Compact design matching PlotCard style
 /// Shows "Add Running Plot" or "Start Plot" based on state
 class AddPlotCard extends StatelessWidget {
-  final bool isEnabled;
-  final bool showStartPlot;
-  final VoidCallback onTap;
 
   const AddPlotCard({
     Key? key,
@@ -16,6 +13,9 @@ class AddPlotCard extends StatelessWidget {
     required this.showStartPlot,
     required this.onTap,
   }) : super(key: key);
+  final bool isEnabled;
+  final bool showStartPlot;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +28,10 @@ class AddPlotCard extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: isEnabled
-              ? cs.surfaceVariant
+              ? cs.surfaceContainerHighest
               : (isDark 
-                  ? cs.surfaceVariant.withOpacity(0.5)
-                  : cs.surfaceVariant.withOpacity(0.5)),
+                  ? cs.surfaceContainerHighest.withOpacity(0.5)
+                  : cs.surfaceContainerHighest.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
             color: isEnabled

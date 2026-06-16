@@ -16,14 +16,14 @@ import 'activity_selector_widget.dart';
 /// Add Schedule Form Widget
 /// Modal form for creating new schedules
 class AddScheduleForm extends ConsumerStatefulWidget {
-  final String plotId;
-  final String plotName;
 
   const AddScheduleForm({
     Key? key,
     required this.plotId,
     required this.plotName,
   }) : super(key: key);
+  final String plotId;
+  final String plotName;
 
   @override
   ConsumerState<AddScheduleForm> createState() => _AddScheduleFormState();
@@ -59,7 +59,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: BorderRadius.vertical(
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
       ),
@@ -69,7 +69,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
           children: [
             // Handle bar
             Container(
-              margin: EdgeInsets.symmetric(vertical: AppSpacing.md),
+              margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
@@ -79,7 +79,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             ),
             // Header
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -88,17 +88,17 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                     style: AppTypography.headlineLarge(context),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close),
+                    icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             // Form
             Flexible(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -113,7 +113,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                               color: cs.primary,
                               size: 20,
                             ),
-                            SizedBox(width: AppSpacing.sm),
+                            const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: Text(
                                 widget.plotName,
@@ -125,19 +125,19 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                           ],
                         ),
                       ),
-                      SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.md),
                       // Schedule Type
                       Text(
                         'Type',
                         style: AppTypography.titleMedium(context),
                       ),
-                      SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: AppSpacing.sm),
                       _buildTypeSelector(context),
-                      SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.md),
                       // Title
                       TextFormField(
                         controller: _titleController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Title',
                           hintText: 'Enter schedule title',
                         ),
@@ -148,33 +148,33 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                           return null;
                         },
                       ),
-                      SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.md),
                       // Date and Time
                       Row(
                         children: [
                           Expanded(
                             child: _buildDatePicker(context),
                           ),
-                          SizedBox(width: AppSpacing.md),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: _buildTimePicker(context),
                           ),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.md),
                       // Activity Selection
                       _buildActivitySelector(context),
-                      SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.md),
                       // Description
                       TextFormField(
                         controller: _descriptionController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Description (Optional)',
                           hintText: 'Enter description',
                         ),
                         maxLines: 3,
                       ),
-                      SizedBox(height: AppSpacing.xl),
+                      const SizedBox(height: AppSpacing.xl),
                       // Submit Button
                       AppButton.primary(
                         label: scheduleState.isCreating ? 'Creating...' : 'Create Schedule',
@@ -184,7 +184,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                         isLoading: scheduleState.isCreating,
                         isFullWidth: true,
                       ),
-                      SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.lg),
                     ],
                   ),
                 ),
@@ -209,7 +209,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             semantic.info,
           ),
         ),
-        SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _buildTypeChip(
             context,
@@ -218,7 +218,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             semantic.warning,
           ),
         ),
-        SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _buildTypeChip(
             context,
@@ -243,11 +243,11 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     return GestureDetector(
       onTap: () => setState(() => _selectedType = type),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: isSelected
               ? color.withOpacity(0.1)
-              : cs.surfaceVariant,
+              : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           border: isSelected
               ? Border.all(color: color, width: 2)
@@ -260,7 +260,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
               color: isSelected ? color : cs.onSurfaceVariant,
               size: 24,
             ),
-            SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               type.displayName,
               style: AppTypography.bodySmall(context).copyWith(
@@ -287,7 +287,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
               color: cs.primary,
               size: 20,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +298,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                       color: cs.onSurfaceVariant,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     DateFormat('MMM dd, yyyy').format(_selectedDate),
                     style: AppTypography.bodyMedium(context),
@@ -329,7 +329,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
               color: cs.primary,
               size: 20,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +340,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                       color: cs.onSurfaceVariant,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     _selectedTime.format(context),
                     style: AppTypography.bodyMedium(context),
@@ -390,7 +390,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: cs.surfaceVariant,
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         child: Text(
@@ -460,7 +460,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Schedule created successfully'),
+          content: const Text('Schedule created successfully'),
           backgroundColor: Theme.of(context).extension<AppSemanticColors>()!.success,
         ),
       );

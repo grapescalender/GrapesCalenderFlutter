@@ -37,7 +37,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Pesticide Spray - Round 1',
         description: 'Apply pesticide spray to control pests',
         scheduledDate: now.add(const Duration(days: 1)),
-        isCompleted: false,
         activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 10)),
         updatedAt: now.subtract(const Duration(days: 10)),
@@ -50,7 +49,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Pesticide Spray - Round 2',
         description: 'Second round of pesticide application',
         scheduledDate: now.subtract(const Duration(days: 2)), // Within Flooring activity range
-        isCompleted: false,
         activityIds: ['activity_${plotId}_flooring', 'activity_${plotId}_formation'], // Linked to 2 activities
         createdAt: now.subtract(const Duration(days: 8)),
         updatedAt: now.subtract(const Duration(days: 8)),
@@ -63,7 +61,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Fungicide Application',
         description: 'Apply fungicide to prevent diseases',
         scheduledDate: now.add(const Duration(days: 15)),
-        isCompleted: false,
         activityIds: ['activity_${plotId}_formation'], // Linked to Formation activity
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(days: 5)),
@@ -76,7 +73,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Herbicide Spray',
         description: 'Apply herbicide to control weeds',
         scheduledDate: now.add(const Duration(days: 20)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(days: 3)),
         updatedAt: now.subtract(const Duration(days: 3)),
       ),
@@ -88,7 +84,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Pesticide Spray - Round 3',
         description: 'Third round of pesticide application',
         scheduledDate: now.add(const Duration(days: 25)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
       ),
@@ -102,7 +97,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'NPK Fertilizer Application',
         description: 'Apply NPK fertilizer for growth',
         scheduledDate: now, // Today - within Flooring activity range (started 3 days ago, ongoing)
-        isCompleted: false,
         activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity (within date range)
         createdAt: now.subtract(const Duration(days: 9)),
         updatedAt: now.subtract(const Duration(days: 9)),
@@ -115,7 +109,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Organic Compost Application',
         description: 'Apply organic compost for soil health',
         scheduledDate: now.subtract(const Duration(days: 1)), // Within Flooring activity range
-        isCompleted: false,
         activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 7)),
         updatedAt: now.subtract(const Duration(days: 7)),
@@ -128,7 +121,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Micronutrient Supplement',
         description: 'Apply micronutrients for better yield',
         scheduledDate: now.add(const Duration(days: 17)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(days: 4)),
         updatedAt: now.subtract(const Duration(days: 4)),
       ),
@@ -140,7 +132,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Liquid Fertilizer Application',
         description: 'Apply liquid fertilizer through irrigation',
         scheduledDate: now.add(const Duration(days: 22)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(days: 2)),
         updatedAt: now.subtract(const Duration(days: 2)),
       ),
@@ -152,7 +143,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'NPK Fertilizer - Second Round',
         description: 'Second round of NPK fertilizer',
         scheduledDate: now.add(const Duration(days: 28)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(hours: 12)),
         updatedAt: now.subtract(const Duration(hours: 12)),
       ),
@@ -166,7 +156,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Pruning Work',
         description: 'Prune branches for better growth',
         scheduledDate: now.subtract(const Duration(days: 2)), // Within Flooring activity range
-        isCompleted: false,
         activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 6)),
         updatedAt: now.subtract(const Duration(days: 6)),
@@ -179,7 +168,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Weeding Work',
         description: 'Remove weeds from the plot',
         scheduledDate: now, // Today - within Flooring activity range
-        isCompleted: false,
         activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(days: 5)),
@@ -192,7 +180,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Harvesting Work',
         description: 'Harvest mature crops',
         scheduledDate: now.subtract(const Duration(days: 3)), // Exactly on Flooring start date
-        isCompleted: false,
         activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 3)),
         updatedAt: now.subtract(const Duration(days: 3)),
@@ -205,7 +192,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Soil Preparation',
         description: 'Prepare soil for next season',
         scheduledDate: now.add(const Duration(days: 24)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
       ),
@@ -217,7 +203,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Irrigation Setup',
         description: 'Set up irrigation system',
         scheduledDate: now.add(const Duration(days: 30)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(hours: 6)),
         updatedAt: now.subtract(const Duration(hours: 6)),
       ),
@@ -231,7 +216,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Final Pesticide Spray',
         description: 'Final round of pesticide before harvest',
         scheduledDate: now.add(const Duration(days: 35)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(hours: 3)),
         updatedAt: now.subtract(const Duration(hours: 3)),
       ),
@@ -243,7 +227,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Pre-Harvest Nutrition',
         description: 'Final nutrition application before harvest',
         scheduledDate: now.add(const Duration(days: 40)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(hours: 2)),
         updatedAt: now.subtract(const Duration(hours: 2)),
       ),
@@ -255,7 +238,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Post-Harvest Cleanup',
         description: 'Clean up after harvest',
         scheduledDate: now.add(const Duration(days: 45)),
-        isCompleted: false,
         createdAt: now.subtract(const Duration(hours: 1)),
         updatedAt: now.subtract(const Duration(hours: 1)),
       ),

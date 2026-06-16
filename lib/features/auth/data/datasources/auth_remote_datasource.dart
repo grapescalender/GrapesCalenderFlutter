@@ -43,8 +43,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
     
     // Hardcoded credentials for development
-    const String validUsername = 'admin';
-    const String validPassword = 'password';
+    const validUsername = 'admin';
+    const validPassword = 'password';
     
     // Validate credentials
     if (username.isEmpty || password.isEmpty) {
@@ -69,8 +69,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       city: 'Farm City',
       state: 'Farm State',
       zipCode: '12345',
-      profileImage: '',
-      isActive: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );

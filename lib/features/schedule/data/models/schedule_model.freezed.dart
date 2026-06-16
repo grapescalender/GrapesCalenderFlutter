@@ -22,17 +22,15 @@ ScheduleModel _$ScheduleModelFromJson(Map<String, dynamic> json) {
 mixin _$ScheduleModel {
   String get id => throw _privateConstructorUsedError;
   String get plotId => throw _privateConstructorUsedError;
-  String get plotName => throw _privateConstructorUsedError;
-  String get type =>
-      throw _privateConstructorUsedError; // spray, nutrition, work
+  String get type => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
   DateTime get scheduledDate => throw _privateConstructorUsedError;
-  bool get isCompleted => throw _privateConstructorUsedError;
-  List<String> get activityIds =>
-      throw _privateConstructorUsedError; // 1-2 activity IDs
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
+  String get plotName => throw _privateConstructorUsedError;
+  String get description => throw _privateConstructorUsedError;
+  bool get isCompleted => throw _privateConstructorUsedError;
+  List<String> get activityIds => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -49,15 +47,15 @@ abstract class $ScheduleModelCopyWith<$Res> {
   $Res call(
       {String id,
       String plotId,
-      String plotName,
       String type,
       String title,
-      String description,
       DateTime scheduledDate,
-      bool isCompleted,
-      List<String> activityIds,
       DateTime createdAt,
-      DateTime updatedAt});
+      DateTime updatedAt,
+      String plotName,
+      String description,
+      bool isCompleted,
+      List<String> activityIds});
 }
 
 /// @nodoc
@@ -75,15 +73,15 @@ class _$ScheduleModelCopyWithImpl<$Res, $Val extends ScheduleModel>
   $Res call({
     Object? id = null,
     Object? plotId = null,
-    Object? plotName = null,
     Object? type = null,
     Object? title = null,
-    Object? description = null,
     Object? scheduledDate = null,
-    Object? isCompleted = null,
-    Object? activityIds = null,
     Object? createdAt = null,
     Object? updatedAt = null,
+    Object? plotName = null,
+    Object? description = null,
+    Object? isCompleted = null,
+    Object? activityIds = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -94,10 +92,6 @@ class _$ScheduleModelCopyWithImpl<$Res, $Val extends ScheduleModel>
           ? _value.plotId
           : plotId // ignore: cast_nullable_to_non_nullable
               as String,
-      plotName: null == plotName
-          ? _value.plotName
-          : plotName // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -106,22 +100,10 @@ class _$ScheduleModelCopyWithImpl<$Res, $Val extends ScheduleModel>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
-      description: null == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
       scheduledDate: null == scheduledDate
           ? _value.scheduledDate
           : scheduledDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      isCompleted: null == isCompleted
-          ? _value.isCompleted
-          : isCompleted // ignore: cast_nullable_to_non_nullable
-              as bool,
-      activityIds: null == activityIds
-          ? _value.activityIds
-          : activityIds // ignore: cast_nullable_to_non_nullable
-              as List<String>,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -130,6 +112,22 @@ class _$ScheduleModelCopyWithImpl<$Res, $Val extends ScheduleModel>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      plotName: null == plotName
+          ? _value.plotName
+          : plotName // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      activityIds: null == activityIds
+          ? _value.activityIds
+          : activityIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ) as $Val);
   }
 }
@@ -145,15 +143,15 @@ abstract class _$$ScheduleModelImplCopyWith<$Res>
   $Res call(
       {String id,
       String plotId,
-      String plotName,
       String type,
       String title,
-      String description,
       DateTime scheduledDate,
-      bool isCompleted,
-      List<String> activityIds,
       DateTime createdAt,
-      DateTime updatedAt});
+      DateTime updatedAt,
+      String plotName,
+      String description,
+      bool isCompleted,
+      List<String> activityIds});
 }
 
 /// @nodoc
@@ -169,15 +167,15 @@ class __$$ScheduleModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? plotId = null,
-    Object? plotName = null,
     Object? type = null,
     Object? title = null,
-    Object? description = null,
     Object? scheduledDate = null,
-    Object? isCompleted = null,
-    Object? activityIds = null,
     Object? createdAt = null,
     Object? updatedAt = null,
+    Object? plotName = null,
+    Object? description = null,
+    Object? isCompleted = null,
+    Object? activityIds = null,
   }) {
     return _then(_$ScheduleModelImpl(
       id: null == id
@@ -188,10 +186,6 @@ class __$$ScheduleModelImplCopyWithImpl<$Res>
           ? _value.plotId
           : plotId // ignore: cast_nullable_to_non_nullable
               as String,
-      plotName: null == plotName
-          ? _value.plotName
-          : plotName // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -200,22 +194,10 @@ class __$$ScheduleModelImplCopyWithImpl<$Res>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
-      description: null == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
       scheduledDate: null == scheduledDate
           ? _value.scheduledDate
           : scheduledDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      isCompleted: null == isCompleted
-          ? _value.isCompleted
-          : isCompleted // ignore: cast_nullable_to_non_nullable
-              as bool,
-      activityIds: null == activityIds
-          ? _value._activityIds
-          : activityIds // ignore: cast_nullable_to_non_nullable
-              as List<String>,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -224,6 +206,22 @@ class __$$ScheduleModelImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      plotName: null == plotName
+          ? _value.plotName
+          : plotName // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      activityIds: null == activityIds
+          ? _value._activityIds
+          : activityIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -234,15 +232,15 @@ class _$ScheduleModelImpl implements _ScheduleModel {
   const _$ScheduleModelImpl(
       {required this.id,
       required this.plotId,
-      this.plotName = '',
       required this.type,
       required this.title,
-      this.description = '',
       required this.scheduledDate,
-      this.isCompleted = false,
-      final List<String> activityIds = const [],
       required this.createdAt,
-      required this.updatedAt})
+      required this.updatedAt,
+      this.plotName = '',
+      this.description = '',
+      this.isCompleted = false,
+      final List<String> activityIds = const []})
       : _activityIds = activityIds;
 
   factory _$ScheduleModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -253,18 +251,21 @@ class _$ScheduleModelImpl implements _ScheduleModel {
   @override
   final String plotId;
   @override
-  @JsonKey()
-  final String plotName;
-  @override
   final String type;
-// spray, nutrition, work
   @override
   final String title;
   @override
+  final DateTime scheduledDate;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+  @override
+  @JsonKey()
+  final String plotName;
+  @override
   @JsonKey()
   final String description;
-  @override
-  final DateTime scheduledDate;
   @override
   @JsonKey()
   final bool isCompleted;
@@ -277,15 +278,9 @@ class _$ScheduleModelImpl implements _ScheduleModel {
     return EqualUnmodifiableListView(_activityIds);
   }
 
-// 1-2 activity IDs
-  @override
-  final DateTime createdAt;
-  @override
-  final DateTime updatedAt;
-
   @override
   String toString() {
-    return 'ScheduleModel(id: $id, plotId: $plotId, plotName: $plotName, type: $type, title: $title, description: $description, scheduledDate: $scheduledDate, isCompleted: $isCompleted, activityIds: $activityIds, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ScheduleModel(id: $id, plotId: $plotId, type: $type, title: $title, scheduledDate: $scheduledDate, createdAt: $createdAt, updatedAt: $updatedAt, plotName: $plotName, description: $description, isCompleted: $isCompleted, activityIds: $activityIds)';
   }
 
   @override
@@ -295,22 +290,22 @@ class _$ScheduleModelImpl implements _ScheduleModel {
             other is _$ScheduleModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.plotId, plotId) || other.plotId == plotId) &&
-            (identical(other.plotName, plotName) ||
-                other.plotName == plotName) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
             (identical(other.scheduledDate, scheduledDate) ||
                 other.scheduledDate == scheduledDate) &&
-            (identical(other.isCompleted, isCompleted) ||
-                other.isCompleted == isCompleted) &&
-            const DeepCollectionEquality()
-                .equals(other._activityIds, _activityIds) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.plotName, plotName) ||
+                other.plotName == plotName) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.isCompleted, isCompleted) ||
+                other.isCompleted == isCompleted) &&
+            const DeepCollectionEquality()
+                .equals(other._activityIds, _activityIds));
   }
 
   @JsonKey(ignore: true)
@@ -319,15 +314,15 @@ class _$ScheduleModelImpl implements _ScheduleModel {
       runtimeType,
       id,
       plotId,
-      plotName,
       type,
       title,
-      description,
       scheduledDate,
-      isCompleted,
-      const DeepCollectionEquality().hash(_activityIds),
       createdAt,
-      updatedAt);
+      updatedAt,
+      plotName,
+      description,
+      isCompleted,
+      const DeepCollectionEquality().hash(_activityIds));
 
   @JsonKey(ignore: true)
   @override
@@ -347,15 +342,15 @@ abstract class _ScheduleModel implements ScheduleModel {
   const factory _ScheduleModel(
       {required final String id,
       required final String plotId,
-      final String plotName,
       required final String type,
       required final String title,
-      final String description,
       required final DateTime scheduledDate,
-      final bool isCompleted,
-      final List<String> activityIds,
       required final DateTime createdAt,
-      required final DateTime updatedAt}) = _$ScheduleModelImpl;
+      required final DateTime updatedAt,
+      final String plotName,
+      final String description,
+      final bool isCompleted,
+      final List<String> activityIds}) = _$ScheduleModelImpl;
 
   factory _ScheduleModel.fromJson(Map<String, dynamic> json) =
       _$ScheduleModelImpl.fromJson;
@@ -365,23 +360,23 @@ abstract class _ScheduleModel implements ScheduleModel {
   @override
   String get plotId;
   @override
-  String get plotName;
-  @override
   String get type;
-  @override // spray, nutrition, work
+  @override
   String get title;
   @override
-  String get description;
-  @override
   DateTime get scheduledDate;
+  @override
+  DateTime get createdAt;
+  @override
+  DateTime get updatedAt;
+  @override
+  String get plotName;
+  @override
+  String get description;
   @override
   bool get isCompleted;
   @override
   List<String> get activityIds;
-  @override // 1-2 activity IDs
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
   @override
   @JsonKey(ignore: true)
   _$$ScheduleModelImplCopyWith<_$ScheduleModelImpl> get copyWith =>

@@ -12,13 +12,13 @@ _$PlotModelImpl _$$PlotModelImplFromJson(Map<String, dynamic> json) =>
       farmerId: json['farmerId'] as String,
       name: json['name'] as String,
       area: (json['area'] as num).toDouble(),
-      soilType: json['soilType'] as String? ?? '',
-      variety: json['variety'] as String? ?? '',
       pruningDate: DateTime.parse(json['pruningDate'] as String),
-      notes: json['notes'] as String? ?? '',
-      isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      soilType: json['soilType'] as String? ?? '',
+      variety: json['variety'] as String? ?? '',
+      notes: json['notes'] as String? ?? '',
+      isActive: json['isActive'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$$PlotModelImplToJson(_$PlotModelImpl instance) =>
@@ -27,13 +27,13 @@ Map<String, dynamic> _$$PlotModelImplToJson(_$PlotModelImpl instance) =>
       'farmerId': instance.farmerId,
       'name': instance.name,
       'area': instance.area,
-      'soilType': instance.soilType,
-      'variety': instance.variety,
       'pruningDate': instance.pruningDate.toIso8601String(),
-      'notes': instance.notes,
-      'isActive': instance.isActive,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'soilType': instance.soilType,
+      'variety': instance.variety,
+      'notes': instance.notes,
+      'isActive': instance.isActive,
     };
 
 _$RunningPlotModelImpl _$$RunningPlotModelImplFromJson(
@@ -43,12 +43,12 @@ _$RunningPlotModelImpl _$$RunningPlotModelImplFromJson(
       farmerId: json['farmerId'] as String,
       plot: PlotModel.fromJson(json['plot'] as Map<String, dynamic>),
       startDate: DateTime.parse(json['startDate'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
       endDate: json['endDate'] == null
           ? null
           : DateTime.parse(json['endDate'] as String),
       isActive: json['isActive'] as bool? ?? true,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$$RunningPlotModelImplToJson(
@@ -58,47 +58,52 @@ Map<String, dynamic> _$$RunningPlotModelImplToJson(
       'farmerId': instance.farmerId,
       'plot': instance.plot,
       'startDate': instance.startDate.toIso8601String(),
-      'endDate': instance.endDate?.toIso8601String(),
-      'isActive': instance.isActive,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'endDate': instance.endDate?.toIso8601String(),
+      'isActive': instance.isActive,
     };
 
-_$ScheduleModelImpl _$$ScheduleModelImplFromJson(Map<String, dynamic> json) =>
-    _$ScheduleModelImpl(
+_$PlotScheduleModelImpl _$$PlotScheduleModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PlotScheduleModelImpl(
       id: json['id'] as String,
       plotId: json['plotId'] as String,
       type: json['type'] as String,
       title: json['title'] as String,
-      description: json['description'] as String? ?? '',
       scheduledDate: DateTime.parse(json['scheduledDate'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      description: json['description'] as String? ?? '',
       completedDate: json['completedDate'] == null
           ? null
           : DateTime.parse(json['completedDate'] as String),
       status: json['status'] as String? ?? 'pending',
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$$ScheduleModelImplToJson(_$ScheduleModelImpl instance) =>
+Map<String, dynamic> _$$PlotScheduleModelImplToJson(
+        _$PlotScheduleModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'plotId': instance.plotId,
       'type': instance.type,
       'title': instance.title,
-      'description': instance.description,
       'scheduledDate': instance.scheduledDate.toIso8601String(),
-      'completedDate': instance.completedDate?.toIso8601String(),
-      'status': instance.status,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'description': instance.description,
+      'completedDate': instance.completedDate?.toIso8601String(),
+      'status': instance.status,
     };
 
-_$ActivityModelImpl _$$ActivityModelImplFromJson(Map<String, dynamic> json) =>
-    _$ActivityModelImpl(
+_$PlotActivityModelImpl _$$PlotActivityModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PlotActivityModelImpl(
       id: json['id'] as String,
       plotId: json['plotId'] as String,
       name: json['name'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
       status: json['status'] as String? ?? 'pending',
       sequenceOrder: (json['sequenceOrder'] as num?)?.toInt() ?? 0,
       startDate: json['startDate'] == null
@@ -107,19 +112,18 @@ _$ActivityModelImpl _$$ActivityModelImplFromJson(Map<String, dynamic> json) =>
       endDate: json['endDate'] == null
           ? null
           : DateTime.parse(json['endDate'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$$ActivityModelImplToJson(_$ActivityModelImpl instance) =>
+Map<String, dynamic> _$$PlotActivityModelImplToJson(
+        _$PlotActivityModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'plotId': instance.plotId,
       'name': instance.name,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
       'status': instance.status,
       'sequenceOrder': instance.sequenceOrder,
       'startDate': instance.startDate?.toIso8601String(),
       'endDate': instance.endDate?.toIso8601String(),
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
     };

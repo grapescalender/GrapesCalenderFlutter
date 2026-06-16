@@ -147,17 +147,11 @@ class AppTextStyles {
   // ===== UTILITY METHODS =====
 
   /// Get text style with custom color override
-  static TextStyle withColor(TextStyle style, Color color) {
-    return style.copyWith(color: color);
-  }
+  static TextStyle withColor(TextStyle style, Color color) => style.copyWith(color: color);
 
   /// Get text style with custom size override
-  static TextStyle withSize(TextStyle style, double fontSize) {
-    return style.copyWith(fontSize: fontSize);
-  }
+  static TextStyle withSize(TextStyle style, double fontSize) => style.copyWith(fontSize: fontSize);
 
   /// Get text style with custom weight override
-  static TextStyle withWeight(TextStyle style, FontWeight fontWeight) {
-    return style.copyWith(fontWeight: fontWeight);
-  }
+  static TextStyle withWeight(TextStyle style, FontWeight fontWeight) => style.copyWith(fontWeight: fontWeight);
 }

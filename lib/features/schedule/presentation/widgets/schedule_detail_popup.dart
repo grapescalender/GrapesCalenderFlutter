@@ -9,12 +9,12 @@ import '../../domain/entities/schedule_entity.dart';
 /// Modern bottom sheet showing full schedule details
 /// Inspired by Groww's detail modals
 class ScheduleDetailPopup extends StatelessWidget {
-  final ScheduleEntity schedule;
 
   const ScheduleDetailPopup({
     Key? key,
     required this.schedule,
   }) : super(key: key);
+  final ScheduleEntity schedule;
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +186,7 @@ class ScheduleDetailPopup extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
-                          color: cs.surfaceVariant,
+                          color: cs.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                         ),
                         child: Text(
@@ -283,11 +283,7 @@ class ScheduleDetailPopup extends StatelessWidget {
     return null;
   }
 
-  String _formatFullDate(DateTime date) {
-    return DateFormat('EEEE, MMMM dd, yyyy').format(date);
-  }
+  String _formatFullDate(DateTime date) => DateFormat('EEEE, MMMM dd, yyyy').format(date);
 
-  String _formatTime(DateTime date) {
-    return DateFormat('hh:mm a').format(date);
-  }
+  String _formatTime(DateTime date) => DateFormat('hh:mm a').format(date);
 }

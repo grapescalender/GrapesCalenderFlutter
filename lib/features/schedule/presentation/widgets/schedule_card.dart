@@ -9,14 +9,14 @@ import '../../domain/entities/schedule_entity.dart';
 /// Schedule Card Widget
 /// Displays schedule information in a card format
 class ScheduleCard extends StatelessWidget {
-  final ScheduleEntity schedule;
-  final VoidCallback? onTap;
 
   const ScheduleCard({
     Key? key,
     required this.schedule,
     this.onTap,
   }) : super(key: key);
+  final ScheduleEntity schedule;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class ScheduleCard extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.md),
               // Title and Type
               Expanded(
                 child: Column(
@@ -56,7 +56,7 @@ class ScheduleCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       schedule.type.displayName,
                       style: AppTypography.bodySmall(context).copyWith(
@@ -70,7 +70,7 @@ class ScheduleCard extends StatelessWidget {
               // Status Badge
               if (schedule.isCompleted)
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm,
                     vertical: AppSpacing.xs,
                   ),
@@ -89,7 +89,7 @@ class ScheduleCard extends StatelessWidget {
             ],
           ),
           if (schedule.description != null && schedule.description!.isNotEmpty) ...[
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
             Text(
               schedule.description!,
               style: AppTypography.bodySmall(context).copyWith(
@@ -99,7 +99,7 @@ class ScheduleCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           // Date Row
           Row(
             children: [
@@ -108,20 +108,20 @@ class ScheduleCard extends StatelessWidget {
                 size: 16,
                 color: cs.onSurfaceVariant,
               ),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               Text(
                 _formatDate(schedule.scheduledDate),
                 style: AppTypography.bodyMedium(context).copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.md),
               Icon(
                 Icons.access_time_outlined,
                 size: 16,
                 color: cs.onSurfaceVariant,
               ),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               Text(
                 _formatTime(schedule.scheduledDate),
                 style: AppTypography.bodySmall(context).copyWith(
@@ -176,7 +176,5 @@ class ScheduleCard extends StatelessWidget {
     }
   }
 
-  String _formatTime(DateTime date) {
-    return DateFormat('hh:mm a').format(date);
-  }
+  String _formatTime(DateTime date) => DateFormat('hh:mm a').format(date);
 }

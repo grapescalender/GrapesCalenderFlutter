@@ -48,7 +48,7 @@ class PlotNotifier extends StateNotifier<PlotState> {
       PlotEntity(
         id: '2',
         name: 'Plot B',
-        area: 3.0,
+        area: 3,
         location: 'Field B',
         cropType: 'Grapes',
         pruningDate: now.subtract(const Duration(days: 8)),
@@ -73,8 +73,6 @@ class PlotNotifier extends StateNotifier<PlotState> {
         area: 2.2,
         location: 'Field D',
         cropType: 'Grapes',
-        pruningDate: null, // Not pruned yet
-        isRunning: false,
         createdAt: now.subtract(const Duration(days: 70)),
         updatedAt: now,
       ),
@@ -114,9 +112,7 @@ class PlotNotifier extends StateNotifier<PlotState> {
   }
 
   /// Get running plots only
-  List<PlotEntity> get runningPlots {
-    return state.plots.where((plot) => plot.isRunning).toList();
-  }
+  List<PlotEntity> get runningPlots => state.plots.where((plot) => plot.isRunning).toList();
 
   /// Check if all plots are running
   bool get areAllPlotsRunning {
@@ -125,12 +121,8 @@ class PlotNotifier extends StateNotifier<PlotState> {
   }
 
   /// Check if there are any running plots
-  bool get hasRunningPlots {
-    return state.plots.any((plot) => plot.isRunning);
-  }
+  bool get hasRunningPlots => state.plots.any((plot) => plot.isRunning);
 }
 
 /// Plot notifier provider
-final plotNotifierProvider = StateNotifierProvider<PlotNotifier, PlotState>((ref) {
-  return PlotNotifier();
-});
+final plotNotifierProvider = StateNotifierProvider<PlotNotifier, PlotState>((ref) => PlotNotifier());

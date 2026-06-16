@@ -35,9 +35,7 @@ class ActivityDateUtils {
   }
 
   /// Format date to full readable string
-  static String formatFullDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
+  static String formatFullDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
 
   /// Format date to readable string
   static String _formatDate(DateTime date) {

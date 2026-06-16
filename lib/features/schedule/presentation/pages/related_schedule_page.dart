@@ -20,7 +20,7 @@ import '../widgets/schedule_filter_chip.dart';
 /// Dedicated page for viewing schedules related to a specific activity
 /// Clean, minimal design inspired by Groww
 class RelatedSchedulePage extends ConsumerStatefulWidget {
-  const RelatedSchedulePage({Key? key}) : super(key: key);
+  const RelatedSchedulePage({super.key});
 
   @override
   ConsumerState<RelatedSchedulePage> createState() => _RelatedSchedulePageState();
@@ -54,16 +54,14 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
         selectedPlot = plotState.plots.first;
       }
 
-      if (selectedPlot != null) {
-        // Load all schedules (no limit) for filtering
-        scheduleNotifier.loadSchedules(
-          plotId: plotState.selectedPlotId!,
-          plotName: selectedPlot.name,
-          filterType: null, // Load all types
-          limit: null, // No limit
-        );
-      }
-    }
+      // Load all schedules (no limit) for filtering
+      scheduleNotifier.loadSchedules(
+        plotId: plotState.selectedPlotId!,
+        plotName: selectedPlot.name,
+        filterType: null, // Load all types
+        limit: null, // No limit
+      );
+        }
   }
 
   /// Get activity info from route extra
@@ -107,9 +105,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
 
     // Apply type filter
     if (_selectedFilter != ScheduleType.all) {
-      filtered = filtered.where((schedule) {
-        return schedule.type == _selectedFilter;
-      }).toList();
+      filtered = filtered.where((schedule) => schedule.type == _selectedFilter).toList();
     }
 
     return filtered;
@@ -118,14 +114,12 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
   /// Get schedule counts by type
   Map<ScheduleType, int> _getScheduleCounts(
     List<ScheduleEntity> allFilteredSchedules,
-  ) {
-    return {
+  ) => {
       ScheduleType.all: allFilteredSchedules.length,
       ScheduleType.spray: allFilteredSchedules.where((s) => s.type == ScheduleType.spray).length,
       ScheduleType.nutrition: allFilteredSchedules.where((s) => s.type == ScheduleType.nutrition).length,
       ScheduleType.work: allFilteredSchedules.where((s) => s.type == ScheduleType.work).length,
     };
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -233,13 +227,12 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     ];
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         color: cs.surface,
         border: Border(
           bottom: BorderSide(
             color: cs.outline.withOpacity(0.2),
-            width: 1,
           ),
         ),
       ),
@@ -247,7 +240,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
         height: 40,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
           itemCount: filters.length,
           separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
           itemBuilder: (context, index) {
@@ -264,20 +257,19 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? cs.primary
-                      : cs.surfaceVariant,
+                      : cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                   border: isSelected
                       ? null
                       : Border.all(
                           color: cs.outline,
-                          width: 1,
                         ),
                 ),
                 child: Row(
@@ -343,7 +335,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
 
     if (scheduleState.errorMessage != null) {
       return Padding(
-        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -390,7 +382,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
         await Future.delayed(const Duration(milliseconds: 500));
       },
       child: ListView.separated(
-        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         itemCount: schedules.length,
         separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
         itemBuilder: (context, index) {
@@ -527,7 +519,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -567,18 +559,16 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
   Widget _buildSkeletonLoader(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return ListView.builder(
-      padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+      padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
       itemCount: 5,
-      itemBuilder: (context, index) {
-        return Container(
+      itemBuilder: (context, index) => Container(
           margin: const EdgeInsets.only(bottom: AppSpacing.md),
           height: 120,
           decoration: BoxDecoration(
             color: cs.surfaceVariant,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
-        );
-      },
+        ),
     );
   }
 

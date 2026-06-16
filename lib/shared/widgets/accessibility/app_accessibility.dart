@@ -5,14 +5,6 @@ const double kMinTouchTarget = 48;
 
 /// Wraps [child] with optional semantics for screen readers.
 class AppSemantics extends StatelessWidget {
-  final Widget child;
-  final String? label;
-  final String? hint;
-  final String? value;
-  final bool button;
-  final bool header;
-  final bool enabled;
-  final VoidCallback? onTap;
 
   const AppSemantics({
     super.key,
@@ -25,10 +17,17 @@ class AppSemantics extends StatelessWidget {
     this.enabled = true,
     this.onTap,
   });
+  final Widget child;
+  final String? label;
+  final String? hint;
+  final String? value;
+  final bool button;
+  final bool header;
+  final bool enabled;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return Semantics(
+  Widget build(BuildContext context) => Semantics(
       label: label,
       hint: hint,
       value: value,
@@ -38,25 +37,22 @@ class AppSemantics extends StatelessWidget {
       onTap: onTap,
       child: child,
     );
-  }
 }
 
 /// Ensures interactive widgets meet minimum tap target size.
 class AppMinTouchTarget extends StatelessWidget {
-  final Widget child;
-  final double minSize;
 
   const AppMinTouchTarget({
     super.key,
     required this.child,
     this.minSize = kMinTouchTarget,
   });
+  final Widget child;
+  final double minSize;
 
   @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
+  Widget build(BuildContext context) => ConstrainedBox(
       constraints: BoxConstraints(minWidth: minSize, minHeight: minSize),
       child: Align(alignment: Alignment.center, child: child),
     );
-  }
 }

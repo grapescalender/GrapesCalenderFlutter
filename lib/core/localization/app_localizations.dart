@@ -27,17 +27,15 @@ class AppLocales {
 
 /// Localization service provider
 final localizationServiceProvider =
-    StateNotifierProvider<LocalizationNotifier, Locale>((ref) {
-  return LocalizationNotifier(ref);
-});
+    StateNotifierProvider<LocalizationNotifier, Locale>((ref) => LocalizationNotifier(ref));
 
 class LocalizationNotifier extends StateNotifier<Locale> {
-  final Ref ref;
-  Map<String, Map<String, String>> _translations = {};
 
   LocalizationNotifier(this.ref) : super(AppLocales.english) {
     _initialize();
   }
+  final Ref ref;
+  final Map<String, Map<String, String>> _translations = {};
 
   Future<void> _initialize() async {
     await _loadTranslations();

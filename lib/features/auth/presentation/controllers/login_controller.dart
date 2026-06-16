@@ -80,11 +80,6 @@ class LoginController extends StateNotifier<LoginFormState> {
 
 /// Login form state
 class LoginFormState {
-  final String username;
-  final String password;
-  final bool obscurePassword;
-  final String? usernameError;
-  final String? passwordError;
 
   const LoginFormState({
     required this.username,
@@ -103,6 +98,11 @@ class LoginFormState {
       passwordError: null,
     );
   }
+  final String username;
+  final String password;
+  final bool obscurePassword;
+  final String? usernameError;
+  final String? passwordError;
 
   LoginFormState copyWith({
     String? username,
@@ -110,20 +110,16 @@ class LoginFormState {
     bool? obscurePassword,
     String? usernameError,
     String? passwordError,
-  }) {
-    return LoginFormState(
+  }) => LoginFormState(
       username: username ?? this.username,
       password: password ?? this.password,
       obscurePassword: obscurePassword ?? this.obscurePassword,
       usernameError: usernameError ?? this.usernameError,
       passwordError: passwordError ?? this.passwordError,
     );
-  }
 
   bool get isValid => usernameError == null && passwordError == null && username.isNotEmpty && password.isNotEmpty;
 }
 
 /// Login controller provider
-final loginControllerProvider = StateNotifierProvider<LoginController, LoginFormState>((ref) {
-  return LoginController();
-});
+final loginControllerProvider = StateNotifierProvider<LoginController, LoginFormState>((ref) => LoginController());

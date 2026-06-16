@@ -25,6 +25,23 @@ import 'app_loading_state.dart';
 /// )
 /// ```
 class AppAsyncContent extends StatelessWidget {
+
+  const AppAsyncContent({
+    super.key,
+    required this.status,
+    required this.builder,
+    this.errorTitle,
+    this.errorMessage,
+    this.onRetry,
+    this.inlineError = false,
+    this.emptyTitle,
+    this.emptySubtitle,
+    this.emptyIcon,
+    this.emptyActionLabel,
+    this.onEmptyAction,
+    this.compactEmpty = false,
+    this.loading,
+  });
   final AsyncViewStatus status;
   final Widget Function(BuildContext context) builder;
 
@@ -45,29 +62,12 @@ class AppAsyncContent extends StatelessWidget {
   // Loading — custom widget or default list skeleton
   final Widget? loading;
 
-  const AppAsyncContent({
-    super.key,
-    required this.status,
-    required this.builder,
-    this.errorTitle,
-    this.errorMessage,
-    this.onRetry,
-    this.inlineError = false,
-    this.emptyTitle,
-    this.emptySubtitle,
-    this.emptyIcon,
-    this.emptyActionLabel,
-    this.onEmptyAction,
-    this.compactEmpty = false,
-    this.loading,
-  });
-
   @override
   Widget build(BuildContext context) {
     switch (status) {
       case AsyncViewStatus.loading:
         return loading ??
-            const AppLoadingState.listRows(itemCount: 3, itemHeight: 56);
+            const AppLoadingState.listRows(itemCount: 3);
       case AsyncViewStatus.error:
         return AppErrorState(
           title: errorTitle ?? 'Something went wrong',

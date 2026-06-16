@@ -8,15 +8,15 @@ import 'activity_state.dart';
 
 /// Activity notifier that manages activity state
 class ActivityNotifier extends StateNotifier<ActivityState> {
-  final Future<GetActivitiesUseCase> Function() getGetActivitiesUseCase;
-  final Future<StartActivityUseCase> Function() getStartActivityUseCase;
-  final Future<CompleteActivityUseCase> Function() getCompleteActivityUseCase;
 
   ActivityNotifier({
     required this.getGetActivitiesUseCase,
     required this.getStartActivityUseCase,
     required this.getCompleteActivityUseCase,
   }) : super(ActivityState.initial());
+  final Future<GetActivitiesUseCase> Function() getGetActivitiesUseCase;
+  final Future<StartActivityUseCase> Function() getStartActivityUseCase;
+  final Future<CompleteActivityUseCase> Function() getCompleteActivityUseCase;
 
   /// Load activities for selected plot
   Future<void> loadActivities({
@@ -45,8 +45,7 @@ class ActivityNotifier extends StateNotifier<ActivityState> {
         },
         (activities) {
           // Update plot names
-          final updatedActivities = activities.map((activity) {
-            return ActivityEntity(
+          final updatedActivities = activities.map((activity) => ActivityEntity(
               id: activity.id,
               plotId: activity.plotId,
               plotName: plotName,
@@ -56,8 +55,7 @@ class ActivityNotifier extends StateNotifier<ActivityState> {
               completedAt: activity.completedAt,
               createdAt: activity.createdAt,
               updatedAt: activity.updatedAt,
-            );
-          }).toList();
+            )).toList();
 
           final activeActivity = updatedActivities.firstWhere(
             (activity) => activity.isActive,
@@ -174,8 +172,7 @@ class ActivityNotifier extends StateNotifier<ActivityState> {
     }
   }
 
-  String _mapFailureToMessage(Failure failure) {
-    return failure.when(
+  String _mapFailureToMessage(Failure failure) => failure.when(
       network: (message, _) => message,
       server: (message, _) => message,
       cache: (message) => message,
@@ -184,5 +181,4 @@ class ActivityNotifier extends StateNotifier<ActivityState> {
       validation: (message, _) => message,
       unknown: (message, _) => message,
     );
-  }
 }

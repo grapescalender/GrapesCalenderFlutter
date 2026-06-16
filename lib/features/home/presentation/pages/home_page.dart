@@ -15,16 +15,14 @@ import '../widgets/market_insight_section.dart';
 /// Main dashboard with header, plots, schedule, and activity sections
 /// Fully responsive for small phones, large phones, and tablets
 class HomePage extends ConsumerWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     return SafeArea(
       child: LayoutBuilder(
-        builder: (context, constraints) {
-          return _buildBody(context, constraints);
-        },
+        builder: _buildBody,
       ),
     );
   }
@@ -155,7 +153,7 @@ class HomePage extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: [BoxShadow(color: cs.shadow.withOpacity(0.06), blurRadius: 6, offset: const Offset(0,4))],
+                  boxShadow: [BoxShadow(color: cs.shadow.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0,4))],
                 ),
                 child: const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 22),
               ),
@@ -166,14 +164,14 @@ class HomePage extends ConsumerWidget {
                   children: [
                     Text('Grapes', style: AppTypography.titleLarge(context).copyWith(color: cs.onPrimary, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 4),
-                    Text('Manage plots, schedules & insights', style: AppTypography.bodySmall(context).copyWith(color: cs.onPrimary.withOpacity(0.92), fontWeight: FontWeight.w600)),
+                    Text('Manage plots, schedules & insights', style: AppTypography.bodySmall(context).copyWith(color: cs.onPrimary.withValues(alpha: 0.92), fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               CircleAvatar(
-                radius: ResponsiveUtils.responsiveValue(context: context, mobile: 18.0, tablet: 22.0),
-                backgroundColor: cs.onPrimary.withOpacity(0.14),
+                radius: ResponsiveUtils.responsiveValue(context: context, mobile: 18, tablet: 22),
+                backgroundColor: cs.onPrimary.withValues(alpha: 0.14),
                 child: Text('S', style: AppTypography.bodyLarge(context).copyWith(color: cs.onPrimary, fontWeight: FontWeight.w800)),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -206,7 +204,7 @@ class HomePage extends ConsumerWidget {
       width: containerSize,
       height: containerSize,
       decoration: BoxDecoration(
-        color: cs.onPrimary.withOpacity(0.14),
+        color: cs.onPrimary.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.responsiveValue(
             context: context,
@@ -225,7 +223,5 @@ class HomePage extends ConsumerWidget {
   }
 
   /// Plots Section - Horizontal Scrollable
-  Widget _buildPlotsSection(BuildContext context) {
-    return PlotsSection();
-  }
+  Widget _buildPlotsSection(BuildContext context) => PlotsSection();
 }

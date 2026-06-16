@@ -14,6 +14,8 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       phoneNumber: json['phoneNumber'] as String,
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
       farmName: json['farmName'] as String? ?? '',
       address: json['address'] as String? ?? '',
       city: json['city'] as String? ?? '',
@@ -21,8 +23,6 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       zipCode: json['zipCode'] as String? ?? '',
       profileImage: json['profileImage'] as String? ?? '',
       isActive: json['isActive'] as bool? ?? true,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
@@ -33,6 +33,8 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'phoneNumber': instance.phoneNumber,
       'firstName': instance.firstName,
       'lastName': instance.lastName,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
       'farmName': instance.farmName,
       'address': instance.address,
       'city': instance.city,
@@ -40,8 +42,6 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'zipCode': instance.zipCode,
       'profileImage': instance.profileImage,
       'isActive': instance.isActive,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
     };
 
 _$AuthResponseImpl _$$AuthResponseImplFromJson(Map<String, dynamic> json) =>

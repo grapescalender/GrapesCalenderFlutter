@@ -95,29 +95,27 @@ final GoRouter appRouter = GoRouter(
 
 /// Main shell widget with bottom navigation
 class MainShell extends StatelessWidget {
-  final Widget child;
 
   const MainShell({Key? key, required this.child}) : super(key: key);
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       body: child,
       bottomNavigationBar: _MainBottomNav(),
     );
-  }
 }
 
 /// Bottom navigation bar widget
 /// Separated to avoid context access issues
 class _MainBottomNav extends StatelessWidget {
-  const _MainBottomNav({Key? key}) : super(key: key);
+  const _MainBottomNav({super.key});
 
   @override
   Widget build(BuildContext context) {
     // Use GoRouterState to get current location safely
     // Wrap in try-catch to handle any router state access issues
-    String currentLocation = RouteNames.home;
+    var currentLocation = RouteNames.home;
     try {
       final routerState = GoRouterState.of(context);
       currentLocation = routerState.uri.path;

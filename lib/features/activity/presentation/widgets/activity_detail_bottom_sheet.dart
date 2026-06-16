@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../config/router/app_router.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../core/design_system/theme/app_semantic_colors.dart';
-import '../../../../config/router/app_router.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../../../shared/widgets/app_button.dart';
 import '../../domain/entities/activity_entity.dart';
 
-/// Activity Detail Bottom Sheet
-/// Shows activity details with day calculations and "View Related Schedules" button
+/// Premium Activity Detail Bottom Sheet
+/// All original data and navigation behaviour preserved.
 class ActivityDetailBottomSheet extends StatelessWidget {
-  final ActivityEntity activity;
-  final DateTime? pruningDate;
-  final VoidCallback? onViewSchedules;
-
   const ActivityDetailBottomSheet({
     Key? key,
     required this.activity,
@@ -23,265 +19,178 @@ class ActivityDetailBottomSheet extends StatelessWidget {
     this.onViewSchedules,
   }) : super(key: key);
 
+  final ActivityEntity activity;
+  final DateTime? pruningDate;
+  final VoidCallback? onViewSchedules;
+
+  // ── Status helpers ──────────────────────────────────────────────────────
+  bool get _isActive => activity.isActive;
+  bool get _isCompleted => activity.isCompleted;
+
+  Color _accentColor(BuildContext context) {
+    if (_isActive) return AppColors.primary;
+    if (_isCompleted) return AppColors.success;
+    return AppColors.onSurface;
+  }
+
+  Color _accentBg(BuildContext context) {
+    if (_isActive) return AppColors.primaryContainer;
+    if (_isCompleted) return AppColors.successLight;
+    return AppColors.background;
+  }
+
+  String get _statusLabel {
+    if (_isActive) return 'In Progress';
+    if (_isCompleted) return 'Completed';
+    return 'Upcoming';
+  }
+
+  IconData get _statusIcon {
+    if (_isActive) return Icons.radio_button_checked_rounded;
+    if (_isCompleted) return Icons.check_circle_rounded;
+    return Icons.radio_button_unchecked_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
-    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
-    final isCompleted = activity.isCompleted;
-    final isCurrent = activity.isActive;
 
-    // Calculate day counts
+    // Day calculations
     final startDay = activity.startedAt != null && pruningDate != null
-        ? activity_date_utils.ActivityDateUtils.calculateDay(pruningDate, activity.startedAt!)
+        ? activity_date_utils.ActivityDateUtils.calculateDay(
+            pruningDate!, activity.startedAt!)
         : null;
-    
-    final endDate = isCurrent ? DateTime.now() : activity.completedAt;
+    final endDate = _isActive ? DateTime.now() : activity.completedAt;
     final endDay = endDate != null && pruningDate != null
-        ? activity_date_utils.ActivityDateUtils.calculateDay(pruningDate, endDate)
+        ? activity_date_utils.ActivityDateUtils.calculateDay(
+            pruningDate!, endDate)
         : null;
-
-    // Calculate duration
     final duration = activity.startedAt != null && endDate != null
         ? endDate.difference(activity.startedAt!).inDays + 1
         : 0;
 
     return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: const BorderRadius.vertical(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
       ),
+      padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
+            // ── Handle ───────────────────────────────────────────────────
             Container(
-              margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-              width: 40,
+              margin: const EdgeInsets.only(top: 12, bottom: 4),
+              width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: cs.onSurfaceVariant.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.outline,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
               ),
             ),
-            
-            // Header with gradient background for current activity
-            Container(
-              decoration: isCurrent
-                  ? BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          cs.primary.withOpacity(0.08),
-                          cs.secondary.withOpacity(0.05),
-                        ],
-                      ),
-                    )
-                  : null,
+
+            // ── Hero header ──────────────────────────────────────────────
+            _Header(
+              activity: activity,
+              statusLabel: _statusLabel,
+              statusIcon: _statusIcon,
+              accentColor: _accentColor(context),
+              accentBg: _accentBg(context),
+            ),
+
+            // ── Metrics strip ────────────────────────────────────────────
+            Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenHorizontal,
-                vertical: AppSpacing.md,
-              ),
+                  horizontal: AppSpacing.screenHorizontal, vertical: 12),
               child: Row(
                 children: [
-                  // Activity Icon with background
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: isCurrent
-                          ? LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                cs.primary.withOpacity(0.15),
-                                cs.secondary.withOpacity(0.10),
-                              ],
-                            )
-                          : null,
-                      color: isCurrent
-                          ? null
-                          : isCompleted
-                              ? semantic.success.withOpacity(0.14)
-                              : cs.surfaceVariant,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      border: isCurrent
-                          ? Border.all(
-                              color: cs.primary.withOpacity(0.2),
-                              width: 1,
-                            )
-                          : null,
+                  if (duration > 0)
+                    _MetricTile(
+                      icon: Icons.hourglass_bottom_rounded,
+                      label: 'Duration',
+                      value: '$duration days',
                     ),
-                    child: Icon(
-                      isCompleted
-                          ? Icons.check_circle
-                          : activity.type.icon,
-                      color: isCurrent
-                          ? cs.primary
-                          : isCompleted
-                              ? semantic.success
-                              : cs.onSurfaceVariant,
-                      size: 28,
+                  if (duration > 0 && startDay != null)
+                    const SizedBox(width: AppSpacing.smMd),
+                  if (startDay != null)
+                    _MetricTile(
+                      icon: Icons.calendar_today_rounded,
+                      label: 'Start Day',
+                      value: 'Day $startDay',
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  // Title and Status
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          activity.type.displayName,
-                          style: AppTypography.headlineMedium(context).copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: isCurrent ? cs.primary : cs.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isCurrent
-                                ? cs.primary.withOpacity(0.10)
-                                : isCompleted
-                                    ? semantic.success.withOpacity(0.14)
-                                    : cs.surfaceVariant,
-                            border: isCurrent
-                                ? Border.all(
-                                    color: cs.primary.withOpacity(0.2),
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                          ),
-                          child: Text(
-                            isCompleted
-                                ? 'Completed'
-                                : isCurrent
-                                    ? 'In Progress'
-                                    : 'Pending',
-                            style: AppTypography.labelSmall(context).copyWith(
-                              color: isCurrent
-                                  ? cs.primary
-                                  : isCompleted
-                                      ? semantic.success
-                                      : cs.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                  if (startDay != null && endDay != null)
+                    const SizedBox(width: AppSpacing.smMd),
+                  if (endDay != null)
+                    _MetricTile(
+                      icon: _isActive
+                          ? Icons.schedule_rounded
+                          : Icons.event_available_rounded,
+                      label: _isActive ? 'Today' : 'End Day',
+                      value: 'Day $endDay',
+                      highlight: _isActive,
                     ),
-                  ),
-                  // Close button
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                    iconSize: 20,
-                  ),
                 ],
               ),
             ),
-            
-            const Divider(height: 1),
-            
-            // Content
+
+            const Divider(height: 1, color: AppColors.outline),
+
+            // ── Details list ─────────────────────────────────────────────
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.md,
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Duration badge
-                    if (duration > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.sm,
-                        ),
-                        decoration: BoxDecoration(
-                          color: cs.surfaceVariant,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.hourglass_bottom,
-                              size: 16,
-                              color: cs.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Text(
-                              'Duration: $duration days',
-                              style: AppTypography.labelSmall(context).copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (duration > 0)
-                      const SizedBox(height: AppSpacing.md),
-
-                    // Start Date with Day count
-                    if (activity.startedAt != null) ...[
-                      _buildDateWithDayRow(
-                        context,
-                        icon: Icons.play_circle_outline,
+                    if (activity.startedAt != null)
+                      _DetailRow(
+                        icon: Icons.play_circle_outline_rounded,
                         label: 'Start Date',
-                        date: activity.startedAt!,
-                        dayCount: startDay,
+                        value: _formatDate(activity.startedAt!),
+                        sub: startDay != null ? 'Day $startDay' : null,
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                    ],
-                    
-                    // End Date with Day count
-                    if (isCompleted && activity.completedAt != null) ...[
-                      _buildDateWithDayRow(
-                        context,
-                        icon: Icons.check_circle_outline,
+                    if (activity.startedAt != null)
+                      const SizedBox(height: AppSpacing.smMd),
+                    if (_isCompleted && activity.completedAt != null)
+                      _DetailRow(
+                        icon: Icons.check_circle_outline_rounded,
                         label: 'End Date',
-                        date: activity.completedAt!,
-                        dayCount: endDay,
+                        value: _formatDate(activity.completedAt!),
+                        sub: endDay != null ? 'Day $endDay' : null,
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                    ] else if (isCurrent) ...[
-                      _buildDateWithDayRow(
-                        context,
-                        icon: Icons.schedule_outlined,
-                        label: 'End Date',
-                        date: DateTime.now(),
-                        dayCount: endDay,
-                        isOngoing: true,
+                    if (_isActive)
+                      _DetailRow(
+                        icon: Icons.schedule_rounded,
+                        label: 'Ongoing until',
+                        value: 'Today',
+                        sub: endDay != null ? 'Day $endDay' : null,
+                        highlight: true,
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                    ],
-                    
-                    // Plot Name
-                    _buildDetailRow(
-                      context,
-                      icon: Icons.agriculture,
+                    if (_isCompleted || _isActive)
+                      const SizedBox(height: AppSpacing.smMd),
+                    _DetailRow(
+                      icon: Icons.agriculture_rounded,
                       label: 'Plot',
-                      value: activity.plotName,
+                      value: activity.plotName.isNotEmpty
+                          ? activity.plotName
+                          : '—',
                     ),
                   ],
                 ),
               ),
             ),
-            
-            // View Related Schedules Button
+
+            // ── CTA ──────────────────────────────────────────────────────
             if (onViewSchedules != null) ...[
-              const Divider(height: 1),
+              const Divider(height: 1, color: AppColors.outline),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
                 child: AppButton.primary(
@@ -300,45 +209,196 @@ class ActivityDetailBottomSheet extends StatelessWidget {
     );
   }
 
-  /// Build date row with day count
-  Widget _buildDateWithDayRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required DateTime date,
-    int? dayCount,
-    bool isOngoing = false,
-  }) {
-    final dateText = isOngoing
-        ? 'Today${dayCount != null ? ' (Day $dayCount)' : ''}'
-        : activity_date_utils.ActivityDateUtils.formatDateWithDay(date, dayCount);
+  String _formatDate(DateTime d) => DateFormat('d MMM yyyy').format(d);
+}
 
-    return _buildDetailRow(
-      context,
-      icon: icon,
-      label: label,
-      value: dateText,
-      valueColor: isOngoing ? Theme.of(context).colorScheme.primary : null,
+// ── Hero Header ─────────────────────────────────────────────────────────────
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.activity,
+    required this.statusLabel,
+    required this.statusIcon,
+    required this.accentColor,
+    required this.accentBg,
+  });
+
+  final ActivityEntity activity;
+  final String statusLabel;
+  final IconData statusIcon;
+  final Color accentColor;
+  final Color accentBg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenHorizontal, 12,
+          AppSpacing.xs, 12),
+      decoration: BoxDecoration(
+        color: accentBg,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(AppSpacing.radiusHuge),
+          topRight: Radius.circular(AppSpacing.radiusHuge),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Activity icon badge
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(
+                  color: accentColor.withValues(alpha: 0.2), width: 1),
+            ),
+            child: Icon(activity.type.icon, color: accentColor, size: 26),
+          ),
+          const SizedBox(width: AppSpacing.smMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.type.displayName,
+                  style: AppTypography.headlineMedium(context).copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: accentColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.1),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusFull),
+                    border: Border.all(
+                        color: accentColor.withValues(alpha: 0.2), width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(statusIcon, size: 12, color: accentColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        statusLabel,
+                        style: AppTypography.bodySmall(context).copyWith(
+                          color: accentColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Close
+          IconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () => Navigator.of(context).pop(),
+            iconSize: 20,
+            color: AppColors.onSurface,
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildDetailRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-    Color? valueColor,
-  }) {
-    final cs = Theme.of(context).colorScheme;
+// ── Metric Tile ──────────────────────────────────────────────────────────────
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = highlight ? AppColors.primary : AppColors.onBackground;
+    final bg = highlight ? AppColors.primaryContainer : AppColors.background;
+
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: AppColors.outline),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: AppTypography.headlineSmall(context).copyWith(
+                fontWeight: FontWeight.w800,
+                color: color,
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              label,
+              style: AppTypography.bodySmall(context).copyWith(
+                color: AppColors.onSurface,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Detail Row ───────────────────────────────────────────────────────────────
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.sub,
+    this.highlight = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final String? sub;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        highlight ? AppColors.primary : AppColors.onBackground;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: cs.onSurfaceVariant,
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          ),
+          child: Icon(icon, size: 16, color: AppColors.onSurface),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.smMd),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,17 +406,41 @@ class ActivityDetailBottomSheet extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.bodySmall(context).copyWith(
-                  color: cs.onSurfaceVariant,
-                  fontSize: 12,
+                  color: AppColors.onSurface,
+                  fontSize: 11,
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                value,
-                style: AppTypography.bodyMedium(context).copyWith(
-                  color: valueColor ?? cs.onSurface,
-                  fontWeight: FontWeight.w500,
-                ),
+              Row(
+                children: [
+                  Text(
+                    value,
+                    style: AppTypography.titleSmall(context).copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (sub != null) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusFull),
+                      ),
+                      child: Text(
+                        sub!,
+                        style: AppTypography.bodySmall(context).copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),

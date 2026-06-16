@@ -3,32 +3,6 @@ import 'package:flutter/material.dart';
 /// Theme extension for Activity Stepper component theming
 /// Provides customizable colors for different activity states
 class ActivityStepperTheme extends ThemeExtension<ActivityStepperTheme> {
-  /// Color for completed activities
-  final Color completedColor;
-
-  /// Color for current/active activities
-  final Color currentColor;
-
-  /// Color for upcoming activities
-  final Color upcomingColor;
-
-  /// Color for step indicator border (upcoming state)
-  final Color stepIndicatorBorderColor;
-
-  /// Color for connector lines
-  final Color connectorLineColor;
-
-  /// Color for connector line (filled/completed)
-  final Color connectorLineFilledColor;
-
-  /// Color for activity card background when selected
-  final Color cardSelectedBackgroundColor;
-
-  /// Color for activity card background when active
-  final Color cardActiveBackgroundColor;
-
-  /// Color for activity card border when selected
-  final Color cardSelectedBorderColor;
 
   const ActivityStepperTheme({
     required this.completedColor,
@@ -71,6 +45,32 @@ class ActivityStepperTheme extends ThemeExtension<ActivityStepperTheme> {
       cardSelectedBorderColor: colorScheme.primary.withOpacity(0.4),
     );
   }
+  /// Color for completed activities
+  final Color completedColor;
+
+  /// Color for current/active activities
+  final Color currentColor;
+
+  /// Color for upcoming activities
+  final Color upcomingColor;
+
+  /// Color for step indicator border (upcoming state)
+  final Color stepIndicatorBorderColor;
+
+  /// Color for connector lines
+  final Color connectorLineColor;
+
+  /// Color for connector line (filled/completed)
+  final Color connectorLineFilledColor;
+
+  /// Color for activity card background when selected
+  final Color cardSelectedBackgroundColor;
+
+  /// Color for activity card background when active
+  final Color cardActiveBackgroundColor;
+
+  /// Color for activity card border when selected
+  final Color cardSelectedBorderColor;
 
   @override
   ActivityStepperTheme copyWith({
@@ -83,8 +83,7 @@ class ActivityStepperTheme extends ThemeExtension<ActivityStepperTheme> {
     Color? cardSelectedBackgroundColor,
     Color? cardActiveBackgroundColor,
     Color? cardSelectedBorderColor,
-  }) {
-    return ActivityStepperTheme(
+  }) => ActivityStepperTheme(
       completedColor: completedColor ?? this.completedColor,
       currentColor: currentColor ?? this.currentColor,
       upcomingColor: upcomingColor ?? this.upcomingColor,
@@ -100,7 +99,6 @@ class ActivityStepperTheme extends ThemeExtension<ActivityStepperTheme> {
       cardSelectedBorderColor:
           cardSelectedBorderColor ?? this.cardSelectedBorderColor,
     );
-  }
 
   @override
   ActivityStepperTheme lerp(

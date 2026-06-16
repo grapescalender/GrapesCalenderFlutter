@@ -45,6 +45,4 @@ final loginUseCaseProvider = FutureProvider<LoginUseCase>((ref) async {
 });
 
 /// Auth state notifier provider
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(() => ref.watch(loginUseCaseProvider.future));
-});
+final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) => AuthNotifier(() => ref.watch(loginUseCaseProvider.future)));

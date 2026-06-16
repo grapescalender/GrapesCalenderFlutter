@@ -13,15 +13,13 @@ class UserModel with _$UserModel {
     required String phoneNumber,
     required String firstName,
     required String lastName,
-    @Default('') String farmName,
+    required DateTime createdAt, required DateTime updatedAt, @Default('') String farmName,
     @Default('') String address,
     @Default('') String city,
     @Default('') String state,
     @Default('') String zipCode,
     @Default('') String profileImage,
     @Default(true) bool isActive,
-    required DateTime createdAt,
-    required DateTime updatedAt,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);

@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 
 /// Schedule page
 class SchedulePage extends StatelessWidget {
-  const SchedulePage({Key? key}) : super(key: key);
+  const SchedulePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+  Widget build(BuildContext context) => Column(
       children: [
         AppBar(
           title: const Text('Schedule & Calendar'),
@@ -37,5 +36,4 @@ class SchedulePage extends StatelessWidget {
         ),
       ],
     );
-  }
 }

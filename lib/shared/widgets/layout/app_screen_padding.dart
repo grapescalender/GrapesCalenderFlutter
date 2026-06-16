@@ -3,9 +3,6 @@ import '../../responsive/responsive_utils.dart';
 
 /// Applies consistent horizontal screen padding with optional max width.
 class AppScreenPadding extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  final bool constrainWidth;
 
   const AppScreenPadding({
     super.key,
@@ -13,6 +10,9 @@ class AppScreenPadding extends StatelessWidget {
     this.padding,
     this.constrainWidth = false,
   });
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final bool constrainWidth;
 
   @override
   Widget build(BuildContext context) {

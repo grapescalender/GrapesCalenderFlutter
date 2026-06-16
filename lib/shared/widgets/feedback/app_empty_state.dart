@@ -7,13 +7,6 @@ import '../app_card.dart';
 
 /// Production empty state — icon, title, optional subtitle and CTA.
 class AppEmptyState extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-  final bool compact;
-  final EdgeInsetsGeometry? padding;
 
   const AppEmptyState({
     super.key,
@@ -25,6 +18,13 @@ class AppEmptyState extends StatelessWidget {
     this.compact = false,
     this.padding,
   });
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final bool compact;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {

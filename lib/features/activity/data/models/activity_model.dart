@@ -10,13 +10,13 @@ class ActivityModel with _$ActivityModel {
   const factory ActivityModel({
     required String id,
     required String plotId,
-    @Default('') String plotName,
-    required String type, // cutting, flooring, formation, harvesting, dipping
-    required String status, // pending, active, completed
-    DateTime? startedAt,
-    DateTime? completedAt,
+    required String type,
+    required String status,
     required DateTime createdAt,
     required DateTime updatedAt,
+    @Default('') String plotName,
+    DateTime? startedAt,
+    DateTime? completedAt,
   }) = _ActivityModel;
 
   factory ActivityModel.fromJson(Map<String, dynamic> json) =>

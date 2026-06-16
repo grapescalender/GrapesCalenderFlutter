@@ -1,16 +1,5 @@
 /// Schedule entity - Domain layer representation
 class ScheduleEntity {
-  final String id;
-  final String plotId;
-  final String plotName; // Added for display
-  final ScheduleType type;
-  final String title;
-  final DateTime scheduledDate;
-  final String? description;
-  final bool isCompleted;
-  final List<String> activityIds; // 1-2 activity IDs
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const ScheduleEntity({
     required this.id,
@@ -25,6 +14,17 @@ class ScheduleEntity {
     required this.createdAt,
     required this.updatedAt,
   }) : activityIds = activityIds;
+  final String id;
+  final String plotId;
+  final String plotName; // Added for display
+  final ScheduleType type;
+  final String title;
+  final DateTime scheduledDate;
+  final String? description;
+  final bool isCompleted;
+  final List<String> activityIds; // 1-2 activity IDs
+  final DateTime createdAt;
+  final DateTime updatedAt;
 }
 
 /// Schedule type enum

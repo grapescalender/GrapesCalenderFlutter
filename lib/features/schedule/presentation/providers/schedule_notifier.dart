@@ -7,13 +7,13 @@ import 'schedule_state.dart';
 
 /// Schedule notifier that manages schedule state
 class ScheduleNotifier extends StateNotifier<ScheduleState> {
-  final Future<GetSchedulesUseCase> Function() getGetSchedulesUseCase;
-  final Future<CreateScheduleUseCase> Function() getCreateScheduleUseCase;
 
   ScheduleNotifier({
     required this.getGetSchedulesUseCase,
     required this.getCreateScheduleUseCase,
   }) : super(ScheduleState.initial());
+  final Future<GetSchedulesUseCase> Function() getGetSchedulesUseCase;
+  final Future<CreateScheduleUseCase> Function() getCreateScheduleUseCase;
 
   /// Load schedules for selected plot
   Future<void> loadSchedules({
@@ -140,8 +140,7 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
     );
   }
 
-  String _mapFailureToMessage(Failure failure) {
-    return failure.when(
+  String _mapFailureToMessage(Failure failure) => failure.when(
       network: (message, _) => message,
       server: (message, _) => message,
       cache: (message) => message,
@@ -150,5 +149,4 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
       validation: (message, _) => message,
       unknown: (message, _) => message,
     );
-  }
 }

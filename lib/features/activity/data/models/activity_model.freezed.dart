@@ -22,15 +22,13 @@ ActivityModel _$ActivityModelFromJson(Map<String, dynamic> json) {
 mixin _$ActivityModel {
   String get id => throw _privateConstructorUsedError;
   String get plotId => throw _privateConstructorUsedError;
-  String get plotName => throw _privateConstructorUsedError;
-  String get type =>
-      throw _privateConstructorUsedError; // cutting, flooring, formation, harvesting, dipping
-  String get status =>
-      throw _privateConstructorUsedError; // pending, active, completed
-  DateTime? get startedAt => throw _privateConstructorUsedError;
-  DateTime? get completedAt => throw _privateConstructorUsedError;
+  String get type => throw _privateConstructorUsedError;
+  String get status => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
+  String get plotName => throw _privateConstructorUsedError;
+  DateTime? get startedAt => throw _privateConstructorUsedError;
+  DateTime? get completedAt => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -47,13 +45,13 @@ abstract class $ActivityModelCopyWith<$Res> {
   $Res call(
       {String id,
       String plotId,
-      String plotName,
       String type,
       String status,
-      DateTime? startedAt,
-      DateTime? completedAt,
       DateTime createdAt,
-      DateTime updatedAt});
+      DateTime updatedAt,
+      String plotName,
+      DateTime? startedAt,
+      DateTime? completedAt});
 }
 
 /// @nodoc
@@ -71,13 +69,13 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
   $Res call({
     Object? id = null,
     Object? plotId = null,
-    Object? plotName = null,
     Object? type = null,
     Object? status = null,
-    Object? startedAt = freezed,
-    Object? completedAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
+    Object? plotName = null,
+    Object? startedAt = freezed,
+    Object? completedAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -88,10 +86,6 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
           ? _value.plotId
           : plotId // ignore: cast_nullable_to_non_nullable
               as String,
-      plotName: null == plotName
-          ? _value.plotName
-          : plotName // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -99,6 +93,18 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      plotName: null == plotName
+          ? _value.plotName
+          : plotName // ignore: cast_nullable_to_non_nullable
               as String,
       startedAt: freezed == startedAt
           ? _value.startedAt
@@ -108,14 +114,6 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
           ? _value.completedAt
           : completedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
     ) as $Val);
   }
 }
@@ -131,13 +129,13 @@ abstract class _$$ActivityModelImplCopyWith<$Res>
   $Res call(
       {String id,
       String plotId,
-      String plotName,
       String type,
       String status,
-      DateTime? startedAt,
-      DateTime? completedAt,
       DateTime createdAt,
-      DateTime updatedAt});
+      DateTime updatedAt,
+      String plotName,
+      DateTime? startedAt,
+      DateTime? completedAt});
 }
 
 /// @nodoc
@@ -153,13 +151,13 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? plotId = null,
-    Object? plotName = null,
     Object? type = null,
     Object? status = null,
-    Object? startedAt = freezed,
-    Object? completedAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
+    Object? plotName = null,
+    Object? startedAt = freezed,
+    Object? completedAt = freezed,
   }) {
     return _then(_$ActivityModelImpl(
       id: null == id
@@ -170,10 +168,6 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
           ? _value.plotId
           : plotId // ignore: cast_nullable_to_non_nullable
               as String,
-      plotName: null == plotName
-          ? _value.plotName
-          : plotName // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -181,6 +175,18 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      plotName: null == plotName
+          ? _value.plotName
+          : plotName // ignore: cast_nullable_to_non_nullable
               as String,
       startedAt: freezed == startedAt
           ? _value.startedAt
@@ -190,14 +196,6 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
           ? _value.completedAt
           : completedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
     ));
   }
 }
@@ -208,13 +206,13 @@ class _$ActivityModelImpl implements _ActivityModel {
   const _$ActivityModelImpl(
       {required this.id,
       required this.plotId,
-      this.plotName = '',
       required this.type,
       required this.status,
-      this.startedAt,
-      this.completedAt,
       required this.createdAt,
-      required this.updatedAt});
+      required this.updatedAt,
+      this.plotName = '',
+      this.startedAt,
+      this.completedAt});
 
   factory _$ActivityModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActivityModelImplFromJson(json);
@@ -224,26 +222,24 @@ class _$ActivityModelImpl implements _ActivityModel {
   @override
   final String plotId;
   @override
-  @JsonKey()
-  final String plotName;
-  @override
   final String type;
-// cutting, flooring, formation, harvesting, dipping
   @override
   final String status;
-// pending, active, completed
-  @override
-  final DateTime? startedAt;
-  @override
-  final DateTime? completedAt;
   @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
+  @override
+  @JsonKey()
+  final String plotName;
+  @override
+  final DateTime? startedAt;
+  @override
+  final DateTime? completedAt;
 
   @override
   String toString() {
-    return 'ActivityModel(id: $id, plotId: $plotId, plotName: $plotName, type: $type, status: $status, startedAt: $startedAt, completedAt: $completedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ActivityModel(id: $id, plotId: $plotId, type: $type, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, plotName: $plotName, startedAt: $startedAt, completedAt: $completedAt)';
   }
 
   @override
@@ -253,24 +249,24 @@ class _$ActivityModelImpl implements _ActivityModel {
             other is _$ActivityModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.plotId, plotId) || other.plotId == plotId) &&
-            (identical(other.plotName, plotName) ||
-                other.plotName == plotName) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.status, status) || other.status == status) &&
-            (identical(other.startedAt, startedAt) ||
-                other.startedAt == startedAt) &&
-            (identical(other.completedAt, completedAt) ||
-                other.completedAt == completedAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.plotName, plotName) ||
+                other.plotName == plotName) &&
+            (identical(other.startedAt, startedAt) ||
+                other.startedAt == startedAt) &&
+            (identical(other.completedAt, completedAt) ||
+                other.completedAt == completedAt));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, plotId, plotName, type,
-      status, startedAt, completedAt, createdAt, updatedAt);
+  int get hashCode => Object.hash(runtimeType, id, plotId, type, status,
+      createdAt, updatedAt, plotName, startedAt, completedAt);
 
   @JsonKey(ignore: true)
   @override
@@ -290,13 +286,13 @@ abstract class _ActivityModel implements ActivityModel {
   const factory _ActivityModel(
       {required final String id,
       required final String plotId,
-      final String plotName,
       required final String type,
       required final String status,
-      final DateTime? startedAt,
-      final DateTime? completedAt,
       required final DateTime createdAt,
-      required final DateTime updatedAt}) = _$ActivityModelImpl;
+      required final DateTime updatedAt,
+      final String plotName,
+      final DateTime? startedAt,
+      final DateTime? completedAt}) = _$ActivityModelImpl;
 
   factory _ActivityModel.fromJson(Map<String, dynamic> json) =
       _$ActivityModelImpl.fromJson;
@@ -306,19 +302,19 @@ abstract class _ActivityModel implements ActivityModel {
   @override
   String get plotId;
   @override
-  String get plotName;
-  @override
   String get type;
-  @override // cutting, flooring, formation, harvesting, dipping
-  String get status;
-  @override // pending, active, completed
-  DateTime? get startedAt;
   @override
-  DateTime? get completedAt;
+  String get status;
   @override
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
+  @override
+  String get plotName;
+  @override
+  DateTime? get startedAt;
+  @override
+  DateTime? get completedAt;
   @override
   @JsonKey(ignore: true)
   _$$ActivityModelImplCopyWith<_$ActivityModelImpl> get copyWith =>

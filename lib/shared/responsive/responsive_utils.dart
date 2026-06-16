@@ -10,9 +10,7 @@ class Breakpoints {
 /// Responsive utility class
 class ResponsiveUtils {
   /// Check if current screen is mobile
-  static bool isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < Breakpoints.mobile;
-  }
+  static bool isMobile(BuildContext context) => MediaQuery.of(context).size.width < Breakpoints.mobile;
 
   /// Check if current screen is tablet
   static bool isTablet(BuildContext context) {
@@ -21,9 +19,7 @@ class ResponsiveUtils {
   }
 
   /// Check if current screen is desktop
-  static bool isDesktop(BuildContext context) {
-    return MediaQuery.of(context).size.width >= Breakpoints.desktop;
-  }
+  static bool isDesktop(BuildContext context) => MediaQuery.of(context).size.width >= Breakpoints.desktop;
 
   /// Get responsive value based on screen size
   static T responsiveValue<T>({
@@ -41,8 +37,7 @@ class ResponsiveUtils {
   }
 
   /// Get responsive padding
-  static EdgeInsets responsivePadding(BuildContext context) {
-    return EdgeInsets.symmetric(
+  static EdgeInsets responsivePadding(BuildContext context) => EdgeInsets.symmetric(
       horizontal: responsiveValue(
         context: context,
         mobile: 16.0,
@@ -56,7 +51,6 @@ class ResponsiveUtils {
         desktop: 24.0,
       ),
     );
-  }
 
   /// Get responsive font size
   static double responsiveFontSize(
@@ -64,22 +58,18 @@ class ResponsiveUtils {
     required double mobile,
     double? tablet,
     double? desktop,
-  }) {
-    return responsiveValue(
+  }) => responsiveValue(
       context: context,
       mobile: mobile,
       tablet: tablet ?? mobile * 1.2,
       desktop: desktop ?? mobile * 1.5,
     );
-  }
 
   /// Get max content width for responsive layouts
-  static double maxContentWidth(BuildContext context) {
-    return responsiveValue(
+  static double maxContentWidth(BuildContext context) => responsiveValue(
       context: context,
       mobile: double.infinity,
       tablet: 800.0,
       desktop: 1200.0,
     );
-  }
 }

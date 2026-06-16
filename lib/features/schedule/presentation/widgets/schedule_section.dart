@@ -24,7 +24,7 @@ import 'see_more_row.dart';
 /// Compact, modern design inspired by Groww's Volume Shockers
 /// Features: Clean header, filter chips, compact list rows in container, detail popup
 class ScheduleSection extends ConsumerStatefulWidget {
-  const ScheduleSection({Key? key}) : super(key: key);
+  const ScheduleSection({super.key});
 
   @override
   ConsumerState<ScheduleSection> createState() => _ScheduleSectionState();
@@ -58,16 +58,14 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
         selectedPlot = plotState.plots.first;
       }
 
-      if (selectedPlot != null) {
-        // Load all schedules (no limit) with current filter to get total count
-        scheduleNotifier.loadSchedules(
-          plotId: plotState.selectedPlotId!,
-          plotName: selectedPlot.name,
-          filterType: scheduleState.selectedFilter,
-          limit: null, // Load all to check total filtered count
-        );
-      }
-    }
+      // Load all schedules (no limit) with current filter to get total count
+      scheduleNotifier.loadSchedules(
+        plotId: plotState.selectedPlotId!,
+        plotName: selectedPlot.name,
+        filterType: scheduleState.selectedFilter,
+        limit: null, // Load all to check total filtered count
+      );
+        }
   }
 
   @override
@@ -108,7 +106,6 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
                 plotId: next.selectedPlotId!,
                 plotName: selectedPlot.name,
                 filterType: next.selectedFilter,
-                limit: null, // Load all to check total filtered count
               );
             }
           }
@@ -147,11 +144,11 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
             plot.name,
           ),
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         
         // Filter Chips
         _buildFilterChips(context, scheduleState.selectedFilter, scheduleNotifier),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         
         // Schedule List Container
         _buildScheduleListContainer(context, scheduleState, plot),
@@ -176,7 +173,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
         itemCount: filters.length,
         separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
@@ -216,13 +213,13 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       status: status,
       errorTitle: 'Failed to load schedules',
       errorMessage: scheduleState.errorMessage,
-      onRetry: () => _loadSchedulesForSelectedPlot(),
+      onRetry: _loadSchedulesForSelectedPlot,
       inlineError: true,
       emptyIcon: Icons.calendar_today_outlined,
       emptyTitle: 'No schedules found',
       emptySubtitle: 'Add a schedule to plan your farm tasks',
       compactEmpty: true,
-      loading: const AppLoadingState.listRows(itemCount: 5, itemHeight: 56),
+      loading: const AppLoadingState.listRows(itemHeight: 56),
       builder: (context) => _buildScheduleList(context, scheduleState, selectedPlot),
     );
   }

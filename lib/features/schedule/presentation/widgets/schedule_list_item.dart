@@ -9,10 +9,7 @@ import '../../domain/entities/schedule_entity.dart';
 /// Schedule List Item Widget
 /// Compact row design with icon on left, title/subtitle on left, day count on right
 /// Fully clickable with ripple effect
-class ScheduleListItem extends StatelessWidget {
-  final ScheduleEntity schedule;
-  final VoidCallback? onTap;
-  final DateTime? pruningDate; // Optional pruning date for day count calculation
+class ScheduleListItem extends StatelessWidget { // Optional pruning date for day count calculation
 
   const ScheduleListItem({
     Key? key,
@@ -20,6 +17,9 @@ class ScheduleListItem extends StatelessWidget {
     this.onTap,
     this.pruningDate,
   }) : super(key: key);
+  final ScheduleEntity schedule;
+  final VoidCallback? onTap;
+  final DateTime? pruningDate;
 
   @override
   Widget build(BuildContext context) {

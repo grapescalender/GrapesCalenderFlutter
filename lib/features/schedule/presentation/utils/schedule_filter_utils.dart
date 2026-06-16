@@ -75,14 +75,14 @@ class ScheduleFilterUtils {
     
     if (allSchedules != null) {
       print('\nAll Schedule Activity IDs:');
-      for (var schedule in allSchedules) {
+      for (final schedule in allSchedules) {
         print('  Schedule ${schedule.id}: activityIds=${schedule.activityIds}, date=${schedule.scheduledDate}');
       }
     }
     
     if (filteredSchedules != null) {
       print('\nFiltered Schedule IDs:');
-      for (var schedule in filteredSchedules) {
+      for (final schedule in filteredSchedules) {
         print('  Schedule ${schedule.id}: activityIds=${schedule.activityIds}, date=${schedule.scheduledDate}');
       }
     }

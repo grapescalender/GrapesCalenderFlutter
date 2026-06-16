@@ -5,16 +5,6 @@ import '../../core/design_system/spacing/app_spacing.dart';
 /// Minimal, clean card design inspired by Groww
 /// Supports elevation, padding, and custom styling
 class AppCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final Color? color;
-  final double? elevation;
-  final double? borderRadius;
-  final VoidCallback? onTap;
-  final Border? border;
-  final BoxBorder? boxBorder;
-  final bool showShadow;
 
   const AppCard({
     Key? key,
@@ -87,6 +77,16 @@ class AppCard extends StatelessWidget {
           border: border,
           showShadow: false,
         );
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
+  final Color? color;
+  final double? elevation;
+  final double? borderRadius;
+  final VoidCallback? onTap;
+  final Border? border;
+  final BoxBorder? boxBorder;
+  final bool showShadow;
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +110,7 @@ class AppCard extends StatelessWidget {
                 BoxShadow(
                   color: cs.shadow.withOpacity(0.08),
                   blurRadius: (cardElevation * 2).clamp(2, 12),
-                  offset: Offset(0, (cardElevation).clamp(1, 6)),
-                  spreadRadius: 0,
+                  offset: Offset(0, cardElevation.clamp(1, 6)),
                 ),
               ]
             : null,

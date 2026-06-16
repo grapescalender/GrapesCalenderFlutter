@@ -6,9 +6,6 @@ import '../../domain/entities/schedule_entity.dart';
 /// Schedule Filter Chip Widget
 /// Displays filter options (Spray, Nutrition, Work, All)
 class ScheduleFilterChip extends StatelessWidget {
-  final ScheduleType filterType;
-  final bool isSelected;
-  final VoidCallback onTap;
 
   const ScheduleFilterChip({
     Key? key,
@@ -16,6 +13,9 @@ class ScheduleFilterChip extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
   }) : super(key: key);
+  final ScheduleType filterType;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,20 +25,19 @@ class ScheduleFilterChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm, // make chips slightly narrower
           vertical: 6, // reduced vertical padding for smaller height
         ),
         decoration: BoxDecoration(
           color: isSelected
               ? cs.primary
-              : cs.surfaceVariant,
+              : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           border: isSelected
               ? null
               : Border.all(
                   color: cs.outline,
-                  width: 1,
                 ),
         ),
         child: Text(

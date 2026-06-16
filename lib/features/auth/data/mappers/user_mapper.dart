@@ -4,8 +4,7 @@ import '../models/user_model.dart';
 /// Mapper to convert between UserModel (data layer) and UserEntity (domain layer)
 class UserMapper {
   /// Convert UserModel to UserEntity
-  static UserEntity toEntity(UserModel model) {
-    return UserEntity(
+  static UserEntity toEntity(UserModel model) => UserEntity(
       id: model.id,
       username: model.username,
       email: model.email,
@@ -22,11 +21,9 @@ class UserMapper {
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     );
-  }
 
   /// Convert UserEntity to UserModel
-  static UserModel toModel(UserEntity entity) {
-    return UserModel(
+  static UserModel toModel(UserEntity entity) => UserModel(
       id: entity.id,
       username: entity.username,
       email: entity.email,
@@ -43,5 +40,4 @@ class UserMapper {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
-  }
 }

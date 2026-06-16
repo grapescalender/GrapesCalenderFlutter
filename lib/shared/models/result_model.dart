@@ -33,9 +33,9 @@ sealed class Result<T> {
 
 /// Success result
 class Success<T> extends Result<T> {
-  final T data;
 
   const Success(this.data);
+  final T data;
 
   @override
   String toString() => 'Success(data: $data)';
@@ -43,9 +43,9 @@ class Success<T> extends Result<T> {
 
 /// Error result
 class Error<T> extends Result<T> {
-  final Exception exception;
 
   const Error(this.exception);
+  final Exception exception;
 
   @override
   String toString() => 'Error(exception: $exception)';
@@ -53,10 +53,6 @@ class Error<T> extends Result<T> {
 
 /// API response wrapper
 class ApiResponse<T> {
-  final bool success;
-  final String? message;
-  final T? data;
-  final int? statusCode;
 
   ApiResponse({
     required this.success,
@@ -76,21 +72,21 @@ class ApiResponse<T> {
       statusCode: json['statusCode'] as int?,
     );
   }
+  final bool success;
+  final String? message;
+  final T? data;
+  final int? statusCode;
 
   Map<String, dynamic> toJson(Object? Function(T)? toJsonT) => {
         'success': success,
         'message': message,
-        'data': data != null && toJsonT != null ? toJsonT(data!) : null,
+        'data': data != null && toJsonT != null ? toJsonT(data as T) : null,
         'statusCode': statusCode,
       };
 }
 
 /// Pagination wrapper
 class PaginatedResponse<T> {
-  final List<T> items;
-  final int totalCount;
-  final int pageNumber;
-  final int pageSize;
 
   PaginatedResponse({
     required this.items,
@@ -98,6 +94,10 @@ class PaginatedResponse<T> {
     required this.pageNumber,
     required this.pageSize,
   });
+  final List<T> items;
+  final int totalCount;
+  final int pageNumber;
+  final int pageSize;
 
   int get totalPages => (totalCount / pageSize).ceil();
 

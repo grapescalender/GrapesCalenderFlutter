@@ -11,8 +11,7 @@ class AppTheme {
 
   /// Light theme (default)
   /// Clean, minimal design with soft green accent
-  static ThemeData get lightTheme {
-    return ThemeData(
+  static ThemeData get lightTheme => ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
@@ -66,12 +65,10 @@ class AppTheme {
         space: AppSpacing.listItemSpacing,
       ),
     );
-  }
 
   /// Dark theme
   /// Maintains minimal design with adjusted colors for dark mode
-  static ThemeData get darkTheme {
-    return ThemeData(
+  static ThemeData get darkTheme => ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
@@ -119,11 +116,9 @@ class AppTheme {
         space: AppSpacing.listItemSpacing,
       ),
     );
-  }
 
   /// Build input decoration theme for light mode
-  static InputDecorationTheme _buildInputDecorationTheme() {
-    return InputDecorationTheme(
+  static InputDecorationTheme _buildInputDecorationTheme() => InputDecorationTheme(
       contentPadding: EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.smMd,
@@ -158,11 +153,9 @@ class AppTheme {
         color: AppColors.errorRed,
       ),
     );
-  }
 
   /// Build input decoration theme for dark mode
-  static InputDecorationTheme _buildInputDecorationThemeDark() {
-    return InputDecorationTheme(
+  static InputDecorationTheme _buildInputDecorationThemeDark() => InputDecorationTheme(
       contentPadding: EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.smMd,
@@ -201,11 +194,9 @@ class AppTheme {
         color: AppColors.errorRed,
       ),
     );
-  }
 
   /// Build Material 3 text theme for light mode
-  static TextTheme _buildTextTheme() {
-    return TextTheme(
+  static TextTheme _buildTextTheme() => TextTheme(
       displayLarge: AppTextStyles.heading1,
       displayMedium: AppTextStyles.heading2,
       displaySmall: AppTextStyles.heading3,
@@ -222,11 +213,9 @@ class AppTheme {
       labelMedium: AppTextStyles.labelMedium,
       labelSmall: AppTextStyles.labelSmall,
     );
-  }
 
   /// Build Material 3 text theme for dark mode
-  static TextTheme _buildTextThemeDark() {
-    return TextTheme(
+  static TextTheme _buildTextThemeDark() => TextTheme(
       displayLarge: AppTextStyles.heading1.copyWith(
         color: AppColors.darkTextPrimary,
       ),
@@ -271,5 +260,4 @@ class AppTheme {
         color: AppColors.darkTextSecondary,
       ),
     );
-  }
 }

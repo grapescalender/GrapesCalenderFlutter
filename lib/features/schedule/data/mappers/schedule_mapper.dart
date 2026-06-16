@@ -4,8 +4,7 @@ import '../models/schedule_model.dart';
 /// Mapper to convert between ScheduleModel (data layer) and ScheduleEntity (domain layer)
 class ScheduleMapper {
   /// Convert ScheduleModel to ScheduleEntity
-  static ScheduleEntity toEntity(ScheduleModel model) {
-    return ScheduleEntity(
+  static ScheduleEntity toEntity(ScheduleModel model) => ScheduleEntity(
       id: model.id,
       plotId: model.plotId,
       plotName: model.plotName,
@@ -18,11 +17,9 @@ class ScheduleMapper {
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     );
-  }
 
   /// Convert ScheduleEntity to ScheduleModel
-  static ScheduleModel toModel(ScheduleEntity entity) {
-    return ScheduleModel(
+  static ScheduleModel toModel(ScheduleEntity entity) => ScheduleModel(
       id: entity.id,
       plotId: entity.plotId,
       plotName: entity.plotName,
@@ -35,5 +32,4 @@ class ScheduleMapper {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
-  }
 }

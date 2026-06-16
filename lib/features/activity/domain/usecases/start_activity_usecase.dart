@@ -6,26 +6,24 @@ import '../repositories/activity_repository.dart';
 
 /// Parameters for StartActivityUseCase
 class StartActivityParams {
-  final String plotId;
-  final ActivityType type;
 
   StartActivityParams({
     required this.plotId,
     required this.type,
   });
+  final String plotId;
+  final ActivityType type;
 }
 
 /// Use case to start an activity
 class StartActivityUseCase implements UseCase<ActivityEntity, StartActivityParams> {
-  final ActivityRepository repository;
 
   StartActivityUseCase(this.repository);
+  final ActivityRepository repository;
 
   @override
-  Future<Either<Failure, ActivityEntity>> call(StartActivityParams params) async {
-    return await repository.startActivity(
+  Future<Either<Failure, ActivityEntity>> call(StartActivityParams params) async => await repository.startActivity(
       plotId: params.plotId,
       type: params.type,
     );
-  }
 }

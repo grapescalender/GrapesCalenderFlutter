@@ -26,6 +26,8 @@ mixin _$UserModel {
   String get phoneNumber => throw _privateConstructorUsedError;
   String get firstName => throw _privateConstructorUsedError;
   String get lastName => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime get updatedAt => throw _privateConstructorUsedError;
   String get farmName => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
   String get city => throw _privateConstructorUsedError;
@@ -33,8 +35,6 @@ mixin _$UserModel {
   String get zipCode => throw _privateConstructorUsedError;
   String get profileImage => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -54,15 +54,15 @@ abstract class $UserModelCopyWith<$Res> {
       String phoneNumber,
       String firstName,
       String lastName,
+      DateTime createdAt,
+      DateTime updatedAt,
       String farmName,
       String address,
       String city,
       String state,
       String zipCode,
       String profileImage,
-      bool isActive,
-      DateTime createdAt,
-      DateTime updatedAt});
+      bool isActive});
 }
 
 /// @nodoc
@@ -84,6 +84,8 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? phoneNumber = null,
     Object? firstName = null,
     Object? lastName = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
     Object? farmName = null,
     Object? address = null,
     Object? city = null,
@@ -91,8 +93,6 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? zipCode = null,
     Object? profileImage = null,
     Object? isActive = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -119,6 +119,14 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
           ? _value.lastName
           : lastName // ignore: cast_nullable_to_non_nullable
               as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       farmName: null == farmName
           ? _value.farmName
           : farmName // ignore: cast_nullable_to_non_nullable
@@ -147,14 +155,6 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
     ) as $Val);
   }
 }
@@ -174,15 +174,15 @@ abstract class _$$UserModelImplCopyWith<$Res>
       String phoneNumber,
       String firstName,
       String lastName,
+      DateTime createdAt,
+      DateTime updatedAt,
       String farmName,
       String address,
       String city,
       String state,
       String zipCode,
       String profileImage,
-      bool isActive,
-      DateTime createdAt,
-      DateTime updatedAt});
+      bool isActive});
 }
 
 /// @nodoc
@@ -202,6 +202,8 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? phoneNumber = null,
     Object? firstName = null,
     Object? lastName = null,
+    Object? createdAt = null,
+    Object? updatedAt = null,
     Object? farmName = null,
     Object? address = null,
     Object? city = null,
@@ -209,8 +211,6 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? zipCode = null,
     Object? profileImage = null,
     Object? isActive = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
   }) {
     return _then(_$UserModelImpl(
       id: null == id
@@ -237,6 +237,14 @@ class __$$UserModelImplCopyWithImpl<$Res>
           ? _value.lastName
           : lastName // ignore: cast_nullable_to_non_nullable
               as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: null == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
       farmName: null == farmName
           ? _value.farmName
           : farmName // ignore: cast_nullable_to_non_nullable
@@ -265,14 +273,6 @@ class __$$UserModelImplCopyWithImpl<$Res>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
     ));
   }
 }
@@ -287,15 +287,15 @@ class _$UserModelImpl implements _UserModel {
       required this.phoneNumber,
       required this.firstName,
       required this.lastName,
+      required this.createdAt,
+      required this.updatedAt,
       this.farmName = '',
       this.address = '',
       this.city = '',
       this.state = '',
       this.zipCode = '',
       this.profileImage = '',
-      this.isActive = true,
-      required this.createdAt,
-      required this.updatedAt});
+      this.isActive = true});
 
   factory _$UserModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserModelImplFromJson(json);
@@ -312,6 +312,10 @@ class _$UserModelImpl implements _UserModel {
   final String firstName;
   @override
   final String lastName;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
   @override
   @JsonKey()
   final String farmName;
@@ -333,14 +337,10 @@ class _$UserModelImpl implements _UserModel {
   @override
   @JsonKey()
   final bool isActive;
-  @override
-  final DateTime createdAt;
-  @override
-  final DateTime updatedAt;
 
   @override
   String toString() {
-    return 'UserModel(id: $id, username: $username, email: $email, phoneNumber: $phoneNumber, firstName: $firstName, lastName: $lastName, farmName: $farmName, address: $address, city: $city, state: $state, zipCode: $zipCode, profileImage: $profileImage, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UserModel(id: $id, username: $username, email: $email, phoneNumber: $phoneNumber, firstName: $firstName, lastName: $lastName, createdAt: $createdAt, updatedAt: $updatedAt, farmName: $farmName, address: $address, city: $city, state: $state, zipCode: $zipCode, profileImage: $profileImage, isActive: $isActive)';
   }
 
   @override
@@ -358,6 +358,10 @@ class _$UserModelImpl implements _UserModel {
                 other.firstName == firstName) &&
             (identical(other.lastName, lastName) ||
                 other.lastName == lastName) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
             (identical(other.farmName, farmName) ||
                 other.farmName == farmName) &&
             (identical(other.address, address) || other.address == address) &&
@@ -367,11 +371,7 @@ class _$UserModelImpl implements _UserModel {
             (identical(other.profileImage, profileImage) ||
                 other.profileImage == profileImage) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.isActive == isActive));
   }
 
   @JsonKey(ignore: true)
@@ -384,15 +384,15 @@ class _$UserModelImpl implements _UserModel {
       phoneNumber,
       firstName,
       lastName,
+      createdAt,
+      updatedAt,
       farmName,
       address,
       city,
       state,
       zipCode,
       profileImage,
-      isActive,
-      createdAt,
-      updatedAt);
+      isActive);
 
   @JsonKey(ignore: true)
   @override
@@ -416,15 +416,15 @@ abstract class _UserModel implements UserModel {
       required final String phoneNumber,
       required final String firstName,
       required final String lastName,
+      required final DateTime createdAt,
+      required final DateTime updatedAt,
       final String farmName,
       final String address,
       final String city,
       final String state,
       final String zipCode,
       final String profileImage,
-      final bool isActive,
-      required final DateTime createdAt,
-      required final DateTime updatedAt}) = _$UserModelImpl;
+      final bool isActive}) = _$UserModelImpl;
 
   factory _UserModel.fromJson(Map<String, dynamic> json) =
       _$UserModelImpl.fromJson;
@@ -442,6 +442,10 @@ abstract class _UserModel implements UserModel {
   @override
   String get lastName;
   @override
+  DateTime get createdAt;
+  @override
+  DateTime get updatedAt;
+  @override
   String get farmName;
   @override
   String get address;
@@ -455,10 +459,6 @@ abstract class _UserModel implements UserModel {
   String get profileImage;
   @override
   bool get isActive;
-  @override
-  DateTime get createdAt;
-  @override
-  DateTime get updatedAt;
   @override
   @JsonKey(ignore: true)
   _$$UserModelImplCopyWith<_$UserModelImpl> get copyWith =>

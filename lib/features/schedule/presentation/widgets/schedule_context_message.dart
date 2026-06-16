@@ -6,11 +6,6 @@ import '../../../../core/design_system/typography/app_typography.dart';
 /// Schedule Context Message Widget
 /// Shows information about the date range and day count for filtered schedules
 class ScheduleContextMessage extends StatelessWidget {
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final int? startDay;
-  final int? endDay;
-  final String? activityName;
 
   const ScheduleContextMessage({
     Key? key,
@@ -20,6 +15,11 @@ class ScheduleContextMessage extends StatelessWidget {
     this.endDay,
     this.activityName,
   }) : super(key: key);
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final int? startDay;
+  final int? endDay;
+  final String? activityName;
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +39,10 @@ class ScheduleContextMessage extends StatelessWidget {
     }
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: cs.surfaceVariant,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       ),
       child: Row(

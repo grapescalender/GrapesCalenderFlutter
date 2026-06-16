@@ -4,14 +4,6 @@ import '../app_shimmer.dart';
 
 /// Configurable shimmer skeleton for lists, cards, and custom layouts.
 class AppLoadingState extends StatelessWidget {
-  final AppLoadingVariant variant;
-  final int itemCount;
-  final double itemHeight;
-  final double? itemWidth;
-  final double radius;
-  final EdgeInsetsGeometry? padding;
-  final Axis direction;
-  final List<double>? blockHeights;
 
   const AppLoadingState({
     super.key,
@@ -63,6 +55,14 @@ class AppLoadingState extends StatelessWidget {
         radius = 16,
         direction = Axis.vertical,
         blockHeights = heights;
+  final AppLoadingVariant variant;
+  final int itemCount;
+  final double itemHeight;
+  final double? itemWidth;
+  final double radius;
+  final EdgeInsetsGeometry? padding;
+  final Axis direction;
+  final List<double>? blockHeights;
 
   @override
   Widget build(BuildContext context) {

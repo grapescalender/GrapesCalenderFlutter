@@ -6,12 +6,6 @@ import '../../core/design_system/typography/app_typography.dart';
 /// Minimal, clean design inspired by Groww
 /// Supports icons, labels, and badges
 class AppBottomNav extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-  final List<AppBottomNavItem> items;
-  final Color? backgroundColor;
-  final Color? selectedColor;
-  final Color? unselectedColor;
 
   const AppBottomNav({
     Key? key,
@@ -22,6 +16,12 @@ class AppBottomNav extends StatelessWidget {
     this.selectedColor,
     this.unselectedColor,
   }) : super(key: key);
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final List<AppBottomNavItem> items;
+  final Color? backgroundColor;
+  final Color? selectedColor;
+  final Color? unselectedColor;
 
   @override
   Widget build(BuildContext context) {
@@ -37,15 +37,14 @@ class AppBottomNav extends StatelessWidget {
           BoxShadow(
             color: cs.shadow.withOpacity(0.08),
             blurRadius: 8,
-            offset: Offset(0, -2),
-            spreadRadius: 0,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
       child: SafeArea(
         child: Container(
           height: 64,
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: items.asMap().entries.map((entry) {
@@ -83,7 +82,7 @@ class AppBottomNav extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -101,12 +100,12 @@ class AppBottomNav extends StatelessWidget {
                       right: -8,
                       top: -8,
                       child: Container(
-                        padding: EdgeInsets.all(2),
+                        padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.error,
                           shape: BoxShape.circle,
                         ),
-                        constraints: BoxConstraints(
+                        constraints: const BoxConstraints(
                           minWidth: 16,
                           minHeight: 16,
                         ),
@@ -122,7 +121,7 @@ class AppBottomNav extends StatelessWidget {
                     ),
                 ],
               ),
-              SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 item.label,
                 style: AppTypography.labelSmall(context).copyWith(
@@ -140,10 +139,6 @@ class AppBottomNav extends StatelessWidget {
 
 /// Bottom Navigation Item
 class AppBottomNavItem {
-  final IconData icon;
-  final IconData selectedIcon;
-  final String label;
-  final int? badge;
 
   const AppBottomNavItem({
     required this.icon,
@@ -151,4 +146,8 @@ class AppBottomNavItem {
     required this.label,
     this.badge,
   });
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final int? badge;
 }

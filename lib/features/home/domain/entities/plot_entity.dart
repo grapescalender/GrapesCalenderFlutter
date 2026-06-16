@@ -1,14 +1,5 @@
 /// Plot entity - Domain layer representation
 class PlotEntity {
-  final String id;
-  final String name;
-  final double area;
-  final String location;
-  final String cropType;
-  final DateTime? pruningDate; // Nullable for plots without pruning
-  final bool isRunning; // Whether plot is currently running
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const PlotEntity({
     required this.id,
@@ -21,6 +12,15 @@ class PlotEntity {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String name;
+  final double area;
+  final String location;
+  final String cropType;
+  final DateTime? pruningDate; // Nullable for plots without pruning
+  final bool isRunning; // Whether plot is currently running
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   /// Calculate days since pruning
   int get daysSincePruning {

@@ -9,7 +9,7 @@ import '../../../../core/design_system/colors/app_colors.dart';
 
 /// PlotsSection — shows current selected plot status and allows selecting a plot.
 class PlotsSection extends ConsumerWidget {
-  const PlotsSection({Key? key}) : super(key: key);
+  const PlotsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +44,7 @@ class PlotsSection extends ConsumerWidget {
               boxShadow: [BoxShadow(color: cs.shadow.withOpacity(0.08), blurRadius: 14, offset: const Offset(0,8))],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(18.0),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -59,7 +59,7 @@ class PlotsSection extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.agriculture_rounded, color: Colors.white, size: 18),
+                          const Icon(Icons.agriculture_rounded, color: Colors.white, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -98,7 +98,7 @@ class PlotsSection extends ConsumerWidget {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                (selected != null && selected.pruningDate != null) ? 'Pruning Date: ${_formatDate(selected!.pruningDate)}' : 'Pruning Date: —',
+                                (selected != null && selected.pruningDate != null) ? 'Pruning Date: ${_formatDate(selected.pruningDate)}' : 'Pruning Date: —',
                                 style: AppTypography.bodyMedium(context).copyWith(color: Colors.white70),
                               ),
                               const Spacer(),
@@ -132,8 +132,8 @@ class PlotsSection extends ConsumerWidget {
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              Positioned(top: 18, left: 18, child: Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.white24, shape: BoxShape.circle))),
-                              Positioned(bottom: 18, right: 18, child: Container(width: 24, height: 24, decoration: BoxDecoration(color: Colors.white24, shape: BoxShape.circle))),
+                              Positioned(top: 18, left: 18, child: Container(width: 44, height: 44, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle))),
+                              Positioned(bottom: 18, right: 18, child: Container(width: 24, height: 24, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle))),
                               const Icon(Icons.eco_rounded, color: Colors.white70, size: 46),
                             ],
                           ),
@@ -153,8 +153,7 @@ class PlotsSection extends ConsumerWidget {
   void _openSelector(BuildContext context, PlotState state, PlotNotifier notifier) {
     showModalBottomSheet(
       context: context,
-      builder: (ctx) {
-        return SafeArea(
+      builder: (ctx) => SafeArea(
           child: ListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: state.plots.length,
@@ -172,8 +171,7 @@ class PlotsSection extends ConsumerWidget {
               );
             },
           ),
-        );
-      },
+        ),
     );
   }
 

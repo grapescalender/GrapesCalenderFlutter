@@ -41,7 +41,7 @@ class LocalizationService {
   Future<Map<String, String>> _loadLanguage(String languageCode) async {
     final jsonString = await rootBundle.loadString('assets/i18n/$languageCode.json');
     final dynamic jsonData = json.decode(jsonString);
-    final Map<String, dynamic> jsonMap = Map<String, dynamic>.from(jsonData as Map);
+    final jsonMap = Map<String, dynamic>.from(jsonData as Map);
     
     return jsonMap.cast<String, String>();
   }
@@ -64,9 +64,7 @@ class LocalizationService {
   }
 
   /// Get translated string
-  String translate(String key) {
-    return _translations[_currentLanguage]?[key] ?? key;
-  }
+  String translate(String key) => _translations[_currentLanguage]?[key] ?? key;
 
   /// Get translated string with plural support
   String translatePlural(String key, int count) {

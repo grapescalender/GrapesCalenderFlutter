@@ -4,15 +4,6 @@ import 'package:flutter/material.dart';
 
 /// Activity entity - Domain layer representation
 class ActivityEntity {
-  final String id;
-  final String plotId;
-  final String plotName;
-  final ActivityType type;
-  final ActivityStatus status;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const ActivityEntity({
     required this.id,
@@ -25,6 +16,15 @@ class ActivityEntity {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String plotId;
+  final String plotName;
+  final ActivityType type;
+  final ActivityStatus status;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   /// Check if activity is active
   bool get isActive => status == ActivityStatus.active;

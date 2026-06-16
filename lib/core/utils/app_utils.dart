@@ -3,24 +3,16 @@ import 'package:intl/intl.dart';
 /// Date and time utilities
 class DateTimeUtils {
   /// Format date as dd/MM/yyyy
-  static String formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
+  static String formatDate(DateTime date) => DateFormat('dd/MM/yyyy').format(date);
 
   /// Format date and time as dd/MM/yyyy HH:mm
-  static String formatDateTime(DateTime dateTime) {
-    return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
-  }
+  static String formatDateTime(DateTime dateTime) => DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
 
   /// Get difference in days between two dates
-  static int getDaysDifference(DateTime from, DateTime to) {
-    return to.difference(from).inDays;
-  }
+  static int getDaysDifference(DateTime from, DateTime to) => to.difference(from).inDays;
 
   /// Get running days from pruning date to today
-  static int getRunningDays(DateTime pruningDate) {
-    return DateTime.now().difference(pruningDate).inDays;
-  }
+  static int getRunningDays(DateTime pruningDate) => DateTime.now().difference(pruningDate).inDays;
 
   /// Check if date is today
   static bool isToday(DateTime date) {
@@ -47,47 +39,31 @@ class DateTimeUtils {
 /// String validation utilities
 class ValidationUtils {
   /// Validate email format
-  static bool isValidEmail(String email) {
-    return RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
-  }
+  static bool isValidEmail(String email) => RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
 
   /// Validate username (alphanumeric and underscore only)
-  static bool isValidUsername(String username) {
-    return RegExp(r'^[a-zA-Z0-9_]{3,}$').hasMatch(username);
-  }
+  static bool isValidUsername(String username) => RegExp(r'^[a-zA-Z0-9_]{3,}$').hasMatch(username);
 
   /// Validate password strength
-  static bool isValidPassword(String password) {
-    return password.length >= 8;
-  }
+  static bool isValidPassword(String password) => password.length >= 8;
 
   /// Validate phone number (10 digits)
-  static bool isValidPhoneNumber(String phone) {
-    return RegExp(r'^\d{10}$').hasMatch(phone.replaceAll(' ', ''));
-  }
+  static bool isValidPhoneNumber(String phone) => RegExp(r'^\d{10}$').hasMatch(phone.replaceAll(' ', ''));
 
   /// Validate field is not empty
-  static bool isNotEmpty(String value) {
-    return value.trim().isNotEmpty;
-  }
+  static bool isNotEmpty(String value) => value.trim().isNotEmpty;
 }
 
 /// Responsive design utilities
 class ResponsiveUtils {
   /// Check if device is in portrait mode
-  static bool isPortrait(double width, double height) {
-    return height > width;
-  }
+  static bool isPortrait(double width, double height) => height > width;
 
   /// Check if device is a tablet
-  static bool isTablet(double width) {
-    return width >= 600;
-  }
+  static bool isTablet(double width) => width >= 600;
 
   /// Check if device is a large tablet
-  static bool isLargeTablet(double width) {
-    return width >= 900;
-  }
+  static bool isLargeTablet(double width) => width >= 900;
 
   /// Get column count based on screen width
   static int getColumnCount(double width) {
@@ -120,9 +96,7 @@ extension StringExtension on String {
   }
 
   /// Convert snake_case to Title Case
-  String toTitleCase() {
-    return split('_').map((e) => e.capitalize()).join(' ');
-  }
+  String toTitleCase() => split('_').map((e) => e.capitalize()).join(' ');
 
   /// Truncate string with ellipsis
   String truncate(int maxLength) {

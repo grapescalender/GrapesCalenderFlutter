@@ -10,9 +10,6 @@ import '../../domain/entities/plot_entity.dart';
 /// Modern, lightweight design inspired by Groww's stock cards
 /// Features: Compact layout, clean spacing, subtle selection state
 class PlotCard extends StatelessWidget {
-  final PlotEntity plot;
-  final bool isSelected;
-  final VoidCallback onTap;
 
   const PlotCard({
     Key? key,
@@ -20,6 +17,9 @@ class PlotCard extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
   }) : super(key: key);
+  final PlotEntity plot;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class PlotCard extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
         width: double.infinity,
-        margin: EdgeInsets.only(right: AppSpacing.md),
+        margin: const EdgeInsets.only(right: AppSpacing.md),
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark 

@@ -9,13 +9,13 @@ import '../mappers/activity_mapper.dart';
 
 /// Implementation of ActivityRepository
 class ActivityRepositoryImpl implements ActivityRepository {
-  final ActivityRemoteDataSource remoteDataSource;
-  final NetworkInfo networkInfo;
 
   ActivityRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
   });
+  final ActivityRemoteDataSource remoteDataSource;
+  final NetworkInfo networkInfo;
 
   @override
   Future<Either<Failure, List<ActivityEntity>>> getActivities({
@@ -30,7 +30,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
       final activityModels = await remoteDataSource.getActivities(plotId: plotId);
 
       final activityEntities = activityModels
-          .map((model) => ActivityMapper.toEntity(model))
+          .map(ActivityMapper.toEntity)
           .toList();
 
       return Right(activityEntities);
@@ -131,7 +131,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
     try {
       final activitiesResult = await getActivities(plotId: plotId);
       return activitiesResult.fold(
-        (failure) => Left(failure),
+        Left.new,
         (activities) {
           final activeActivity = activities.firstWhere(
             (activity) => activity.isActive,

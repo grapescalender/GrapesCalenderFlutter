@@ -1,11 +1,5 @@
 // Simple model classes (without Freezed to avoid build_runner issues)
 class PlotModel {
-  final String id;
-  final String plotName;
-  final String location;
-  final double areaInAcres;
-  final String grapeVariety;
-  final DateTime pruningDate;
 
   PlotModel({
     required this.id,
@@ -15,21 +9,17 @@ class PlotModel {
     required this.grapeVariety,
     required this.pruningDate,
   });
+  final String id;
+  final String plotName;
+  final String location;
+  final double areaInAcres;
+  final String grapeVariety;
+  final DateTime pruningDate;
 
-  int get calculatedDaysFromPruning {
-    return DateTime.now().difference(pruningDate).inDays;
-  }
+  int get calculatedDaysFromPruning => DateTime.now().difference(pruningDate).inDays;
 }
 
 class MockScheduleModel {
-  final String id;
-  final String plotId;
-  final String title;
-  final String description;
-  final DateTime scheduledDate;
-  final String type;
-  final String notes;
-  final bool isCompleted;
 
   MockScheduleModel({
     required this.id,
@@ -41,6 +31,14 @@ class MockScheduleModel {
     required this.notes,
     required this.isCompleted,
   });
+  final String id;
+  final String plotId;
+  final String title;
+  final String description;
+  final DateTime scheduledDate;
+  final String type;
+  final String notes;
+  final bool isCompleted;
 }
 
 class MockData {
@@ -57,7 +55,7 @@ class MockData {
       id: 'plot_2',
       plotName: 'Plot B',
       location: 'Nashik',
-      areaInAcres: 3.0,
+      areaInAcres: 3,
       grapeVariety: 'Flame Seedless',
       pruningDate: DateTime.now().subtract(const Duration(days: 13)),
     ),
@@ -65,7 +63,7 @@ class MockData {
       id: 'plot_3',
       plotName: 'Plot C',
       location: 'Nashik',
-      areaInAcres: 2.0,
+      areaInAcres: 2,
       grapeVariety: 'Crimson Seedless',
       pruningDate: DateTime.now().subtract(const Duration(days: 5)),
     ),

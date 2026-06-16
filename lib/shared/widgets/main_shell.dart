@@ -4,12 +4,12 @@ import '../../config/router/app_router.dart';
 
 /// Main shell widget that provides bottom navigation
 class MainShell extends StatelessWidget {
-  final Widget child;
 
   const MainShell({
     Key? key,
     required this.child,
   }) : super(key: key);
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +21,7 @@ class MainShell extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNavigation(BuildContext context, String currentLocation) {
-    return BottomNavigationBar(
+  Widget _buildBottomNavigation(BuildContext context, String currentLocation) => BottomNavigationBar(
       currentIndex: _getSelectedIndex(currentLocation),
       onTap: (index) => _onItemTapped(context, index),
       type: BottomNavigationBarType.fixed,
@@ -45,7 +44,6 @@ class MainShell extends StatelessWidget {
         ),
       ],
     );
-  }
 
   int _getSelectedIndex(String currentLocation) {
     switch (currentLocation) {

@@ -16,9 +16,6 @@ enum DeviceType {
 
 /// Responsive builder widget
 class ResponsiveBuilder extends StatelessWidget {
-  final ResponsiveWidgetBuilder builder;
-  final EdgeInsets? padding;
-  final Color? backgroundColor;
 
   const ResponsiveBuilder({
     Key? key,
@@ -26,10 +23,12 @@ class ResponsiveBuilder extends StatelessWidget {
     this.padding,
     this.backgroundColor,
   }) : super(key: key);
+  final ResponsiveWidgetBuilder builder;
+  final EdgeInsets? padding;
+  final Color? backgroundColor;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
+  Widget build(BuildContext context) => LayoutBuilder(
       builder: (context, constraints) {
         final deviceType = _getDeviceType(constraints.maxWidth);
         
@@ -49,7 +48,6 @@ class ResponsiveBuilder extends StatelessWidget {
         return child;
       },
     );
-  }
 
   static DeviceType _getDeviceType(double width) {
     if (width >= 900) return DeviceType.desktop;

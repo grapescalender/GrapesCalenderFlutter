@@ -7,12 +7,6 @@ import '../app_card.dart';
 
 /// Production error state — supports inline (row) and full (column) layouts.
 class AppErrorState extends StatelessWidget {
-  final String title;
-  final String? message;
-  final String? retryLabel;
-  final VoidCallback? onRetry;
-  final bool inline;
-  final EdgeInsetsGeometry? padding;
 
   const AppErrorState({
     super.key,
@@ -23,6 +17,12 @@ class AppErrorState extends StatelessWidget {
     this.inline = false,
     this.padding,
   });
+  final String title;
+  final String? message;
+  final String? retryLabel;
+  final VoidCallback? onRetry;
+  final bool inline;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {

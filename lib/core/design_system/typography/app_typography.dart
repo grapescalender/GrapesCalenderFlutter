@@ -186,12 +186,8 @@ class AppTypography {
   }
   
   /// Get text style with custom color
-  static TextStyle withColor(TextStyle style, Color color) {
-    return style.copyWith(color: color);
-  }
+  static TextStyle withColor(TextStyle style, Color color) => style.copyWith(color: color);
   
   /// Get text style with custom weight
-  static TextStyle withWeight(TextStyle style, FontWeight weight) {
-    return style.copyWith(fontWeight: weight);
-  }
+  static TextStyle withWeight(TextStyle style, FontWeight weight) => style.copyWith(fontWeight: weight);
 }

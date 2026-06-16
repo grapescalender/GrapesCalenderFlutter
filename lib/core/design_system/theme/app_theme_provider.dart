@@ -6,16 +6,14 @@ import '../../di/injection_container.dart';
 import 'app_theme.dart';
 
 /// Theme mode provider (Light/Dark)
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  return ThemeModeNotifier(ref);
-});
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) => ThemeModeNotifier(ref));
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  final Ref ref;
 
   ThemeModeNotifier(this.ref) : super(ThemeMode.light) {
     _loadThemeMode();
   }
+  final Ref ref;
 
   Future<void> _loadThemeMode() async {
     try {
@@ -52,6 +50,4 @@ final themeDataProvider = Provider<ThemeData>((ref) {
 });
 
 /// Dark theme data provider
-final darkThemeDataProvider = Provider<ThemeData>((ref) {
-  return AppTheme.darkTheme;
-});
+final darkThemeDataProvider = Provider<ThemeData>((ref) => AppTheme.darkTheme);
