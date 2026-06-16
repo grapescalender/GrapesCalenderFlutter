@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
+// import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../shared/widgets/app_card.dart';
+import 'competition_analysis_card.dart';
 import '../providers/plot_notifier.dart';
-import '../../domain/entities/plot_entity.dart';
+// import '../../domain/entities/plot_entity.dart';
 
 class MarketInsightSection extends ConsumerWidget {
-  const MarketInsightSection({Key? key}) : super(key: key);
+  const MarketInsightSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,7 +19,7 @@ class MarketInsightSection extends ConsumerWidget {
         ? state.plots.firstWhere((p) => p.id == state.selectedPlotId, orElse: () => state.plots.first)
         : null;
 
-    final cs = Theme.of(context).colorScheme;
+    
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,26 +71,8 @@ class MarketInsightSection extends ConsumerWidget {
 
                 const SizedBox(height: AppSpacing.md),
 
-                // Placeholder for analytics area to be implemented later
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: cs.surfaceVariant.withOpacity(0.04),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Market insights will appear here', style: AppTypography.bodySmall(context).copyWith(color: cs.onSurfaceVariant)),
-                      const SizedBox(height: AppSpacing.xs),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('View Full Market Analysis →'),
-                      ),
-                    ],
-                  ),
-                ),
+                // Competition analysis card (replaces previous horizontal chart)
+                const CompetitionAnalysisCard(),
               ],
             ),
           ),
@@ -99,8 +82,7 @@ class MarketInsightSection extends ConsumerWidget {
   }
 }
 
-Widget _metricTile(BuildContext context, String title, String value) {
-  return Expanded(
+Widget _metricTile(BuildContext context, String title, String value) => Expanded(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,7 +92,6 @@ Widget _metricTile(BuildContext context, String title, String value) {
       ],
     ),
   );
-}
 
 // Top-level competition meter so it can be used from the MarketInsightSection
 Widget _competitionMeter(BuildContext context, String level) {
