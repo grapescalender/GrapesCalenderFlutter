@@ -113,37 +113,45 @@ class _MainBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use GoRouterState to get current location safely
-    // Wrap in try-catch to handle any router state access issues
     var currentLocation = RouteNames.home;
     try {
       final routerState = GoRouterState.of(context);
       currentLocation = routerState.uri.path;
     } catch (e) {
-      // Fallback to home if router state is not available
       currentLocation = RouteNames.home;
     }
 
-    return BottomNavigationBar(
+    final cs = Theme.of(context).colorScheme;
+
+    return NavigationBar(
       key: const ValueKey('main_bottom_nav'),
-      currentIndex: _getSelectedIndex(currentLocation),
-      onTap: (index) => _onItemTapped(context, index),
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
+      selectedIndex: _getSelectedIndex(currentLocation),
+      onDestinationSelected: (index) => _onItemTapped(context, index),
+      backgroundColor: cs.surface,
+      indicatorColor: cs.primaryContainer,
+      surfaceTintColor: Colors.transparent,
+      elevation: 3,
+      height: 64,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home_rounded),
           label: 'Home',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today),
+        NavigationDestination(
+          icon: Icon(Icons.calendar_month_outlined),
+          selectedIcon: Icon(Icons.calendar_month_rounded),
           label: 'Calendar',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.assessment),
+        NavigationDestination(
+          icon: Icon(Icons.bar_chart_outlined),
+          selectedIcon: Icon(Icons.bar_chart_rounded),
           label: 'Reports',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
+        NavigationDestination(
+          icon: Icon(Icons.person_outline_rounded),
+          selectedIcon: Icon(Icons.person_rounded),
           label: 'Profile',
         ),
       ],

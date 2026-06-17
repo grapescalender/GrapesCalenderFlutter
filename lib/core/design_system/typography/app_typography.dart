@@ -1,193 +1,235 @@
 import 'package:flutter/material.dart';
 import '../colors/app_colors.dart';
-import '../spacing/app_spacing.dart';
 
-/// Modern Typography System
-/// Responsive, accessible, and optimized for readability
-/// Inspired by Groww's clean typography with 2026 updates
+/// AgriTech SaaS Design System — Typography 2026
+///
+/// Scale philosophy (mobile-first, no responsive jitter on phones):
+///   • Removed the old responsive 3-breakpoint sizing that inflated
+///     font sizes on every 600 px+ screen.
+///   • Mobile sizes are now the canonical sizes used everywhere
+///     (phones 5–7 inch). Tablet gets a single +2 pt bump only.
+///   • All sizes are TOKEN-based — widgets must NOT override
+///     fontSize directly. Use copyWith(fontWeight:) or
+///     copyWith(color:) only.
+///
+/// Type Scale (Mobile / Tablet):
+///   Display Large   26 / 28   Bold      hero numbers, day counts
+///   Display Medium  22 / 24   Bold      major hero titles
+///   Display Small   20 / 22   SemiBold  section heroes
+///   Headline Large  18 / 20   SemiBold  page titles, major cards
+///   Headline Medium 16 / 18   SemiBold  section titles, card titles
+///   Headline Small  15 / 16   SemiBold  sub-section, widget titles
+///   Title Large     14 / 15   SemiBold  prominent list titles
+///   Title Medium    13 / 14   Medium    card subtitles, labels
+///   Title Small     12 / 13   Medium    small labels, chips
+///   Body Large      14 / 15   Regular   primary body copy
+///   Body Medium     13 / 14   Regular   standard body (most common)
+///   Body Small      12 / 13   Regular   secondary body, captions
+///   Label Large     13 / 14   SemiBold  buttons, CTAs
+///   Label Medium    11 / 12   Medium    tags, badges
+///   Label Small     10 / 11   Medium    overlines, micro labels
+///
+/// Font family: Inter (declared in pubspec / theme; no fallback needed)
+
 class AppTypography {
   AppTypography._();
 
-  // ===== DISPLAY TEXT =====
-  
-  /// Display Large - 32px, Bold
-  /// For hero sections, landing pages
+  // ─── font family token ───────────────────────────────────────────────────
+  static const String fontFamily = 'Inter';
+
+  // ─── shared line heights ─────────────────────────────────────────────────
+  static const double _lhDisplay = 1.20;
+  static const double _lhHeadline = 1.30;
+  static const double _lhTitle = 1.35;
+  static const double _lhBody = 1.50;
+  static const double _lhLabel = 1.30;
+
+  // ═══════════════════════════════════════════════════════════════
+  // DISPLAY
+  // ═══════════════════════════════════════════════════════════════
+
+  /// 26 pt Bold — hero numbers, day-count cards
   static TextStyle displayLarge(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 32, 36, 40),
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.5,
-    height: 1.2,
-    color: AppColors.onBackground,
-  );
-  
-  /// Display Medium - 28px, Bold
-  /// For major page titles
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 26, 28),
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        height: _lhDisplay,
+        color: AppColors.onBackground,
+      );
+
+  /// 22 pt Bold — major hero titles
   static TextStyle displayMedium(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 28, 32, 36),
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.5,
-    height: 1.25,
-    color: AppColors.onBackground,
-  );
-  
-  /// Display Small - 24px, SemiBold
-  /// For section headers
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 22, 24),
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
+        height: _lhDisplay,
+        color: AppColors.onBackground,
+      );
+
+  /// 20 pt SemiBold — section heroes
   static TextStyle displaySmall(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 24, 28, 32),
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.3,
-    height: 1.3,
-    color: AppColors.onBackground,
-  );
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 20, 22),
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.3,
+        height: _lhDisplay,
+        color: AppColors.onBackground,
+      );
 
-  // ===== HEADLINE TEXT =====
-  
-  /// Headline Large - 20px, SemiBold
-  /// For card titles, major sections
+  // ═══════════════════════════════════════════════════════════════
+  // HEADLINE
+  // ═══════════════════════════════════════════════════════════════
+
+  /// 18 pt SemiBold — page titles, major card titles
   static TextStyle headlineLarge(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 20, 22, 24),
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.2,
-    height: 1.3,
-    color: AppColors.onBackground,
-  );
-  
-  /// Headline Medium - 18px, SemiBold
-  /// For subsection titles
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 18, 20),
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+        height: _lhHeadline,
+        color: AppColors.onBackground,
+      );
+
+  /// 16 pt SemiBold — section headers, card titles
   static TextStyle headlineMedium(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 18, 20, 22),
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.15,
-    height: 1.35,
-    color: AppColors.onBackground,
-  );
-  
-  /// Headline Small - 16px, SemiBold
-  /// For small section titles
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 16, 18),
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.15,
+        height: _lhHeadline,
+        color: AppColors.onBackground,
+      );
+
+  /// 15 pt SemiBold — widget / sub-section titles
   static TextStyle headlineSmall(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 16, 18, 20),
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.1,
-    height: 1.4,
-    color: AppColors.onBackground,
-  );
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 15, 16),
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.1,
+        height: _lhHeadline,
+        color: AppColors.onBackground,
+      );
 
-  // ===== TITLE TEXT =====
-  
-  /// Title Large - 16px, Medium
-  /// For emphasized content
+  // ═══════════════════════════════════════════════════════════════
+  // TITLE
+  // ═══════════════════════════════════════════════════════════════
+
+  /// 14 pt SemiBold — prominent list item titles
   static TextStyle titleLarge(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 16, 18, 20),
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0,
-    height: 1.4,
-    color: AppColors.onBackground,
-  );
-  
-  /// Title Medium - 14px, Medium
-  /// For card subtitles
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 14, 15),
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+        height: _lhTitle,
+        color: AppColors.onBackground,
+      );
+
+  /// 13 pt Medium — card subtitles, compact headers
   static TextStyle titleMedium(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 14, 16, 18),
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.1,
-    height: 1.45,
-    color: AppColors.onSurface,
-  );
-  
-  /// Title Small - 12px, Medium
-  /// For small labels
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 13, 14),
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0,
+        height: _lhTitle,
+        color: AppColors.onSurface,
+      );
+
+  /// 12 pt Medium — small labels, filter chips
   static TextStyle titleSmall(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 12, 14, 16),
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.15,
-    height: 1.4,
-    color: AppColors.onSurface,
-  );
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 12, 13),
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.1,
+        height: _lhTitle,
+        color: AppColors.onSurface,
+      );
 
-  // ===== BODY TEXT =====
-  
-  /// Body Large - 16px, Regular
-  /// Primary body text
+  // ═══════════════════════════════════════════════════════════════
+  // BODY
+  // ═══════════════════════════════════════════════════════════════
+
+  /// 14 pt Regular — primary body copy, detail paragraphs
   static TextStyle bodyLarge(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 16, 18, 20),
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0,
-    height: 1.5,
-    color: AppColors.onBackground,
-  );
-  
-  /// Body Medium - 14px, Regular
-  /// Standard body text (most common)
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 14, 15),
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+        height: _lhBody,
+        color: AppColors.onBackground,
+      );
+
+  /// 13 pt Regular — standard body text (most-used in app)
   static TextStyle bodyMedium(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 14, 16, 18),
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0,
-    height: 1.5,
-    color: AppColors.onSurface,
-  );
-  
-  /// Body Small - 12px, Regular
-  /// Secondary body text, captions
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 13, 14),
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+        height: _lhBody,
+        color: AppColors.onSurface,
+      );
+
+  /// 12 pt Regular — secondary body, captions, hints
   static TextStyle bodySmall(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 12, 14, 16),
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.2,
-    height: 1.45,
-    color: AppColors.onSurfaceVariant,
-  );
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 12, 13),
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.1,
+        height: _lhBody,
+        color: AppColors.onSurfaceVariant,
+      );
 
-  // ===== LABEL TEXT =====
-  
-  /// Label Large - 14px, Medium
-  /// For buttons, CTAs
+  // ═══════════════════════════════════════════════════════════════
+  // LABEL
+  // ═══════════════════════════════════════════════════════════════
+
+  /// 13 pt SemiBold — buttons, CTAs
   static TextStyle labelLarge(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 14, 16, 18),
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.1,
-    height: 1.4,
-    color: Colors.white,
-  );
-  
-  /// Label Medium - 12px, Medium
-  /// For tags, badges
-  static TextStyle labelMedium(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 12, 14, 16),
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.3,
-    height: 1.35,
-    color: AppColors.onSurface,
-  );
-  
-  /// Label Small - 11px, Medium
-  /// For small tags, overlines
-  static TextStyle labelSmall(BuildContext? context) => TextStyle(
-    fontSize: _responsiveSize(context, 11, 12, 14),
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.4,
-    height: 1.3,
-    color: AppColors.onSurfaceVariant,
-  );
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 13, 14),
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.1,
+        height: _lhLabel,
+        color: Colors.white,
+      );
 
-  // ===== UTILITY METHODS =====
-  
-  /// Responsive text size based on screen width
-  /// Returns different sizes for mobile, tablet, desktop
-  static double _responsiveSize(
-    BuildContext? context,
-    double mobile,
-    double tablet,
-    double desktop,
-  ) {
-    if (context == null) return mobile; // Default to mobile size when no context
-    final width = MediaQuery.of(context).size.width;
-    if (width >= 1200) return desktop;
-    if (width >= 600) return tablet;
-    return mobile;
+  /// 11 pt Medium — tags, status badges
+  static TextStyle labelMedium(BuildContext? context) => TextStyle(
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 11, 12),
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.2,
+        height: _lhLabel,
+        color: AppColors.onSurface,
+      );
+
+  /// 10 pt Medium — overlines, micro chips
+  static TextStyle labelSmall(BuildContext? context) => TextStyle(
+        fontFamily: fontFamily,
+        fontSize: _sz(context, 10, 11),
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.3,
+        height: _lhLabel,
+        color: AppColors.onSurfaceVariant,
+      );
+
+  // ═══════════════════════════════════════════════════════════════
+  // UTILITY HELPERS
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Two-tier responsive: mobile (< 600) and tablet (≥ 600).
+  /// Desktop is treated same as tablet — this is a mobile-first app.
+  static double _sz(BuildContext? context, double mobile, double tablet) {
+    if (context == null) return mobile;
+    return MediaQuery.of(context).size.width >= 600 ? tablet : mobile;
   }
-  
-  /// Get text style with custom color
-  static TextStyle withColor(TextStyle style, Color color) => style.copyWith(color: color);
-  
-  /// Get text style with custom weight
-  static TextStyle withWeight(TextStyle style, FontWeight weight) => style.copyWith(fontWeight: weight);
+
+  /// Convenience: apply a custom color without touching other properties
+  static TextStyle withColor(TextStyle style, Color color) =>
+      style.copyWith(color: color);
+
+  /// Convenience: apply a custom weight without touching other properties
+  static TextStyle withWeight(TextStyle style, FontWeight weight) =>
+      style.copyWith(fontWeight: weight);
 }

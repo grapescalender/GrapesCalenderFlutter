@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/app_card.dart';
@@ -8,22 +10,20 @@ import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
-import '../../../home/presentation/providers/plot_state.dart';
 import '../providers/schedule_notifier.dart';
 import '../providers/schedule_providers.dart';
 import '../providers/schedule_state.dart';
 import '../utils/schedule_filter_utils.dart';
 import '../widgets/schedule_detail_popup.dart';
-import '../widgets/schedule_filter_chip.dart';
 
-/// Related Schedule Page
-/// Dedicated page for viewing schedules related to a specific activity
-/// Clean, minimal design inspired by Groww
+/// Related Schedule Page — premium redesign
+/// All business logic preserved exactly.
 class RelatedSchedulePage extends ConsumerStatefulWidget {
   const RelatedSchedulePage({super.key});
 
   @override
-  ConsumerState<RelatedSchedulePage> createState() => _RelatedSchedulePageState();
+  ConsumerState<RelatedSchedulePage> createState() =>
+      _RelatedSchedulePageState();
 }
 
 class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
@@ -32,39 +32,32 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
   @override
   void initState() {
     super.initState();
-    // Load schedules when page opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadSchedules();
-      }
+      if (mounted) _loadSchedules();
     });
   }
 
   void _loadSchedules() {
     final plotState = ref.read(plotNotifierProvider);
-    final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
+    final notifier = ref.read(scheduleNotifierProvider.notifier);
+    if (plotState.selectedPlotId == null || plotState.plots.isEmpty) return;
 
-    if (plotState.selectedPlotId != null && plotState.plots.isNotEmpty) {
-      PlotEntity? selectedPlot;
-      try {
-        selectedPlot = plotState.plots.firstWhere(
-          (plot) => plot.id == plotState.selectedPlotId,
-        );
-      } catch (e) {
-        selectedPlot = plotState.plots.first;
-      }
+    PlotEntity? plot;
+    try {
+      plot = plotState.plots
+          .firstWhere((p) => p.id == plotState.selectedPlotId);
+    } catch (_) {
+      plot = plotState.plots.first;
+    }
 
-      // Load all schedules (no limit) for filtering
-      scheduleNotifier.loadSchedules(
-        plotId: plotState.selectedPlotId!,
-        plotName: selectedPlot.name,
-        filterType: null, // Load all types
-        limit: null, // No limit
-      );
-        }
+    notifier.loadSchedules(
+      plotId: plotState.selectedPlotId!,
+      plotName: plot.name,
+      filterType: null,
+      limit: null,
+    );
   }
 
-  /// Get activity info from route extra
   Map<String, dynamic>? _getActivityInfo() {
     final extra = GoRouterState.of(context).extra;
     if (extra is Map<String, dynamic>) {
@@ -80,129 +73,286 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     return null;
   }
 
-  /// Get filtered schedules by activity and type
   List<ScheduleEntity> _getFilteredSchedules(
-    ScheduleState scheduleState,
-    Map<String, dynamic>? activityInfo,
-  ) {
-    if (activityInfo == null) return [];
+      ScheduleState state, Map<String, dynamic>? info) {
+    if (info == null) return [];
+    final activityId = info['activityId'] as String?;
+    final startDate = info['startDate'] as DateTime?;
+    final endDate = info['endDate'] as DateTime?;
+    if (activityId == null || startDate == null || endDate == null) return [];
 
-    final activityId = activityInfo['activityId'] as String?;
-    final startDate = activityInfo['startDate'] as DateTime?;
-    final endDate = activityInfo['endDate'] as DateTime?;
-
-    if (activityId == null || startDate == null || endDate == null) {
-      return [];
-    }
-
-    // Filter by activity and date range
     var filtered = ScheduleFilterUtils.getSchedulesByActivityAndDate(
-      allSchedules: scheduleState.schedules,
+      allSchedules: state.schedules,
       activityId: activityId,
       startDate: startDate,
       endDate: endDate,
     );
-
-    // Apply type filter
     if (_selectedFilter != ScheduleType.all) {
-      filtered = filtered.where((schedule) => schedule.type == _selectedFilter).toList();
+      filtered =
+          filtered.where((s) => s.type == _selectedFilter).toList();
     }
-
     return filtered;
   }
 
-  /// Get schedule counts by type
-  Map<ScheduleType, int> _getScheduleCounts(
-    List<ScheduleEntity> allFilteredSchedules,
-  ) => {
-      ScheduleType.all: allFilteredSchedules.length,
-      ScheduleType.spray: allFilteredSchedules.where((s) => s.type == ScheduleType.spray).length,
-      ScheduleType.nutrition: allFilteredSchedules.where((s) => s.type == ScheduleType.nutrition).length,
-      ScheduleType.work: allFilteredSchedules.where((s) => s.type == ScheduleType.work).length,
-    };
+  Map<ScheduleType, int> _getCounts(List<ScheduleEntity> all) => {
+        ScheduleType.all: all.length,
+        ScheduleType.spray:
+            all.where((s) => s.type == ScheduleType.spray).length,
+        ScheduleType.nutrition:
+            all.where((s) => s.type == ScheduleType.nutrition).length,
+        ScheduleType.work:
+            all.where((s) => s.type == ScheduleType.work).length,
+      };
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final plotState = ref.watch(plotNotifierProvider);
     final scheduleState = ref.watch(scheduleNotifierProvider);
     final activityInfo = _getActivityInfo();
 
     if (activityInfo == null) {
       return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
-          title: Text(
-            'Related Schedules',
-            style: AppTypography.headlineMedium(context).copyWith(
-              fontWeight: FontWeight.w600,
+        backgroundColor: AppColors.background,
+        body: Column(
+          children: [
+            _PageAppBar(title: 'Related Schedules'),
+            Expanded(
+              child: _EmptyMessage(
+                icon: Icons.calendar_today_outlined,
+                title: 'No activity information available',
+              ),
             ),
-          ),
-        ),
-        body: Center(
-          child: Text(
-            'No activity information available',
-            style: AppTypography.bodyMedium(context).copyWith(
-              color: cs.onSurfaceVariant,
-            ),
-          ),
+          ],
         ),
       );
     }
 
-    final activityName = activityInfo['activityName'] as String? ?? 'Activity';
+    final activityName =
+        activityInfo['activityName'] as String? ?? 'Activity';
     final startDate = activityInfo['startDate'] as DateTime?;
     final endDate = activityInfo['endDate'] as DateTime?;
+    final startDay = activityInfo['startDay'] as int?;
+    final endDay = activityInfo['endDay'] as int?;
 
-    // Get all filtered schedules (by activity + date)
-    final allFilteredSchedules = _getFilteredSchedules(
-      scheduleState,
-      activityInfo,
-    );
-
-    // Get counts for filter tabs
-    final scheduleCounts = _getScheduleCounts(allFilteredSchedules);
-
-    // Apply type filter
-    final displaySchedules = _selectedFilter == ScheduleType.all
-        ? allFilteredSchedules
-        : allFilteredSchedules.where((s) => s.type == _selectedFilter).toList();
+    final allFiltered = _getFilteredSchedules(scheduleState, activityInfo);
+    final counts = _getCounts(allFiltered);
+    final display = _selectedFilter == ScheduleType.all
+        ? allFiltered
+        : allFiltered.where((s) => s.type == _selectedFilter).toList();
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // App Bar
-          AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+          // ── App Bar ────────────────────────────────────────────────
+          _PageAppBar(title: '$activityName Schedules'),
+
+          // ── Date Range Banner ─────────────────────────────────────
+          if (startDate != null && endDate != null)
+            _DateRangeBanner(
+              activityName: activityName,
+              startDate: startDate,
+              endDate: endDate,
+              startDay: startDay,
+              endDay: endDay,
             ),
-            title: Text(
-              '$activityName - Schedule Details',
-              style: AppTypography.headlineMedium(context).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+
+          // ── Filter Tabs ───────────────────────────────────────────
+          _FilterTabs(
+            selected: _selectedFilter,
+            counts: counts,
+            onTap: (t) => setState(() => _selectedFilter = t),
           ),
 
-          // Content
+          // ── List ──────────────────────────────────────────────────
+          Expanded(
+            child: _buildList(context, scheduleState, display, activityName),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    ScheduleState state,
+    List<ScheduleEntity> schedules,
+    String activityName,
+  ) {
+    if (state.isLoading) return _SkeletonList();
+
+    if (state.errorMessage != null) {
+      return _EmptyMessage(
+        icon: Icons.error_outline_rounded,
+        iconColor: AppColors.error,
+        title: 'Failed to load schedules',
+        subtitle: state.errorMessage,
+      );
+    }
+
+    if (schedules.isEmpty) {
+      return _EmptyMessage(
+        icon: Icons.calendar_today_outlined,
+        title: _selectedFilter != ScheduleType.all
+            ? 'No schedules for selected category'
+            : 'No schedules for $activityName',
+        subtitle: _selectedFilter != ScheduleType.all
+            ? 'Try a different filter'
+            : 'Schedules will appear here when added',
+      );
+    }
+
+    final plotState = ref.read(plotNotifierProvider);
+    PlotEntity? plot;
+    try {
+      plot = plotState.plots
+          .firstWhere((p) => p.id == plotState.selectedPlotId);
+    } catch (_) {
+      if (plotState.plots.isNotEmpty) plot = plotState.plots.first;
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        _loadSchedules();
+        await Future.delayed(const Duration(milliseconds: 400));
+      },
+      child: ListView.separated(
+        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+        itemCount: schedules.length,
+        separatorBuilder: (_, __) =>
+            const SizedBox(height: AppSpacing.smMd),
+        itemBuilder: (ctx, i) => _ScheduleCard(
+          schedule: schedules[i],
+          pruningDate: plot?.pruningDate,
+          onTap: () => _showDetail(ctx, schedules[i]),
+        ),
+      ),
+    );
+  }
+
+  void _showDetail(BuildContext context, ScheduleEntity schedule) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ScheduleDetailPopup(schedule: schedule),
+    );
+  }
+}
+
+// ── Page App Bar ─────────────────────────────────────────────────────────────
+class _PageAppBar extends StatelessWidget {
+  const _PageAppBar({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xs, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              padding: EdgeInsets.zero,
+              icon: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius:
+                      BorderRadius.circular(AppSpacing.radiusSm),
+                  border: Border.all(color: AppColors.outline),
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded,
+                    size: 16, color: AppColors.onBackground),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
+              child: const Icon(Icons.event_note_rounded,
+                  color: AppColors.primary, size: 20),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(title,
+                  style: AppTypography.headlineSmall(context)
+                      .copyWith(fontWeight: FontWeight.w700),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Date Range Banner ─────────────────────────────────────────────────────────
+class _DateRangeBanner extends StatelessWidget {
+  const _DateRangeBanner({
+    required this.activityName,
+    required this.startDate,
+    required this.endDate,
+    this.startDay,
+    this.endDay,
+  });
+
+  final String activityName;
+  final DateTime startDate;
+  final DateTime endDate;
+  final int? startDay;
+  final int? endDay;
+
+  String _fmt(DateTime d) => DateFormat('d MMM yyyy').format(d);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal, 0,
+          AppSpacing.screenHorizontal, AppSpacing.smMd),
+      padding: const EdgeInsets.all(AppSpacing.smMd),
+      decoration: BoxDecoration(
+        color: AppColors.primaryContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            ),
+            child: const Icon(Icons.info_outline_rounded,
+                color: AppColors.primary, size: 16),
+          ),
+          const SizedBox(width: AppSpacing.smMd),
           Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Filter Tabs with Counts
-                _buildFilterTabs(context, scheduleCounts),
-                const SizedBox(height: AppSpacing.md),
-
-                // Schedule List
-                Expanded(
-                  child: _buildScheduleList(
-                    context,
-                    scheduleState,
-                    displaySchedules,
-                    activityName,
+                Text(
+                  activityName,
+                  style: AppTypography.bodySmall(context).copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  '${_fmt(startDate)} → ${_fmt(endDate)}'
+                  '${startDay != null && endDay != null ? '  ·  Day $startDay – Day $endDay' : ''}',
+                  style: AppTypography.bodySmall(context).copyWith(
+                    color: AppColors.primaryDark,
+                    fontSize: 11,
                   ),
                 ),
               ],
@@ -212,416 +362,361 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
       ),
     );
   }
+}
 
-  /// Filter Tabs with Counts
-  Widget _buildFilterTabs(
-    BuildContext context,
-    Map<ScheduleType, int> scheduleCounts,
-  ) {
-    final cs = Theme.of(context).colorScheme;
-    final filters = [
-      ScheduleType.all,
-      ScheduleType.spray,
-      ScheduleType.nutrition,
-      ScheduleType.work,
-    ];
+// ── Filter Tabs ───────────────────────────────────────────────────────────────
+class _FilterTabs extends StatelessWidget {
+  const _FilterTabs({
+    required this.selected,
+    required this.counts,
+    required this.onTap,
+  });
 
+  final ScheduleType selected;
+  final Map<ScheduleType, int> counts;
+  final ValueChanged<ScheduleType> onTap;
+
+  static const _filters = [
+    ScheduleType.all,
+    ScheduleType.spray,
+    ScheduleType.nutrition,
+    ScheduleType.work,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: cs.outline.withOpacity(0.2),
-          ),
-        ),
-      ),
-      child: SizedBox(
-        height: 40,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-          itemCount: filters.length,
-          separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
-          itemBuilder: (context, index) {
-            final filter = filters[index];
-            final count = scheduleCounts[filter] ?? 0;
-            final isSelected = _selectedFilter == filter;
+      color: AppColors.surface,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screenHorizontal),
+              itemCount: _filters.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: AppSpacing.sm),
+              itemBuilder: (_, i) {
+                final f = _filters[i];
+                final count = counts[f] ?? 0;
+                final isSelected = selected == f;
 
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedFilter = filter;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? cs.primary
-                      : cs.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  border: isSelected
-                      ? null
-                      : Border.all(
-                          color: cs.outline,
-                        ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      filter.displayName,
-                      style: AppTypography.bodyMedium(context).copyWith(
-                        color: isSelected
-                            ? cs.onPrimary
-                            : cs.onSurface,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                      ),
+                return GestureDetector(
+                  onTap: () => onTap(f),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.smMd, vertical: 0),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.background,
+                      borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusFull),
+                      border: isSelected
+                          ? null
+                          : Border.all(color: AppColors.outline),
                     ),
-                    if (count > 0) ...[
-                      const SizedBox(width: AppSpacing.xs),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? cs.onPrimary.withOpacity(0.22)
-                              : cs.onSurfaceVariant.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                        ),
-                        child: Text(
-                          count.toString(),
-                          style: AppTypography.labelSmall(context).copyWith(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          f.displayName,
+                          style: AppTypography.bodySmall(context).copyWith(
                             color: isSelected
-                                ? cs.onPrimary
-                                : cs.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
+                                ? Colors.white
+                                : AppColors.onBackground,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
                           ),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  /// Schedule List
-  Widget _buildScheduleList(
-    BuildContext context,
-    ScheduleState scheduleState,
-    List<ScheduleEntity> schedules,
-    String activityName,
-  ) {
-    final cs = Theme.of(context).colorScheme;
-    if (scheduleState.isLoading) {
-      return _buildSkeletonLoader(context);
-    }
-
-    if (scheduleState.errorMessage != null) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: cs.error,
-                size: 48,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                scheduleState.errorMessage!,
-                style: AppTypography.bodyMedium(context).copyWith(
-                  color: cs.error,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (schedules.isEmpty) {
-      return _buildEmptyState(context, activityName);
-    }
-
-    // Get selected plot for pruning date
-    final plotState = ref.read(plotNotifierProvider);
-    PlotEntity? selectedPlot;
-    try {
-      selectedPlot = plotState.plots.firstWhere(
-        (plot) => plot.id == plotState.selectedPlotId,
-      );
-    } catch (e) {
-      if (plotState.plots.isNotEmpty) {
-        selectedPlot = plotState.plots.first;
-      }
-    }
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        _loadSchedules();
-        await Future.delayed(const Duration(milliseconds: 500));
-      },
-      child: ListView.separated(
-        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-        itemCount: schedules.length,
-        separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
-        itemBuilder: (context, index) {
-          final schedule = schedules[index];
-          return _buildScheduleCard(
-            context,
-            schedule,
-            selectedPlot?.pruningDate,
-          );
-        },
-      ),
-    );
-  }
-
-  /// Schedule Card
-  Widget _buildScheduleCard(
-    BuildContext context,
-    ScheduleEntity schedule,
-    DateTime? pruningDate,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
-    final typeColor = _getTypeColor(context, schedule.type);
-    final typeIcon = _getTypeIcon(schedule.type);
-
-    return AppCard.defaultStyle(
-      onTap: () => _showScheduleDetail(context, schedule),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row: Title and Category Tag
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Icon
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: typeColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                  ),
-                  child: Icon(
-                    typeIcon,
-                    size: 20,
-                    color: typeColor,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                // Title and Category
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        schedule.title,
-                        style: AppTypography.titleMedium(context).copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: cs.onSurface,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      // Category Tag
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: typeColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                        ),
-                        child: Text(
-                          schedule.type.displayName,
-                          style: AppTypography.labelSmall(context).copyWith(
-                            color: typeColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
+                        if (count > 0) ...[
+                          const SizedBox(width: 5),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Colors.white.withValues(alpha: 0.22)
+                                  : AppColors.outline,
+                              borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusFull),
+                            ),
+                            child: Text(
+                              '$count',
+                              style:
+                                  AppTypography.bodySmall(context).copyWith(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.onBackground,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
+                        ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
-            const SizedBox(height: AppSpacing.md),
-            // Date and Description Row
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today_outlined,
-                  size: 16,
-                  color: cs.onSurfaceVariant,
+          ),
+          const SizedBox(height: AppSpacing.smMd),
+          const Divider(height: 1, color: AppColors.outline),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Schedule Card ─────────────────────────────────────────────────────────────
+class _ScheduleCard extends StatelessWidget {
+  const _ScheduleCard({
+    required this.schedule,
+    required this.onTap,
+    this.pruningDate,
+  });
+
+  final ScheduleEntity schedule;
+  final VoidCallback onTap;
+  final DateTime? pruningDate;
+
+  Color _typeColor(BuildContext ctx) {
+    final s = Theme.of(ctx).extension<AppSemanticColors>()!;
+    if (schedule.type == ScheduleType.spray) return s.info;
+    if (schedule.type == ScheduleType.nutrition) return s.warning;
+    return AppColors.primary;
+  }
+
+  IconData get _typeIcon {
+    if (schedule.type == ScheduleType.spray) return Icons.water_drop_outlined;
+    if (schedule.type == ScheduleType.nutrition) return Icons.grass_outlined;
+    return Icons.construction_outlined;
+  }
+
+  String _fmt(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = DateTime(d.year, d.month, d.day).difference(today).inDays;
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Tomorrow';
+    if (diff == -1) return 'Yesterday';
+    if (diff > 0 && diff <= 7) return 'In $diff days';
+    return DateFormat('d MMM yyyy').format(d);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tc = _typeColor(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          border: Border.all(color: AppColors.outline),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Header strip
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: tc.withValues(alpha: 0.07),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(AppSpacing.radiusLg),
+                  topRight: Radius.circular(AppSpacing.radiusLg),
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  _formatDate(schedule.scheduledDate),
-                  style: AppTypography.bodySmall(context).copyWith(
-                    color: cs.onSurfaceVariant,
-                    fontSize: 12,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: tc.withValues(alpha: 0.12),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusSm),
+                    ),
+                    child: Icon(_typeIcon, color: tc, size: 18),
                   ),
-                ),
-                if (schedule.description != null && schedule.description!.isNotEmpty) ...[
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      schedule.description!,
-                      style: AppTypography.bodySmall(context).copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 12,
+                      schedule.title,
+                      style: AppTypography.titleSmall(context).copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.onBackground,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: tc.withValues(alpha: 0.12),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusFull),
+                    ),
+                    child: Text(
+                      schedule.type.displayName,
+                      style: AppTypography.bodySmall(context).copyWith(
+                        color: tc,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                 ],
-              ],
+              ),
+            ),
+            // Body
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today_rounded,
+                      size: 14, color: AppColors.onSurface),
+                  const SizedBox(width: 5),
+                  Text(
+                    _fmt(schedule.scheduledDate),
+                    style: AppTypography.bodySmall(context).copyWith(
+                      color: AppColors.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (schedule.description != null &&
+                      schedule.description!.isNotEmpty) ...[
+                    const SizedBox(width: AppSpacing.md),
+                    const Icon(Icons.notes_rounded,
+                        size: 14, color: AppColors.onSurface),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        schedule.description!,
+                        style: AppTypography.bodySmall(context)
+                            .copyWith(color: AppColors.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                  if (schedule.isCompleted) ...[
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.successLight,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusFull),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check_circle_rounded,
+                              size: 11, color: AppColors.success),
+                          const SizedBox(width: 3),
+                          Text('Done',
+                              style: AppTypography.bodySmall(context)
+                                  .copyWith(
+                                color: AppColors.success,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  /// Empty State
-  Widget _buildEmptyState(BuildContext context, String activityName) {
-    final isFiltered = _selectedFilter != ScheduleType.all;
-    final cs = Theme.of(context).colorScheme;
+// ── Skeleton List ─────────────────────────────────────────────────────────────
+class _SkeletonList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+      itemCount: 5,
+      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.smMd),
+      itemBuilder: (_, __) => Container(
+        height: 88,
+        decoration: BoxDecoration(
+          color: AppColors.outline,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        ),
+      ),
+    );
+  }
+}
 
+// ── Empty / Error Message ─────────────────────────────────────────────────────
+class _EmptyMessage extends StatelessWidget {
+  const _EmptyMessage({
+    required this.icon,
+    required this.title,
+    this.iconColor = AppColors.onSurface,
+    this.subtitle,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.calendar_today_outlined,
-              color: cs.onSurfaceVariant,
-              size: 64,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              isFiltered
-                  ? 'No schedules found for selected category'
-                  : 'No schedules available for this activity',
-              style: AppTypography.titleMedium(context).copyWith(
-                color: cs.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
               ),
-              textAlign: TextAlign.center,
+              child: Icon(icon, color: iconColor, size: 34),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              isFiltered
-                  ? 'Try selecting a different filter'
-                  : 'Schedules will appear here when added for $activityName',
-              style: AppTypography.bodySmall(context).copyWith(
-                color: cs.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(title,
+                style: AppTypography.headlineSmall(context)
+                    .copyWith(fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center),
+            if (subtitle != null) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(subtitle!,
+                  style: AppTypography.bodySmall(context)
+                      .copyWith(color: AppColors.onSurface),
+                  textAlign: TextAlign.center),
+            ],
           ],
         ),
       ),
     );
-  }
-
-  /// Skeleton Loader
-  Widget _buildSkeletonLoader(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-      itemCount: 5,
-      itemBuilder: (context, index) => Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          height: 120,
-          decoration: BoxDecoration(
-            color: cs.surfaceVariant,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          ),
-        ),
-    );
-  }
-
-  /// Show Schedule Detail Popup
-  void _showScheduleDetail(BuildContext context, ScheduleEntity schedule) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ScheduleDetailPopup(schedule: schedule),
-    );
-  }
-
-  /// Get type color
-  Color _getTypeColor(BuildContext context, ScheduleType type) {
-    final cs = Theme.of(context).colorScheme;
-    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
-    if (type == ScheduleType.spray) return semantic.info;
-    if (type == ScheduleType.nutrition) return semantic.warning;
-    if (type == ScheduleType.work) return cs.primary;
-    return cs.onSurface;
-  }
-
-  /// Get type icon
-  IconData _getTypeIcon(ScheduleType type) {
-    if (type == ScheduleType.spray) {
-      return Icons.water_drop_outlined;
-    } else if (type == ScheduleType.nutrition) {
-      return Icons.grass_outlined;
-    } else if (type == ScheduleType.work) {
-      return Icons.construction_outlined;
-    } else {
-      return Icons.list_outlined;
-    }
-  }
-
-  /// Format date
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(date.year, date.month, date.day);
-    final difference = dateOnly.difference(today).inDays;
-
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Tomorrow';
-    } else if (difference == -1) {
-      return 'Yesterday';
-    } else if (difference > 0 && difference <= 7) {
-      return 'In $difference days';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
   }
 }

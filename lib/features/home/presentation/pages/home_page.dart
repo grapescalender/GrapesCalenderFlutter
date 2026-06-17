@@ -5,11 +5,10 @@ import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_branding.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../shared/responsive/responsive_utils.dart';
-import '../../../../shared/widgets/app_card.dart';
 import '../../../activity/presentation/widgets/activity_section.dart';
 import '../../../schedule/presentation/widgets/schedule_section.dart';
 import '../widgets/plots_section.dart';
-import '../widgets/market_insight_section.dart';
+import '../widgets/competition_section.dart';
 
 /// Home Page
 /// Main dashboard with header, plots, schedule, and activity sections
@@ -60,27 +59,31 @@ class HomePage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Section
+          // ── Header ─────────────────────────────────────────────
           _buildHeader(context, isTablet, isSmallPhone, horizontalPadding),
-          SizedBox(height: sectionSpacing),
-          
-          // Plots Section
+          const SizedBox(height: AppSpacing.smMd),
+
+          // ── SECTION 1: Plot Summary ─────────────────────────────
+          // Compact card: name, date, day badge, current activity
           Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: _buildPlotsSection(context),
           ),
+          const SizedBox(height: AppSpacing.smMd),
+
+          // ── SECTION 2: Competition Analysis ────────────────────
+          // Filters + metrics + donut chart — all above fold
+          const CompetitionSection(),
           SizedBox(height: sectionSpacing),
-          
-          // Schedule Section
+
+          // ── SECTION 3: Recent Schedules ─────────────────────────
+          // (visible after scrolling)
           const ScheduleSection(),
           SizedBox(height: sectionSpacing),
-          // Market Intelligence (flagship)
-          const MarketInsightSection(),
-          SizedBox(height: sectionSpacing),
-          
-          // Activity Section
+
+          // ── SECTION 4: Activities ────────────────────────────────
           const ActivitySection(),
-          SizedBox(height: bottomPadding), // Extra space at bottom
+          SizedBox(height: bottomPadding),
         ],
       ),
     );

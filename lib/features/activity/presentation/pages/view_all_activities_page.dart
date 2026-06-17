@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../config/router/app_router.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../config/router/app_router.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
-import '../../../home/presentation/providers/plot_state.dart';
 import '../../../schedule/presentation/providers/schedule_notifier.dart';
 import '../../../schedule/presentation/providers/schedule_providers.dart';
 import '../../domain/entities/activity_entity.dart';
@@ -79,57 +79,19 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // App Bar
-          AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
-            ),
-            title: Text(
-              'All Activities',
-              style: AppTypography.headlineMedium(context).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          // Modern App Bar
+          _ModernAppBar(
+            title: 'All Activities',
+            subtitle: selectedPlot?.name,
+            icon: Icons.timeline_rounded,
           ),
 
-          // Content
+          // Activity List
           Expanded(
-            child: Column(
-              children: [
-                // Plot Name Subtitle
-                if (selectedPlot != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screenHorizontal,
-                      vertical: AppSpacing.sm,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.agriculture,
-                          size: 16,
-                          color: cs.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          selectedPlot.name,
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                // Activity List
-                Expanded(
-                  child: _buildActivityList(context, activityState, selectedPlot),
-                ),
-              ],
-            ),
+            child: _buildActivityList(context, activityState, selectedPlot),
           ),
         ],
       ),
@@ -144,59 +106,24 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
   ) {
     final cs = Theme.of(context).colorScheme;
     if (activityState.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (activityState.errorMessage != null) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: cs.error,
-                size: 48,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                activityState.errorMessage!,
-                style: AppTypography.bodyMedium(context).copyWith(
-                  color: cs.error,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return _CenteredMessage(
+        icon: Icons.error_outline_rounded,
+        iconColor: AppColors.error,
+        title: 'Failed to load activities',
+        subtitle: activityState.errorMessage,
       );
     }
 
     if (activityState.activities.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.timeline_outlined,
-                color: cs.onSurfaceVariant,
-                size: 48,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'No activities found',
-                style: AppTypography.bodyMedium(context).copyWith(
-                  color: cs.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
+      return _CenteredMessage(
+        icon: Icons.timeline_outlined,
+        iconColor: AppColors.onSurface,
+        title: 'No activities found',
+        subtitle: 'Activities will appear once your plot cycle starts',
       );
     }
 
@@ -315,5 +242,138 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
         },
       );
     }
+  }
+}
+
+// ── Shared page helpers ───────────────────────────────────────────────────
+
+/// Modern app bar used across detail/list pages
+class _ModernAppBar extends StatelessWidget {
+  const _ModernAppBar({
+    required this.title,
+    this.subtitle,
+    this.icon,
+  });
+
+  final String title;
+  final String? subtitle;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xs, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+        child: Row(
+          children: [
+            // Back button
+            IconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  border: Border.all(color: AppColors.outline),
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded,
+                    size: 16, color: AppColors.onBackground),
+              ),
+              padding: EdgeInsets.zero,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            // Icon badge
+            if (icon != null) ...[
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Icon(icon, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            // Title + subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: AppTypography.headlineSmall(context)
+                          .copyWith(fontWeight: FontWeight.w700)),
+                  if (subtitle != null)
+                    Row(
+                      children: [
+                        const Icon(Icons.agriculture_rounded,
+                            size: 12, color: AppColors.onSurface),
+                        const SizedBox(width: 3),
+                        Text(subtitle!,
+                            style: AppTypography.bodySmall(context)
+                                .copyWith(color: AppColors.onSurface)),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Centered icon + title + subtitle state
+class _CenteredMessage extends StatelessWidget {
+  const _CenteredMessage({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.subtitle,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              ),
+              child: Icon(icon, color: iconColor, size: 36),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(title,
+                style: AppTypography.headlineSmall(context)
+                    .copyWith(fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center),
+            if (subtitle != null) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(subtitle!,
+                  style: AppTypography.bodySmall(context)
+                      .copyWith(color: AppColors.onSurface),
+                  textAlign: TextAlign.center),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

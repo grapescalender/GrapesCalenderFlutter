@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../colors/app_colors.dart';
 
 /// Semantic colors that are NOT part of Material ColorScheme (success/warning/info).
 /// Kept in Theme to avoid hardcoding colors in widgets.
@@ -14,15 +15,15 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color info;
 
   static const AppSemanticColors light = AppSemanticColors(
-    success: Colors.green,
-    warning: Colors.orange,
-    info: Colors.blue,
+    success: AppColors.success,
+    warning: AppColors.warning,
+    info: AppColors.info,
   );
 
   static const AppSemanticColors dark = AppSemanticColors(
-    success: Colors.greenAccent,
-    warning: Colors.orangeAccent,
-    info: Colors.lightBlueAccent,
+    success: AppColors.success,
+    warning: AppColors.warning,
+    info: AppColors.info,
   );
 
   @override

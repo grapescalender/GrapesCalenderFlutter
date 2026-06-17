@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../config/router/app_router.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../config/router/app_router.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
-import '../../../home/presentation/providers/plot_state.dart';
 import '../providers/schedule_notifier.dart';
 import '../providers/schedule_providers.dart';
 import '../providers/schedule_state.dart';
@@ -113,64 +113,23 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // App Bar
-          AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
-            ),
-            title: Text(
-              _getPageTitle(),
-              style: AppTypography.headlineMedium(context).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            actions: [
-              // Add Schedule Button
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: selectedPlot != null
-                    ? () => _showAddScheduleForm(
-                          selectedPlot!.id,
-                          selectedPlot.name,
-                        )
-                    : null,
-                tooltip: 'Add Schedule',
-              ),
-            ],
+          // Modern App Bar
+          _ModernAppBar(
+            title: _getPageTitle(),
+            subtitle: selectedPlot?.name,
+            icon: Icons.calendar_month_rounded,
+            onAdd: selectedPlot != null
+                ? () => _showAddScheduleForm(selectedPlot!.id, selectedPlot.name)
+                : null,
           ),
 
           // Content
           Expanded(
             child: Column(
               children: [
-                // Plot Name Subtitle
-                if (selectedPlot != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screenHorizontal,
-                      vertical: AppSpacing.sm,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.agriculture,
-                          size: 16,
-                          color: cs.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          selectedPlot.name,
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
                 // Schedule Context Message (if date filter is active)
                 if (_getDateFilter() != null) ...[
                   ScheduleContextMessage(
@@ -180,13 +139,13 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
                     endDay: _getDateFilter()!['endDay'] as int?,
                     activityName: _getDateFilter()!['activityName'] as String?,
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.sm),
                 ],
 
                 // Filter Chips (only show if not filtering by activity)
                 if (_getDateFilter()?['activityId'] == null) ...[
                   _buildFilterChips(context, scheduleState.selectedFilter, scheduleNotifier),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.sm),
                 ],
 
                 // Schedule List
@@ -198,14 +157,13 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
           ),
         ],
       ),
-      // Floating Action Button for Add Schedule
       floatingActionButton: selectedPlot != null
           ? FloatingActionButton(
               onPressed: () => _showAddScheduleForm(
                 selectedPlot!.id,
                 selectedPlot.name,
               ),
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.add_rounded),
             )
           : null,
     );
@@ -522,6 +480,101 @@ class _DateHeader extends StatelessWidget {
         style: AppTypography.titleSmall(context).copyWith(
           color: cs.onSurfaceVariant,
           fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Shared page chrome ────────────────────────────────────────────────────
+
+class _ModernAppBar extends StatelessWidget {
+  const _ModernAppBar({
+    required this.title,
+    this.subtitle,
+    this.icon,
+    this.onAdd,
+  });
+
+  final String title;
+  final String? subtitle;
+  final IconData? icon;
+  final VoidCallback? onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xs, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  border: Border.all(color: AppColors.outline),
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded,
+                    size: 16, color: AppColors.onBackground),
+              ),
+              padding: EdgeInsets.zero,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            if (icon != null) ...[
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Icon(icon, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: AppTypography.headlineSmall(context)
+                          .copyWith(fontWeight: FontWeight.w700)),
+                  if (subtitle != null)
+                    Row(
+                      children: [
+                        const Icon(Icons.agriculture_rounded,
+                            size: 12, color: AppColors.onSurface),
+                        const SizedBox(width: 3),
+                        Text(subtitle!,
+                            style: AppTypography.bodySmall(context)
+                                .copyWith(color: AppColors.onSurface)),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            if (onAdd != null)
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: IconButton(
+                  onPressed: onAdd,
+                  icon: const Icon(Icons.add_rounded,
+                      color: AppColors.primary, size: 20),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  constraints: const BoxConstraints(
+                      minWidth: 36, minHeight: 36),
+                ),
+              ),
+          ],
         ),
       ),
     );

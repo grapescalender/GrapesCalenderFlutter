@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../colors/app_colors.dart';
 
 /// UI status colors for schedules/activities (pending/completed/upcoming/active).
 class AppStatusColors extends ThemeExtension<AppStatusColors> {
@@ -15,17 +16,17 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
   final Color active;
 
   static const AppStatusColors light = AppStatusColors(
-    pending: Colors.orange,
-    completed: Colors.green,
-    upcoming: Colors.grey,
-    active: Colors.indigo,
+    pending: Color(0xFFF59E0B),   // Harvest Orange
+    completed: AppColors.success,
+    upcoming: AppColors.onSurface,
+    active: AppColors.primary,
   );
 
   static const AppStatusColors dark = AppStatusColors(
-    pending: Colors.orangeAccent,
-    completed: Colors.lightGreenAccent,
-    upcoming: Colors.grey,
-    active: Colors.indigoAccent,
+    pending: Color(0xFFF59E0B),
+    completed: AppColors.success,
+    upcoming: AppColors.darkOnSurface,
+    active: AppColors.primary,
   );
 
   @override

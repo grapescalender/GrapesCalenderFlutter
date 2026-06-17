@@ -1,255 +1,296 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../core/design_system/theme/app_status_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 
-/// Schedule List Item Widget
-/// Compact row design with icon on left, title/subtitle on left, day count on right
-/// Fully clickable with ripple effect
-class ScheduleListItem extends StatelessWidget { // Optional pruning date for day count calculation
-
+/// Modern Schedule List Item
+///
+/// Layout:
+/// ┌─────────────────────────────────────────────────────┐
+/// │  [icon]  Title                       [status chip]  │
+/// │          Mon, Jan 06  ·  Day 12       In 3 days     │
+/// └─────────────────────────────────────────────────────┘
+///
+/// Design rules:
+///  - Zero hardcoded fontSize / Color — every token comes from
+///    AppTypography or AppColors.
+///  - Left-accent bar marks schedule type visually.
+///  - Status chip uses pill shape (radiusFull) and AppStatusColors.
+///  - Touch target ≥ 48 pt (vertical padding ensures this).
+class ScheduleListItem extends StatelessWidget {
   const ScheduleListItem({
     Key? key,
     required this.schedule,
     this.onTap,
     this.pruningDate,
   }) : super(key: key);
+
   final ScheduleEntity schedule;
   final VoidCallback? onTap;
+
+  /// When provided, shows "Day N" instead of relative date
   final DateTime? pruningDate;
+
+  // ── Type helpers ──────────────────────────────────────────────────────────
+
+  Color _typeColor(BuildContext ctx) {
+    final semantic = Theme.of(ctx).extension<AppSemanticColors>()!;
+    switch (schedule.type) {
+      case ScheduleType.spray:
+        return semantic.info;
+      case ScheduleType.nutrition:
+        return semantic.warning;
+      case ScheduleType.work:
+        return Theme.of(ctx).colorScheme.primary;
+      default:
+        return AppColors.onSurface;
+    }
+  }
+
+  IconData get _typeIcon {
+    switch (schedule.type) {
+      case ScheduleType.spray:
+        return Icons.water_drop_rounded;
+      case ScheduleType.nutrition:
+        return Icons.grass_rounded;
+      case ScheduleType.work:
+        return Icons.handyman_rounded;
+      default:
+        return Icons.event_note_rounded;
+    }
+  }
+
+  // ── Status helpers ─────────────────────────────────────────────────────────
+
+  bool get _isCompleted => schedule.isCompleted;
+
+  bool get _isToday {
+    final now = DateTime.now();
+    final d = schedule.scheduledDate;
+    return d.year == now.year && d.month == now.month && d.day == now.day;
+  }
+
+  bool get _isOverdue {
+    if (_isCompleted) return false;
+    final now = DateTime.now();
+    final d = schedule.scheduledDate;
+    return DateTime(d.year, d.month, d.day)
+        .isBefore(DateTime(now.year, now.month, now.day));
+  }
+
+  bool get _isUpcoming => !_isCompleted && !_isOverdue && !_isToday;
+
+  String get _statusLabel {
+    if (_isCompleted) return 'Done';
+    if (_isToday) return 'Today';
+    if (_isOverdue) return 'Overdue';
+    return 'Upcoming';
+  }
+
+  Color _statusColor(BuildContext ctx) {
+    final sc = Theme.of(ctx).extension<AppStatusColors>()!;
+    if (_isCompleted) return sc.completed;
+    if (_isToday) return Theme.of(ctx).colorScheme.primary;
+    if (_isOverdue) return AppColors.error;
+    return sc.upcoming;
+  }
+
+  Color _statusBg(BuildContext ctx) {
+    if (_isCompleted) return AppColors.successLight;
+    if (_isToday) return AppColors.primaryContainer;
+    if (_isOverdue) return AppColors.errorLight;
+    return AppColors.surfaceVariant;
+  }
+
+  // ── Day count ──────────────────────────────────────────────────────────────
+
+  int? _dayCount() {
+    if (pruningDate == null) return null;
+    final schDay = DateTime(schedule.scheduledDate.year,
+        schedule.scheduledDate.month, schedule.scheduledDate.day);
+    final pruneDay = DateTime(
+        pruningDate!.year, pruningDate!.month, pruningDate!.day);
+    final diff = schDay.difference(pruneDay).inDays;
+    return diff > 0 ? diff : null;
+  }
+
+  // ── Date formatting ────────────────────────────────────────────────────────
+
+  String _primaryDate() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final d = schedule.scheduledDate;
+    final dateOnly = DateTime(d.year, d.month, d.day);
+    final diff = dateOnly.difference(today).inDays;
+
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Tomorrow';
+    if (diff == -1) return 'Yesterday';
+    if (diff > 1 && diff <= 7) return DateFormat('EEE, d MMM').format(d);
+    return DateFormat('d MMM yyyy').format(d);
+  }
+
+  String _secondaryLabel() {
+    final day = _dayCount();
+    if (day != null) return 'Day $day';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final d = schedule.scheduledDate;
+    final diff = DateTime(d.year, d.month, d.day).difference(today).inDays;
+    if (diff == 0) return '';
+    if (diff > 0) return 'in $diff days';
+    return '${-diff}d ago';
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final statusColors = Theme.of(context).extension<AppStatusColors>()!;
-    final typeColor = _getTypeColor(context, schedule.type);
-    final typeIcon = _getTypeIcon(schedule.type);
-    final daysSincePruning = _calculateDaysSincePruning(
-      schedule.scheduledDate,
-      pruningDate,
-    );
-    final now = DateTime.now();
-    final isUpcoming = !schedule.isCompleted && schedule.scheduledDate.isAfter(now);
-    final isPending = !schedule.isCompleted && !isUpcoming;
+    final tc = _typeColor(context);
+    final sc = _statusColor(context);
+    final sbg = _statusBg(context);
+    final secondary = _secondaryLabel();
 
-    final statusLabel = schedule.isCompleted
-        ? 'Completed'
-        : isUpcoming
-            ? 'Upcoming'
-            : 'Pending';
-
-    final statusColor = schedule.isCompleted
-        ? statusColors.completed
-        : isUpcoming
-            ? statusColors.upcoming
-            : statusColors.pending;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.sm,
-          horizontal: AppSpacing.xs,
-        ),
-        child: Row(
-          children: [
-            // Left: Small Icon
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: typeColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        splashColor: tc.withValues(alpha: 0.06),
+        highlightColor: tc.withValues(alpha: 0.04),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.smMd,
+            vertical: AppSpacing.smMd,
+          ),
+          child: Row(
+            children: [
+              // ── Left accent bar ─────────────────────────────────────
+              Container(
+                width: 3,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: tc,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                ),
               ),
-              child: Icon(
-                typeIcon,
-                size: 20,
-                color: typeColor,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
 
-            // Left: Title and Subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Title (medium weight)
-                  Text(
-                    schedule.title,
-                    style: AppTypography.titleSmall(context).copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: cs.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  // Subtitle (date)
-                  Text(
-                    _formatDate(schedule.scheduledDate),
-                    style: AppTypography.bodySmall(context).copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+              const SizedBox(width: AppSpacing.smMd),
 
-            // Right: Day Count and Secondary Info
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Status chip (Pending / Completed / Upcoming)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.14),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: schedule.isCompleted
-                          ? statusColor
-                          : isPending
-                              ? statusColor
-                              : cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
+              // ── Type icon badge ────────────────────────────────────
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: tc.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Icon(_typeIcon, size: 16, color: tc),
+              ),
+
+              const SizedBox(width: AppSpacing.smMd),
+
+              // ── Title + date row ───────────────────────────────────
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title
+                    Text(
+                      schedule.title,
+                      style: AppTypography.titleLarge(context).copyWith(
+                        color: AppColors.onBackground,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+
+                    const SizedBox(height: 3),
+
+                    // Date + optional day count
+                    Row(
+                      children: [
+                        Text(
+                          _primaryDate(),
+                          style: AppTypography.bodySmall(context).copyWith(
+                            color: _isToday
+                                ? AppColors.primary
+                                : AppColors.onSurface,
+                            fontWeight: _isToday
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                        if (secondary.isNotEmpty) ...[
+                          Text(
+                            '  ·  ',
+                            style: AppTypography.bodySmall(context).copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                          Text(
+                            secondary,
+                            style: AppTypography.labelSmall(context).copyWith(
+                              color: AppColors.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: AppSpacing.sm),
+
+              // ── Status pill ────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: sbg,
+                  borderRadius:
+                      BorderRadius.circular(AppSpacing.radiusFull),
+                  border: Border.all(
+                    color: sc.withValues(alpha: 0.20),
+                    width: 1,
                   ),
                 ),
-                const SizedBox(height: 4),
-                // Secondary Info (status or date)
-                Text(
-                  daysSincePruning != null ? 'Day $daysSincePruning' : _formatRelativeDate(schedule.scheduledDate),
-                  style: AppTypography.bodySmall(context).copyWith(
-                    color: cs.onSurfaceVariant,
-                    fontSize: 10,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Dot indicator
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: sc,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _statusLabel,
+                      style: AppTypography.labelMedium(context).copyWith(
+                        color: sc,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  /// Get type color
-  Color _getTypeColor(BuildContext context, ScheduleType type) {
-    final cs = Theme.of(context).colorScheme;
-    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
-
-    if (type == ScheduleType.spray) {
-      return semantic.info;
-    } else if (type == ScheduleType.nutrition) {
-      return semantic.warning;
-    } else if (type == ScheduleType.work) {
-      return cs.primary;
-    } else {
-      return cs.onSurface;
-    }
-  }
-
-  /// Get type icon
-  IconData _getTypeIcon(ScheduleType type) {
-    if (type == ScheduleType.spray) {
-      return Icons.water_drop_outlined;
-    } else if (type == ScheduleType.nutrition) {
-      return Icons.grass_outlined;
-    } else if (type == ScheduleType.work) {
-      return Icons.construction_outlined;
-    } else {
-      return Icons.list_outlined;
-    }
-  }
-
-  /// Calculate days since pruning (from scheduled date)
-  /// If pruning date is provided, calculate: scheduledDate - pruningDate
-  /// Otherwise, use a simplified calculation
-  int? _calculateDaysSincePruning(DateTime scheduledDate, DateTime? pruningDate) {
-    if (pruningDate != null) {
-      // Calculate days from pruning date to scheduled date
-      final scheduleDate = DateTime(
-        scheduledDate.year,
-        scheduledDate.month,
-        scheduledDate.day,
-      );
-      final pruneDate = DateTime(
-        pruningDate.year,
-        pruningDate.month,
-        pruningDate.day,
-      );
-      final difference = scheduleDate.difference(pruneDate).inDays;
-      
-      // Only show positive days (future schedules)
-      if (difference > 0) {
-        return difference;
-      }
-      return null;
-    }
-    
-    // Fallback: calculate from today (simplified)
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final scheduleDate = DateTime(scheduledDate.year, scheduledDate.month, scheduledDate.day);
-    final difference = scheduleDate.difference(today).inDays;
-    
-    // Only show for future dates
-    if (difference > 0) {
-      return difference;
-    }
-    return null;
-  }
-
-  /// Format date to compact string
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(date.year, date.month, date.day);
-    final difference = dateOnly.difference(today).inDays;
-
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Tomorrow';
-    } else if (difference == -1) {
-      return 'Yesterday';
-    } else if (difference > 0 && difference <= 7) {
-      return DateFormat('EEE, MMM dd').format(date);
-    } else {
-      return DateFormat('MMM dd, yyyy').format(date);
-    }
-  }
-
-  /// Format relative date for secondary info
-  String _formatRelativeDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(date.year, date.month, date.day);
-    final difference = dateOnly.difference(today).inDays;
-
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Tomorrow';
-    } else if (difference > 0) {
-      return 'In $difference days';
-    } else {
-      return '${-difference} days ago';
-    }
   }
 }

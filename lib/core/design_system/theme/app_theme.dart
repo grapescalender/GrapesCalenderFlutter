@@ -21,13 +21,14 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.surface,
+      fontFamily: AppTypography.fontFamily,
+      scaffoldBackgroundColor: AppColors.background,
       extensions: <ThemeExtension<dynamic>>[
         AppSemanticColors.light,
         AppStatusColors.light,
         const AppBranding(
-          gradientStart: AppColors.primary,
-          gradientEnd: AppColors.secondary,
+          gradientStart: AppColors.gradientStart,
+          gradientEnd: AppColors.gradientEnd,
         ),
         ActivityStepperTheme.light(colorScheme),
       ],
@@ -196,13 +197,14 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.surface,
+      fontFamily: AppTypography.fontFamily,
+      scaffoldBackgroundColor: AppColors.darkBackground,
       extensions: <ThemeExtension<dynamic>>[
         AppSemanticColors.dark,
         AppStatusColors.dark,
         const AppBranding(
           gradientStart: AppColors.primaryDark,
-          gradientEnd: AppColors.secondary,
+          gradientEnd: AppColors.gradientEnd,
         ),
         ActivityStepperTheme.dark(colorScheme),
       ],
@@ -366,23 +368,37 @@ class AppTheme {
   /// Light Color Scheme (Material 3, from seed)
   static ColorScheme get _lightColorScheme =>
       ColorScheme.fromSeed(seedColor: AppColors.primary).copyWith(
+        primary: AppColors.primary,
+        onPrimary: Colors.white,
+        primaryContainer: AppColors.primaryContainer,
+        onPrimaryContainer: AppColors.onPrimaryContainer,
+        secondary: AppColors.secondary,
+        onSecondary: Colors.white,
+        secondaryContainer: AppColors.secondaryContainer,
+        tertiary: AppColors.tertiary,
+        tertiaryContainer: AppColors.tertiaryContainer,
         surface: AppColors.surface,
         surfaceContainerHighest: AppColors.surfaceVariant,
-        primaryContainer: AppColors.primaryContainer,
-        secondary: AppColors.secondary,
-        secondaryContainer: AppColors.secondaryLight,
+        outline: AppColors.outline,
+        outlineVariant: AppColors.outlineVariant,
         error: AppColors.error,
+        shadow: AppColors.shadow,
       );
 
   /// Dark Color Scheme (Material 3, from seed)
   static ColorScheme get _darkColorScheme =>
       ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark).copyWith(
-        surface: AppColors.darkSurface,
-        surfaceContainerHighest: AppColors.darkSurfaceVariant,
+        primary: AppColors.primaryLight,
+        onPrimary: AppColors.primaryDark,
         primaryContainer: AppColors.primaryDark,
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryDark,
+        surface: AppColors.darkSurface,
+        surfaceContainerHighest: AppColors.darkSurfaceVariant,
+        outline: AppColors.darkOutline,
+        outlineVariant: AppColors.darkOutlineVariant,
         error: AppColors.error,
+        shadow: AppColors.darkShadow,
       );
 
   /// Build Text Theme for Light Mode
