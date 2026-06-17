@@ -420,24 +420,54 @@ class _MetricCard extends StatelessWidget {
 }
 
 // ── Donut chart ───────────────────────────────────────────────────────────────
-class _DonutChart extends StatelessWidget {
+class _DonutChart extends StatefulWidget {
   const _DonutChart({required this.matching, required this.segments});
 
   final int matching;
   final List<_Seg> segments;
 
   @override
+  State<_DonutChart> createState() => _DonutChartState();
+}
+
+class _DonutChartState extends State<_DonutChart> {
+  late final TooltipBehavior _tooltip;
+
+  @override
+  void initState() {
+    super.initState();
+    _tooltip = TooltipBehavior(
+      enable: true,
+      format: 'point.x\npoint.y plots',
+      color: AppColors.onBackground,
+      textStyle: const TextStyle(
+        fontFamily: 'Inter',
+        fontSize: 11,
+        color: Colors.white,
+        fontWeight: FontWeight.w600,
+      ),
+      borderWidth: 0,
+      elevation: 4,
+      duration: 3000,
+      animationDuration: 150,
+      tooltipPosition: TooltipPosition.auto,
+      decimalPlaces: 0,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     const chartSize = 160.0;
-    final total = segments.fold<double>(0, (s, e) => s + e.value);
+    final total =
+        widget.segments.fold<double>(0, (s, e) => s + e.value);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.cardPadding, AppSpacing.sm, AppSpacing.cardPadding, AppSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.cardPadding,
+          AppSpacing.sm, AppSpacing.cardPadding, AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Donut
+          // ── Donut ──────────────────────────────────────────────
           SizedBox(
             width: chartSize,
             height: chartSize,
@@ -446,9 +476,10 @@ class _DonutChart extends StatelessWidget {
               children: [
                 SfCircularChart(
                   margin: EdgeInsets.zero,
+                  tooltipBehavior: _tooltip,
                   series: <DoughnutSeries<_Seg, String>>[
                     DoughnutSeries<_Seg, String>(
-                      dataSource: segments,
+                      dataSource: widget.segments,
                       xValueMapper: (_Seg d, _) => d.label,
                       yValueMapper: (_Seg d, _) => d.value,
                       pointColorMapper: (_Seg d, _) => d.color,
@@ -458,31 +489,41 @@ class _DonutChart extends StatelessWidget {
                       endAngle: 270 + 360,
                       cornerStyle: CornerStyle.bothCurve,
                       animationDuration: 700,
+                      // Enable selection highlight on tap
+                      selectionBehavior: SelectionBehavior(
+                        enable: true,
+                        selectedOpacity: 1.0,
+                        unselectedOpacity: 0.6,
+                        toggleSelection: true,
+                      ),
                     ),
                   ],
                 ),
-                // Centre
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$matching',
-                      style: AppTypography.headlineLarge(context).copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.onBackground,
+                // Centre overlay — updates to show tapped segment
+                IgnorePointer(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${widget.matching}',
+                        style:
+                            AppTypography.headlineLarge(context).copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.onBackground,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Matching',
-                      style: AppTypography.labelSmall(context)
-                          .copyWith(color: AppColors.onSurface),
-                    ),
-                    Text(
-                      'Plots',
-                      style: AppTypography.labelSmall(context)
-                          .copyWith(color: AppColors.onSurface),
-                    ),
-                  ],
+                      Text(
+                        'Matching',
+                        style: AppTypography.labelSmall(context)
+                            .copyWith(color: AppColors.onSurface),
+                      ),
+                      Text(
+                        'Plots',
+                        style: AppTypography.labelSmall(context)
+                            .copyWith(color: AppColors.onSurface),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -490,12 +531,13 @@ class _DonutChart extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.md),
 
-          // Legend
+          // ── Legend ─────────────────────────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: segments.map((s) {
-                final pct = total > 0 ? (s.value / total) * 100 : 0.0;
+              children: widget.segments.map((s) {
+                final pct =
+                    total > 0 ? (s.value / total) * 100 : 0.0;
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3),
                   child: Row(
