@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/auth/presentation/pages/farmer_registration_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
@@ -13,6 +14,7 @@ import '../../features/products/presentation/pages/product_knowledge_page.dart';
 /// Route names for navigation
 class RouteNames {
   static const String login = '/login';
+  static const String farmerRegistration = '/register/farmer';
   static const String home = '/home';
   static const String schedule = '/schedule';
   static const String viewAllSchedules = '/schedules/all';
@@ -27,6 +29,7 @@ class RouteNames {
 /// App Routes - Alias for RouteNames for convenience
 class AppRoutes {
   static const String login = RouteNames.login;
+  static const String farmerRegistration = RouteNames.farmerRegistration;
   static const String home = RouteNames.home;
   static const String schedule = RouteNames.schedule;
   static const String viewAllSchedules = RouteNames.viewAllSchedules;
@@ -47,6 +50,11 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.login,
       builder: (context, state) => const LoginPage(),
       name: 'login',
+    ),
+    GoRoute(
+      path: RouteNames.farmerRegistration,
+      builder: (context, state) => const FarmerRegistrationPage(),
+      name: 'farmerRegistration',
     ),
 
     // Main app routes with shell navigation

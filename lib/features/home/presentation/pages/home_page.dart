@@ -275,7 +275,7 @@ class HomePage extends ConsumerWidget {
       'Schedule Management',
       'Expense Tracking',
       'Market Intelligence',
-      'Consultant Support',
+      'Weather Alerts',
     ];
 
     return Padding(

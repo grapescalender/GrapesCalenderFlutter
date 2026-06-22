@@ -382,7 +382,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         TextButton(
           onPressed: () {
-            // TODO: Navigate to sign up
+            context.push(AppRoutes.farmerRegistration);
           },
           child: Text(
             'Sign Up',

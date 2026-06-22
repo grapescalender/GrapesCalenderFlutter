@@ -5,12 +5,17 @@ import 'plot_state.dart';
 
 /// Plot notifier that manages plot state
 class PlotNotifier extends StateNotifier<PlotState> {
-  PlotNotifier({String? username}) : super(PlotState.initial()) {
+  PlotNotifier({
+    String? username,
+    FarmerOnboardingData? onboardingData,
+  }) : super(PlotState.initial()) {
     _username = username;
+    _onboardingData = onboardingData;
     _loadPlots();
   }
 
   late final String? _username;
+  late final FarmerOnboardingData? _onboardingData;
 
   /// Load plots (mock data for now)
   Future<void> _loadPlots() async {
@@ -36,8 +41,28 @@ class PlotNotifier extends StateNotifier<PlotState> {
 
   /// Generate mock plots for development
   List<PlotEntity> _generateMockPlots() {
-    if (_username == 'nodata') {
+    if (_username == 'nodata' || _username == 'registered_farmer_no_plot') {
       return [];
+    }
+
+    final onboardingData = _onboardingData;
+    if (_username == 'registered_farmer' &&
+        onboardingData != null &&
+        onboardingData.hasPlot) {
+      final now = DateTime.now();
+      return [
+        PlotEntity(
+          id: 'onboarding-first-plot',
+          name: onboardingData.plotName!,
+          area: onboardingData.area ?? 0,
+          location: onboardingData.village,
+          cropType: onboardingData.variety ?? 'Table Grapes',
+          pruningDate: onboardingData.pruningDate,
+          isRunning: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
     }
 
     final now = DateTime.now();
@@ -100,8 +125,8 @@ class PlotNotifier extends StateNotifier<PlotState> {
     required double area,
     required String location,
     required String cropType,
-    DateTime? pruningDate,
     required bool isRunning,
+    DateTime? pruningDate,
   }) {
     final now = DateTime.now();
     final plot = PlotEntity(
@@ -137,9 +162,10 @@ class PlotNotifier extends StateNotifier<PlotState> {
   /// Sort plots based on current sort order
   void _sortPlots() {
     final plots = List<PlotEntity>.from(state.plots);
+    final sortOrder = state.sortOrder;
 
     plots.sort((a, b) {
-      if (state.sortOrder == PlotSortOrder.highToLow) {
+      if (sortOrder == PlotSortOrder.highToLow) {
         return b.daysSincePruning.compareTo(a.daysSincePruning);
       } else {
         return a.daysSincePruning.compareTo(b.daysSincePruning);
@@ -155,7 +181,9 @@ class PlotNotifier extends StateNotifier<PlotState> {
 
   /// Check if all plots are running
   bool get areAllPlotsRunning {
-    if (state.plots.isEmpty) return false;
+    if (state.plots.isEmpty) {
+      return false;
+    }
     return state.plots.every((plot) => plot.isRunning);
   }
 
@@ -170,6 +198,10 @@ final plotNotifierProvider =
         authenticated: (user) => user.username,
         orElse: () => null,
       );
+  final onboardingData = ref.watch(farmerOnboardingDataProvider);
 
-  return PlotNotifier(username: username);
+  return PlotNotifier(
+    username: username,
+    onboardingData: onboardingData,
+  );
 });
