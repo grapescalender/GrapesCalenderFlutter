@@ -38,33 +38,49 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // } on DioException catch (e) {
     //   throw NetworkException(e.message ?? 'Network error', e.response?.statusCode);
     // }
-    
+
     // Mock implementation for development
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-    
+    await Future<void>.delayed(
+      const Duration(seconds: 1),
+    ); // Simulate network delay
+
     // Hardcoded credentials for development
-    const validUsername = 'admin';
-    const validPassword = 'password';
-    
+    const mockUsers = {
+      'admin': _MockAuthUser(
+        password: 'password',
+        firstName: 'John',
+        lastName: 'Doe',
+        farmName: 'Green Valley Farm',
+      ),
+      'nodata': _MockAuthUser(
+        password: 'password',
+        firstName: 'No',
+        lastName: 'Data',
+        farmName: 'Empty Test Farm',
+      ),
+    };
+
     // Validate credentials
     if (username.isEmpty || password.isEmpty) {
       throw const AuthenticationException('Username and password are required');
     }
-    
+
+    final mockUser = mockUsers[username];
+
     // Check hardcoded credentials
-    if (username != validUsername || password != validPassword) {
+    if (mockUser == null || password != mockUser.password) {
       throw const AuthenticationException('Invalid username or password');
     }
-    
+
     // Return mock user
     return UserModel(
       id: '1',
       username: username,
       email: '$username@example.com',
       phoneNumber: '+1234567890',
-      firstName: 'John',
-      lastName: 'Doe',
-      farmName: 'Green Valley Farm',
+      firstName: mockUser.firstName,
+      lastName: mockUser.lastName,
+      farmName: mockUser.farmName,
       address: '123 Farm Road',
       city: 'Farm City',
       state: 'Farm State',
@@ -77,7 +93,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> logout() async {
     // TODO: Implement logout API call
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     // Mock implementation - no error
   }
 
@@ -92,4 +108,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // TODO: Implement refresh token API call
     throw UnimplementedError('Refresh token not implemented');
   }
+}
+
+class _MockAuthUser {
+  const _MockAuthUser({
+    required this.password,
+    required this.firstName,
+    required this.lastName,
+    required this.farmName,
+  });
+
+  final String password;
+  final String firstName;
+  final String lastName;
+  final String farmName;
 }

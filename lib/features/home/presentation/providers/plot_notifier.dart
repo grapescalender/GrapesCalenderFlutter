@@ -1,22 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/plot_entity.dart';
 import 'plot_state.dart';
 
 /// Plot notifier that manages plot state
 class PlotNotifier extends StateNotifier<PlotState> {
-  PlotNotifier() : super(PlotState.initial()) {
+  PlotNotifier({String? username}) : super(PlotState.initial()) {
+    _username = username;
     _loadPlots();
   }
+
+  late final String? _username;
 
   /// Load plots (mock data for now)
   Future<void> _loadPlots() async {
     state = state.copyWith(isLoading: true);
 
     // TODO: Replace with actual data source
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
     final mockPlots = _generateMockPlots();
-    
+
     state = state.copyWith(
       plots: mockPlots,
       selectedPlotId: mockPlots.isNotEmpty ? mockPlots.first.id : null,
@@ -32,6 +36,10 @@ class PlotNotifier extends StateNotifier<PlotState> {
 
   /// Generate mock plots for development
   List<PlotEntity> _generateMockPlots() {
+    if (_username == 'nodata') {
+      return [];
+    }
+
     final now = DateTime.now();
     return [
       PlotEntity(
@@ -86,12 +94,42 @@ class PlotNotifier extends StateNotifier<PlotState> {
     }
   }
 
+  /// Add a plot to the local mock state
+  void addPlot({
+    required String name,
+    required double area,
+    required String location,
+    required String cropType,
+    DateTime? pruningDate,
+    required bool isRunning,
+  }) {
+    final now = DateTime.now();
+    final plot = PlotEntity(
+      id: now.microsecondsSinceEpoch.toString(),
+      name: name,
+      area: area,
+      location: location,
+      cropType: cropType,
+      pruningDate: pruningDate,
+      isRunning: isRunning,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    state = state.copyWith(
+      plots: [...state.plots, plot],
+      selectedPlotId: plot.id,
+      errorMessage: null,
+    );
+    _sortPlots();
+  }
+
   /// Toggle sort order
   void toggleSortOrder() {
     final newOrder = state.sortOrder == PlotSortOrder.highToLow
         ? PlotSortOrder.lowToHigh
         : PlotSortOrder.highToLow;
-    
+
     state = state.copyWith(sortOrder: newOrder);
     _sortPlots();
   }
@@ -99,7 +137,7 @@ class PlotNotifier extends StateNotifier<PlotState> {
   /// Sort plots based on current sort order
   void _sortPlots() {
     final plots = List<PlotEntity>.from(state.plots);
-    
+
     plots.sort((a, b) {
       if (state.sortOrder == PlotSortOrder.highToLow) {
         return b.daysSincePruning.compareTo(a.daysSincePruning);
@@ -112,7 +150,8 @@ class PlotNotifier extends StateNotifier<PlotState> {
   }
 
   /// Get running plots only
-  List<PlotEntity> get runningPlots => state.plots.where((plot) => plot.isRunning).toList();
+  List<PlotEntity> get runningPlots =>
+      state.plots.where((plot) => plot.isRunning).toList();
 
   /// Check if all plots are running
   bool get areAllPlotsRunning {
@@ -125,4 +164,12 @@ class PlotNotifier extends StateNotifier<PlotState> {
 }
 
 /// Plot notifier provider
-final plotNotifierProvider = StateNotifierProvider<PlotNotifier, PlotState>((ref) => PlotNotifier());
+final plotNotifierProvider =
+    StateNotifierProvider<PlotNotifier, PlotState>((ref) {
+  final username = ref.watch(authNotifierProvider).maybeWhen(
+        authenticated: (user) => user.username,
+        orElse: () => null,
+      );
+
+  return PlotNotifier(username: username);
+});

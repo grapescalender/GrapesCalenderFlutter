@@ -79,17 +79,31 @@ class PlotsSection extends ConsumerWidget {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                      horizontal: 10, vertical: 7),
                   decoration: BoxDecoration(
-                    // Orange / terracotta — as requested
-                    color: AppColors.secondary,
+                    color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      width: 1.2,
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.agriculture_rounded,
-                          color: Colors.white, size: 14),
-                      const SizedBox(width: 6),
+                      // Farm icon
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.agriculture_rounded,
+                            color: Colors.white, size: 13),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Plot name
                       Expanded(
                         child: Text(
                           state.plots.isEmpty
@@ -103,8 +117,42 @@ class PlotsSection extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const Icon(Icons.arrow_drop_down,
-                          color: Colors.white, size: 18),
+
+                      // Plot count pill — shows user there are more to choose
+                      if (state.plots.length > 1) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusFull),
+                          ),
+                          child: Text(
+                            '${state.plots.length}',
+                            style: AppTypography.labelSmall(context).copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(width: 4),
+                      // Chevron — clear dropdown affordance
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.20),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -253,9 +301,28 @@ class PlotsSection extends ConsumerWidget {
                   horizontal: AppSpacing.screenHorizontal),
               child: Row(
                 children: [
-                  Text('Select Plot',
-                      style: AppTypography.headlineSmall(context)
-                          .copyWith(fontWeight: FontWeight.w700)),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    ),
+                    child: const Icon(Icons.agriculture_rounded,
+                        color: AppColors.primary, size: 18),
+                  ),
+                  const SizedBox(width: AppSpacing.smMd),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Select Plot',
+                          style: AppTypography.headlineSmall(context)
+                              .copyWith(fontWeight: FontWeight.w700)),
+                      Text('Tap a plot to switch',
+                          style: AppTypography.bodySmall(context)
+                              .copyWith(color: AppColors.onSurfaceVariant)),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -267,49 +334,123 @@ class PlotsSection extends ConsumerWidget {
                   AppSpacing.sm, AppSpacing.screenHorizontal, AppSpacing.md),
               itemCount: state.plots.length,
               separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: AppColors.outline),
+                  const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, i) {
                 final p = state.plots[i];
                 final isSel = state.selectedPlotId == p.id;
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm, vertical: 4),
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: isSel
-                          ? AppColors.primaryContainer
-                          : AppColors.background,
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusSm),
-                    ),
-                    child: Icon(Icons.agriculture_rounded,
-                        color: isSel
-                            ? AppColors.primary
-                            : AppColors.onSurfaceVariant,
-                        size: 18),
-                  ),
-                  title: Text(
-                    p.name,
-                    style: AppTypography.titleLarge(context).copyWith(
-                      color: isSel
-                          ? AppColors.primary
-                          : AppColors.onBackground,
-                      fontWeight:
-                          isSel ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                  subtitle: Text('${p.cropType}  ·  ${p.area} ha',
-                      style: AppTypography.bodySmall(context)),
-                  trailing: isSel
-                      ? const Icon(Icons.check_circle_rounded,
-                          color: AppColors.primary, size: 20)
-                      : null,
+                return GestureDetector(
                   onTap: () {
                     notifier.selectPlot(p.id);
                     Navigator.of(context).pop();
                   },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.smMd, vertical: AppSpacing.smMd),
+                    decoration: BoxDecoration(
+                      color: isSel
+                          ? AppColors.primaryContainer
+                          : AppColors.background,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      border: Border.all(
+                        color: isSel
+                            ? AppColors.primary.withValues(alpha: 0.40)
+                            : AppColors.outline,
+                        width: isSel ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        // Farm icon
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: isSel
+                                ? AppColors.primary.withValues(alpha: 0.12)
+                                : AppColors.surface,
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusSm),
+                            border: Border.all(
+                                color: isSel
+                                    ? AppColors.primary.withValues(alpha: 0.25)
+                                    : AppColors.outline),
+                          ),
+                          child: Icon(Icons.agriculture_rounded,
+                              color: isSel
+                                  ? AppColors.primary
+                                  : AppColors.onSurfaceVariant,
+                              size: 18),
+                        ),
+                        const SizedBox(width: AppSpacing.smMd),
+
+                        // Plot info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                p.name,
+                                style: AppTypography.titleLarge(context).copyWith(
+                                  color: isSel
+                                      ? AppColors.primary
+                                      : AppColors.onBackground,
+                                  fontWeight: isSel
+                                      ? FontWeight.w700
+                                      : FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${p.cropType}  ·  ${p.area} ha',
+                                    style: AppTypography.bodySmall(context)
+                                        .copyWith(
+                                            color: AppColors.onSurfaceVariant),
+                                  ),
+                                  if (p.hasPruningDate) ...[
+                                    Text(
+                                      '  ·  Day ${p.daysSincePruning}',
+                                      style: AppTypography.bodySmall(context)
+                                          .copyWith(
+                                        color: isSel
+                                            ? AppColors.primary
+                                            : AppColors.onSurfaceVariant,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Selection indicator
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSel
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: isSel
+                                  ? AppColors.primary
+                                  : AppColors.outline,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: isSel
+                              ? const Icon(Icons.check_rounded,
+                                  size: 13, color: Colors.white)
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),

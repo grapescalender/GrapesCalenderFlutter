@@ -12,7 +12,6 @@ import '../../../home/presentation/providers/plot_notifier.dart';
 import '../../../home/presentation/providers/plot_state.dart';
 import '../../../schedule/presentation/providers/schedule_providers.dart';
 import '../../domain/entities/activity_entity.dart';
-import '../providers/activity_notifier.dart';
 import '../providers/activity_providers.dart';
 import '../providers/activity_state.dart';
 import 'activity_detail_bottom_sheet.dart';
@@ -44,8 +43,8 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
 
     PlotEntity? plot;
     try {
-      plot = plotState.plots
-          .firstWhere((p) => p.id == plotState.selectedPlotId);
+      plot =
+          plotState.plots.firstWhere((p) => p.id == plotState.selectedPlotId);
     } catch (_) {
       plot = plotState.plots.first;
     }
@@ -61,20 +60,27 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     // Reload on plot switch
     ref.listen<PlotState>(plotNotifierProvider, (prev, next) {
       if (mounted && prev?.selectedPlotId != next.selectedPlotId) {
-        WidgetsBinding.instance
-            .addPostFrameCallback((_) { if (mounted) _loadActivities(); });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _loadActivities();
+        });
       }
     });
 
     PlotEntity? selectedPlot;
     try {
-      selectedPlot = plotState.plots
-          .firstWhere((p) => p.id == plotState.selectedPlotId);
+      selectedPlot =
+          plotState.plots.firstWhere((p) => p.id == plotState.selectedPlotId);
     } catch (_) {
       if (plotState.plots.isNotEmpty) selectedPlot = plotState.plots.first;
     }
 
     if (selectedPlot == null || plotState.selectedPlotId == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (!activityState.isLoading &&
+        activityState.errorMessage == null &&
+        activityState.activities.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -95,8 +101,6 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       status = AsyncViewStatus.loading;
     } else if (state.errorMessage != null) {
       status = AsyncViewStatus.error;
-    } else if (state.activities.isEmpty) {
-      status = AsyncViewStatus.empty;
     } else {
       status = AsyncViewStatus.success;
     }
@@ -112,8 +116,8 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       compactEmpty: true,
       loading: AppLoadingState.blocks(heights: const [80, 100]),
       builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenHorizontal),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
         child: HorizontalActivityStepper(
           activities: state.activities,
           selectedActivity: state.activities.firstWhere(
@@ -129,7 +133,8 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
     );
   }
 
-  void _showDetail(BuildContext context, ActivityEntity activity, String plotId) {
+  void _showDetail(
+      BuildContext context, ActivityEntity activity, String plotId) {
     final plotState = ref.read(plotNotifierProvider);
     PlotEntity? plot;
     try {
@@ -138,15 +143,15 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       if (plotState.plots.isNotEmpty) plot = plotState.plots.first;
     }
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ActivityDetailBottomSheet(
         activity: activity,
         pruningDate: plot?.pruningDate,
-        onViewSchedules: () => _navigateToSchedules(
-            context, activity, plotId, plot?.pruningDate),
+        onViewSchedules: () =>
+            _navigateToSchedules(context, activity, plotId, plot?.pruningDate),
       ),
     );
   }
@@ -196,8 +201,8 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenHorizontal),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

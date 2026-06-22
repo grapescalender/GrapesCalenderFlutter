@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
-import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
 import '../../../../shared/widgets/app_ui.dart';
 import '../../domain/entities/schedule_entity.dart';
@@ -65,7 +64,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
         filterType: scheduleState.selectedFilter,
         limit: null, // Load all to check total filtered count
       );
-        }
+    }
   }
 
   @override
@@ -131,6 +130,9 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
 
     // Store in local variable for null safety
     final plot = selectedPlot;
+    final hasScheduleContent = scheduleState.isLoading ||
+        scheduleState.errorMessage != null ||
+        scheduleState.schedules.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,14 +146,16 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
             plot.name,
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-        
-        // Filter Chips
-        _buildFilterChips(context, scheduleState.selectedFilter, scheduleNotifier),
-        const SizedBox(height: AppSpacing.md),
-        
-        // Schedule List Container
-        _buildScheduleListContainer(context, scheduleState, plot),
+        if (hasScheduleContent) ...[
+          const SizedBox(height: AppSpacing.md),
+          _buildFilterChips(
+            context,
+            scheduleState.selectedFilter,
+            scheduleNotifier,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _buildScheduleListContainer(context, scheduleState, plot),
+        ],
       ],
     );
   }
@@ -173,9 +177,12 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screenHorizontal,
+        ),
         itemCount: filters.length,
-        separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
+        separatorBuilder: (context, index) =>
+            const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
           final filter = filters[index];
           return ScheduleFilterChip(
@@ -203,8 +210,6 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       status = AsyncViewStatus.loading;
     } else if (scheduleState.errorMessage != null) {
       status = AsyncViewStatus.error;
-    } else if (scheduleState.schedules.isEmpty) {
-      status = AsyncViewStatus.empty;
     } else {
       status = AsyncViewStatus.success;
     }
@@ -220,7 +225,8 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       emptySubtitle: 'Add a schedule to plan your farm tasks',
       compactEmpty: true,
       loading: const AppLoadingState.listRows(itemHeight: 56),
-      builder: (context) => _buildScheduleList(context, scheduleState, selectedPlot),
+      builder: (context) =>
+          _buildScheduleList(context, scheduleState, selectedPlot),
     );
   }
 
@@ -235,12 +241,12 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     // If filteredSchedules.length <= 5, show all + NO "See More"
     final totalFilteredSchedules = filteredSchedules.length;
     final shouldShowSeeMore = totalFilteredSchedules > 5;
-    
+
     // Get display schedules: show first 5 if more than 5, else show all
     final displaySchedules = shouldShowSeeMore
         ? filteredSchedules.take(5).toList()
         : filteredSchedules;
-    
+
     // Calculate itemCount: display schedules + (1 if See More should show)
     final itemCount = displaySchedules.length + (shouldShowSeeMore ? 1 : 0);
 
@@ -275,7 +281,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
               },
             );
           }
-          
+
           // Schedule item
           final schedule = displaySchedules[index];
           return ScheduleListItem(
@@ -291,7 +297,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
 
   /// Show Schedule Detail Popup (Bottom Sheet)
   void _showScheduleDetail(BuildContext context, ScheduleEntity schedule) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -301,7 +307,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
 
   /// Show Add Schedule Form
   void _showAddScheduleForm(String plotId, String plotName) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
