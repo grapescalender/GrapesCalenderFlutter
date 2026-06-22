@@ -97,8 +97,6 @@ class HomePage extends ConsumerWidget {
             // ── SECTION 2: Competition Analysis ────────────────────
             // Filters + metrics + donut chart — all above fold
             if (dashboardState.hasActiveCycle) ...[
-              _buildCycleStatus(context, dashboardState, horizontalPadding),
-              const SizedBox(height: AppSpacing.smMd),
               const CompetitionSection(),
               SizedBox(height: sectionSpacing),
             ] else ...[
@@ -359,42 +357,6 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCycleStatus(
-    BuildContext context,
-    DashboardViewState state,
-    double horizontalPadding,
-  ) {
-    final cs = Theme.of(context).colorScheme;
-    final plot = state.selectedPlot;
-    if (plot == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: cs.primary,
-              borderRadius: BorderRadius.circular(99),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              '${state.cycleLabel} for ${plot.name}',
-              style: AppTypography.bodySmall(context).copyWith(
-                color: cs.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

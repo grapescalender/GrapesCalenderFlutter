@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -12,70 +14,80 @@ import '../../domain/entities/plot_entity.dart';
 ///
 /// Without scrolling the farmer sees (in this order):
 ///   ① Section header
-///   ② Two dropdowns side-by-side: Pruning Window + Radius
-///   ③ Two metric cards: Total Registered Plots | Matching Plots
+///   ② Pruning window helper + Radius range and Variety filter
+///   ③ Compact result summary
 ///   ④ Donut chart with variety breakdown
-///   ⑤ Insight banner
 class CompetitionSection extends ConsumerStatefulWidget {
   const CompetitionSection({super.key});
 
   @override
-  ConsumerState<CompetitionSection> createState() =>
-      _CompetitionSectionState();
+  ConsumerState<CompetitionSection> createState() => _CompetitionSectionState();
 }
 
 class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
   // ── Filter state ──────────────────────────────────────────────
-  String _window = '±5 Days';
-  String _radius = '10 KM';
+  double _radiusKm = 10;
+  final Set<String> _selectedVarieties = {..._varietyOptions};
 
-  static const List<String> _windowOptions = [
-    'Same Day',
-    '±1 Day',
-    '±2 Days',
-    '±3 Days',
-    '±4 Days',
-    '±5 Days',
-    '±6 Days',
-    '±7 Days',
-    '±8 Days',
-    '±9 Days',
-    '±10 Days',
+  static const int _fixedWindowDays = 5;
+
+  static const List<String> _varietyOptions = [
+    'Thompson Seedless',
+    'Sonaka',
+    'Sharad Seedless',
+    'Manik Chaman',
+    'Other varieties',
   ];
 
-  static const List<String> _radiusOptions = [
-    '1 KM',
-    '2 KM',
-    '5 KM',
-    '10 KM',
-    '15 KM',
-    '20 KM',
-    '25 KM',
-    '50 KM',
-  ];
+  List<_CompetitionPlot> _matchingCompetitionPlots(PlotEntity selectedPlot) {
+    final selectedLocation = _selectedPlotLocation(selectedPlot);
+    final selectedPruningDate = selectedPlot.pruningDate ?? DateTime.now();
 
-  // ── Mock data ─────────────────────────────────────────────────
-  static const int _totalRegisteredPlots = 12450;
-  // Matching changes based on filter (mock logic)
-  int get _matchingPlots {
-    final radiusKm = int.tryParse(_radius.replaceAll(' KM', '')) ?? 10;
-    final windowDays = _window == 'Same Day'
-        ? 0
-        : int.tryParse(
-                _window.replaceAll('±', '').replaceAll(' Days', '').replaceAll(' Day', '')) ??
-            5;
-    // Mock formula: more radius + wider window = more plots
-    return ((radiusKm * 2.8) + (windowDays * 4)).round().clamp(12, 850);
+    return _competitionPlots.where((plot) {
+      final distance = _distanceKm(selectedLocation, plot.location);
+      final competitorPruningDate =
+          selectedPruningDate.add(Duration(days: plot.pruningOffsetDays));
+      final pruningGap =
+          competitorPruningDate.difference(selectedPruningDate).inDays.abs();
+      final varietyMatches = _selectedVarieties.contains(plot.variety);
+
+      return distance <= _radiusKm &&
+          pruningGap <= _fixedWindowDays &&
+          varietyMatches;
+    }).toList();
   }
 
-  // Donut segments (variety distribution)
-  List<_Seg> get _segments => [
-        _Seg('Thompson Seedless', 80, AppColors.chartGreen),
-        _Seg('Sonaka', 65, AppColors.chartMint),
-        _Seg('Sharad Seedless', 45, AppColors.chartBlue),
-        _Seg('Manik Chaman', 25, AppColors.chartAmber),
-        _Seg('Others', 30, AppColors.chartGray),
-      ];
+  double _matchingArea(List<_CompetitionPlot> plots) =>
+      plots.fold(0, (total, plot) => total + plot.area);
+
+  String _competitionLevel(int matchingPlots) {
+    if (matchingPlots >= 12) return 'High';
+    if (matchingPlots >= 6) return 'Medium';
+    return 'Low';
+  }
+
+  List<_Seg> _segments(List<_CompetitionPlot> plots) {
+    final totals = <String, _VarietyCount>{};
+    for (final plot in plots) {
+      final current = totals[plot.variety] ?? const _VarietyCount();
+      totals[plot.variety] = current.add(plot);
+    }
+
+    return totals.entries
+        .map(
+          (entry) => _Seg(
+            entry.key,
+            entry.value.totalAcres,
+            entry.value.totalPlots,
+            entry.value.localPlots,
+            entry.value.localAcres,
+            entry.value.exportPlots,
+            entry.value.exportAcres,
+            _varietyColor(entry.key),
+          ),
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,119 +98,113 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
       (p) => p.id == state.selectedPlotId,
       orElse: () => state.plots.first,
     );
+    final matchingPlots = _matchingCompetitionPlots(myPlot);
+    final matchingCount = matchingPlots.length;
+    final matchingArea = _matchingArea(matchingPlots);
+    final matchingAcres = matchingArea * 2.47105;
+    final competitionLevel = _competitionLevel(matchingCount);
+    final segments = _segments(matchingPlots);
+    final localCount =
+        matchingPlots.where((plot) => plot.harvestingType == 'Local').length;
+    final exportCount =
+        matchingPlots.where((plot) => plot.harvestingType == 'Export').length;
+    final localAcres = matchingPlots
+            .where((plot) => plot.harvestingType == 'Local')
+            .fold<double>(0, (total, plot) => total + plot.area) *
+        2.47105;
+    final exportAcres = matchingPlots
+            .where((plot) => plot.harvestingType == 'Export')
+            .fold<double>(0, (total, plot) => total + plot.area) *
+        2.47105;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenHorizontal),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Section header ────────────────────────────────────
           _SectionHeader(myPlot: myPlot),
-          const SizedBox(height: AppSpacing.smMd),
-
-          // ── Card ──────────────────────────────────────────────
+          const SizedBox(height: AppSpacing.xs),
           _OutlinedCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ① Two dropdown filters
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.cardPadding,
-                      AppSpacing.cardPadding,
-                      AppSpacing.cardPadding,
-                      0),
-                  child: Row(
+                    AppSpacing.smMd,
+                    AppSpacing.smMd,
+                    AppSpacing.smMd,
+                    0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: _FilterDropdown(
-                          label: 'Pruning Window',
-                          value: _window,
-                          items: _windowOptions,
-                          onChanged: (v) => setState(() => _window = v),
+                      Text(
+                        _fixedWindowLabel(myPlot.pruningDate),
+                        style: AppTypography.labelMedium(context).copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.smMd),
-                      Expanded(
-                        child: _FilterDropdown(
-                          label: 'Radius',
-                          value: _radius,
-                          items: _radiusOptions,
-                          onChanged: (v) => setState(() => _radius = v),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${_radiusKm.round()} KM radius from ${myPlot.name}',
+                        style: AppTypography.labelSmall(context).copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _RadiusRangeSelector(
+                              value: _radiusKm,
+                              onChanged: (value) =>
+                                  setState(() => _radiusKm = value),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          SizedBox(
+                            width: 98,
+                            child: _CompactVarietyButton(
+                              selectedVarieties: _selectedVarieties,
+                              allVarieties: _varietyOptions,
+                              onChanged: (next) {
+                                setState(() {
+                                  _selectedVarieties
+                                    ..clear()
+                                    ..addAll(next);
+                                });
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: AppSpacing.smMd),
-                const Divider(height: 1, color: AppColors.outline),
-
-                // ② Two metric cards
+                const SizedBox(height: AppSpacing.sm),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.cardPadding,
-                      AppSpacing.smMd,
-                      AppSpacing.cardPadding,
-                      0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _MetricCard(
-                          icon: Icons.location_city_rounded,
-                          iconBg: AppColors.infoLight,
-                          iconColor: AppColors.info,
-                          value: _fmt(_totalRegisteredPlots),
-                          label: 'Total Registered\nPlots',
-                          highlight: false,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.smMd),
-                      Expanded(
-                        child: _MetricCard(
-                          icon: Icons.groups_2_rounded,
-                          iconBg: AppColors.primaryContainer,
-                          iconColor: AppColors.primary,
-                          value: _fmt(_matchingPlots),
-                          label: 'Matching\nPlots',
-                          highlight: true,
-                        ),
-                      ),
-                    ],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.smMd,
+                  ),
+                  child: _CompetitionSummaryCard(
+                    plots: matchingCount,
+                    acres: matchingAcres,
+                    level: competitionLevel,
+                    localCount: localCount,
+                    exportCount: exportCount,
+                    localAcres: localAcres,
+                    exportAcres: exportAcres,
                   ),
                 ),
-
-                const SizedBox(height: AppSpacing.smMd),
-                const Divider(height: 1, color: AppColors.outline),
-
-                // ③ Donut chart title
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.cardPadding,
-                      AppSpacing.smMd,
-                      AppSpacing.cardPadding,
-                      0),
-                  child: Text(
-                    'Variety Distribution',
-                    style: AppTypography.titleLarge(context)
-                        .copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ),
-
-                // ④ Donut chart
+                const SizedBox(height: AppSpacing.xs),
                 _DonutChart(
-                  matching: _matchingPlots,
-                  segments: _segments,
-                ),
-
-                const Divider(height: 1, color: AppColors.outline),
-
-                // ⑤ Insight banner
-                _InsightBanner(
-                  window: _window,
-                  radius: _radius,
-                  matching: _matchingPlots,
+                  totalAcres: matchingAcres,
+                  segments: segments,
                 ),
               ],
             ),
@@ -208,13 +214,127 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
     );
   }
 
-  String _fmt(int n) {
-    if (n >= 1000) {
-      return NumberFormat('#,##0').format(n);
+  String _fixedWindowLabel(DateTime? pruningDate) {
+    if (pruningDate == null) return 'Pruning Window: —';
+    final start = pruningDate.subtract(const Duration(days: _fixedWindowDays));
+    final end = pruningDate.add(const Duration(days: _fixedWindowDays));
+    return 'Pruning Window: ${DateFormat('dd MMM yyyy').format(start)} - ${DateFormat('dd MMM yyyy').format(end)}';
+  }
+
+  _LatLng _selectedPlotLocation(PlotEntity plot) {
+    final seed = plot.id.codeUnits.fold<int>(0, (sum, code) => sum + code);
+    return _LatLng(
+      19.9975 + (seed % 7) * 0.006,
+      73.7898 + (seed % 5) * 0.006,
+    );
+  }
+
+  double _distanceKm(_LatLng start, _LatLng end) {
+    const earthRadiusKm = 6371.0;
+    final dLat = _degreesToRadians(end.latitude - start.latitude);
+    final dLng = _degreesToRadians(end.longitude - start.longitude);
+    final lat1 = _degreesToRadians(start.latitude);
+    final lat2 = _degreesToRadians(end.latitude);
+
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(lat1) *
+            math.cos(lat2) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadiusKm * c;
+  }
+
+  double _degreesToRadians(double degrees) => degrees * math.pi / 180;
+
+  Color _varietyColor(String variety) {
+    switch (variety) {
+      case 'Thompson Seedless':
+        return AppColors.chartGreen;
+      case 'Sonaka':
+        return AppColors.chartMint;
+      case 'Sharad Seedless':
+        return AppColors.chartBlue;
+      case 'Manik Chaman':
+        return AppColors.chartAmber;
+      default:
+        return AppColors.chartGray;
     }
-    return '$n';
   }
 }
+
+final List<_CompetitionPlot> _competitionPlots = [
+  _CompetitionPlot(
+    variety: 'Thompson Seedless',
+    harvestingType: 'Export',
+    area: 2.6,
+    pruningOffsetDays: -5,
+    location: const _LatLng(20.0010, 73.7950),
+  ),
+  _CompetitionPlot(
+    variety: 'Sonaka',
+    harvestingType: 'Local',
+    area: 1.9,
+    pruningOffsetDays: -3,
+    location: const _LatLng(20.0180, 73.8020),
+  ),
+  _CompetitionPlot(
+    variety: 'Sharad Seedless',
+    harvestingType: 'Export',
+    area: 3.1,
+    pruningOffsetDays: 0,
+    location: const _LatLng(20.0300, 73.8200),
+  ),
+  _CompetitionPlot(
+    variety: 'Manik Chaman',
+    harvestingType: 'Local',
+    area: 1.4,
+    pruningOffsetDays: 2,
+    location: const _LatLng(20.0450, 73.8300),
+  ),
+  _CompetitionPlot(
+    variety: 'Other varieties',
+    harvestingType: 'Export',
+    area: 2.2,
+    pruningOffsetDays: 5,
+    location: const _LatLng(20.0800, 73.8500),
+  ),
+  _CompetitionPlot(
+    variety: 'Thompson Seedless',
+    harvestingType: 'Local',
+    area: 2.8,
+    pruningOffsetDays: -1,
+    location: const _LatLng(20.1200, 73.8800),
+  ),
+  _CompetitionPlot(
+    variety: 'Sonaka',
+    harvestingType: 'Export',
+    area: 1.7,
+    pruningOffsetDays: 1,
+    location: const _LatLng(20.1700, 73.9300),
+  ),
+  _CompetitionPlot(
+    variety: 'Sharad Seedless',
+    harvestingType: 'Local',
+    area: 2.4,
+    pruningOffsetDays: 3,
+    location: const _LatLng(20.2400, 73.9500),
+  ),
+  _CompetitionPlot(
+    variety: 'Manik Chaman',
+    harvestingType: 'Export',
+    area: 3.0,
+    pruningOffsetDays: 6,
+    location: const _LatLng(20.3200, 74.0000),
+  ),
+  _CompetitionPlot(
+    variety: 'Other varieties',
+    harvestingType: 'Local',
+    area: 1.6,
+    pruningOffsetDays: -4,
+    location: const _LatLng(20.3900, 74.0600),
+  ),
+];
 
 // ── Section header ────────────────────────────────────────────────────────────
 class _SectionHeader extends StatelessWidget {
@@ -247,7 +367,7 @@ class _SectionHeader extends StatelessWidget {
                     .copyWith(fontWeight: FontWeight.w700),
               ),
               Text(
-                'Nearby Similar Pruning Activity',
+                'Nearby pruning activity around selected plot',
                 style: AppTypography.bodySmall(context)
                     .copyWith(color: AppColors.onSurface),
               ),
@@ -284,133 +404,79 @@ class _OutlinedCard extends StatelessWidget {
   }
 }
 
-// ── Dropdown filter ───────────────────────────────────────────────────────────
-class _FilterDropdown extends StatelessWidget {
-  const _FilterDropdown({
-    required this.label,
+class _RadiusRangeSelector extends StatelessWidget {
+  const _RadiusRangeSelector({
     required this.value,
-    required this.items,
     required this.onChanged,
   });
 
-  final String label;
-  final String value;
-  final List<String> items;
-  final ValueChanged<String> onChanged;
+  final double value;
+  final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTypography.labelSmall(context)
-              .copyWith(color: AppColors.onSurfaceVariant),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd),
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: AppColors.outline),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isDense: true,
-              isExpanded: true,
-              icon: const Icon(Icons.expand_more_rounded,
-                  size: 16, color: AppColors.onSurface),
-              style: AppTypography.bodyMedium(context)
-                  .copyWith(color: AppColors.onBackground),
-              items: items
-                  .map((s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(s,
-                            style: AppTypography.bodyMedium(context)
-                                .copyWith(color: AppColors.onBackground)),
-                      ))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) onChanged(v);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
+    final selectedKm = value.round();
 
-// ── Metric card ───────────────────────────────────────────────────────────────
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({
-    required this.icon,
-    required this.iconBg,
-    required this.iconColor,
-    required this.value,
-    required this.label,
-    required this.highlight,
-  });
-
-  final IconData icon;
-  final Color iconBg;
-  final Color iconColor;
-  final String value;
-  final String label;
-  final bool highlight;
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.smMd),
+      height: 38,
+      padding: const EdgeInsets.only(left: 6, right: 2),
       decoration: BoxDecoration(
-        color: highlight ? AppColors.primaryContainer : AppColors.background,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(
-          color: highlight
-              ? AppColors.primary.withValues(alpha: 0.25)
-              : AppColors.outline,
-        ),
+        color: AppColors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
       ),
       child: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 58,
+            height: 28,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            child: Icon(icon, color: iconColor, size: 17),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: AppTypography.headlineMedium(context).copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: highlight
-                        ? AppColors.primary
-                        : AppColors.onBackground,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: AppTypography.labelSmall(context).copyWith(
-                    color: highlight
-                        ? AppColors.onPrimaryContainer
-                        : AppColors.onSurface,
-                    height: 1.4,
-                  ),
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.22),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
               ],
+            ),
+            child: Text(
+              '$selectedKm KM',
+              style: AppTypography.labelSmall(context).copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+              maxLines: 1,
+            ),
+          ),
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 4,
+                activeTrackColor: AppColors.primary,
+                inactiveTrackColor: AppColors.primary.withValues(alpha: 0.16),
+                thumbColor: AppColors.primary,
+                overlayColor: AppColors.primary.withValues(alpha: 0.12),
+                thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 8,
+                ),
+                overlayShape: const RoundSliderOverlayShape(
+                  overlayRadius: 15,
+                ),
+                valueIndicatorColor: AppColors.primary,
+                valueIndicatorTextStyle: AppTypography.labelSmall(context)
+                    .copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+              ),
+              child: Slider(
+                value: value,
+                min: 1,
+                max: 50,
+                divisions: 49,
+                label: '$selectedKm KM',
+                onChanged: onChanged,
+              ),
             ),
           ),
         ],
@@ -419,11 +485,348 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
+class _CompactVarietyButton extends StatelessWidget {
+  const _CompactVarietyButton({
+    required this.selectedVarieties,
+    required this.allVarieties,
+    required this.onChanged,
+  });
+
+  final Set<String> selectedVarieties;
+  final List<String> allVarieties;
+  final ValueChanged<Set<String>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = selectedVarieties.length == allVarieties.length
+        ? 'Variety'
+        : '${selectedVarieties.length} selected';
+
+    return GestureDetector(
+      onTap: () => _openVarietySheet(context),
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.eco_rounded,
+                size: 13,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTypography.labelSmall(context).copyWith(
+                  color: AppColors.onBackground,
+                  fontWeight: FontWeight.w800,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 16,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openVarietySheet(BuildContext context) {
+    final draft = {...selectedVarieties};
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusHuge),
+        ),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenHorizontal,
+                  AppSpacing.smMd,
+                  AppSpacing.screenHorizontal,
+                  AppSpacing.lg,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.outline,
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusFull),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Select Varieties',
+                      style: AppTypography.headlineSmall(context)
+                          .copyWith(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        FilterChip(
+                          label: const Text('All'),
+                          selected: draft.length == allVarieties.length,
+                          onSelected: (selected) {
+                            setSheetState(() {
+                              draft
+                                ..clear()
+                                ..addAll(selected ? allVarieties : const []);
+                            });
+                          },
+                        ),
+                        ...allVarieties.map(
+                          (variety) => FilterChip(
+                            label: Text(variety),
+                            selected: draft.contains(variety),
+                            onSelected: (selected) {
+                              setSheetState(() {
+                                if (selected) {
+                                  draft.add(variety);
+                                } else {
+                                  draft.remove(variety);
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () {
+                          onChanged(draft);
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Apply'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CompetitionSummaryCard extends StatelessWidget {
+  const _CompetitionSummaryCard({
+    required this.plots,
+    required this.acres,
+    required this.level,
+    required this.localCount,
+    required this.exportCount,
+    required this.localAcres,
+    required this.exportAcres,
+  });
+
+  final int plots;
+  final double acres;
+  final String level;
+  final int localCount;
+  final int exportCount;
+  final double localAcres;
+  final double exportAcres;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.smMd,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border: Border.all(color: AppColors.outline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '$plots Plots',
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: AppColors.onBackground,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              _SummaryDivider(),
+              Text(
+                '${acres.round()} Acres',
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: AppColors.onBackground,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              _SummaryDivider(),
+              _CompetitionLevelChip(level: level),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              _HarvestCountChip(
+                label: 'Local',
+                count: localCount,
+                acres: localAcres,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              _HarvestCountChip(
+                label: 'Export',
+                count: exportCount,
+                acres: exportAcres,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      child: Container(
+        width: 1,
+        height: 16,
+        color: AppColors.outline,
+      ),
+    );
+  }
+}
+
+class _CompetitionLevelChip extends StatelessWidget {
+  const _CompetitionLevelChip({required this.level});
+
+  final String level;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (level) {
+      'High' => AppColors.error,
+      'Medium' => AppColors.warning,
+      _ => AppColors.success,
+    };
+
+    return Flexible(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          border: Border.all(color: color.withValues(alpha: 0.22)),
+        ),
+        child: Text(
+          '$level Competition',
+          style: AppTypography.labelSmall(context).copyWith(
+            color: color,
+            fontWeight: FontWeight.w900,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+}
+
+class _HarvestCountChip extends StatelessWidget {
+  const _HarvestCountChip({
+    required this.label,
+    required this.count,
+    required this.acres,
+  });
+
+  final String label;
+  final int count;
+  final double acres;
+
+  @override
+  Widget build(BuildContext context) {
+    final isExport = label == 'Export';
+    final color = isExport ? AppColors.info : AppColors.success;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      ),
+      child: Text(
+        '$label $count plots / ${acres.round()} ac',
+        style: AppTypography.labelSmall(context).copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Dropdown filter ───────────────────────────────────────────────────────────
 // ── Donut chart ───────────────────────────────────────────────────────────────
 class _DonutChart extends StatefulWidget {
-  const _DonutChart({required this.matching, required this.segments});
+  const _DonutChart({required this.totalAcres, required this.segments});
 
-  final int matching;
+  final double totalAcres;
   final List<_Seg> segments;
 
   @override
@@ -438,7 +841,7 @@ class _DonutChartState extends State<_DonutChart> {
     super.initState();
     _tooltip = TooltipBehavior(
       enable: true,
-      format: 'point.x\npoint.y plots',
+      format: 'point.x\npoint.y acres',
       color: AppColors.onBackground,
       textStyle: const TextStyle(
         fontFamily: 'Inter',
@@ -457,13 +860,15 @@ class _DonutChartState extends State<_DonutChart> {
 
   @override
   Widget build(BuildContext context) {
-    const chartSize = 160.0;
-    final total =
-        widget.segments.fold<double>(0, (s, e) => s + e.value);
+    const chartSize = 118.0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.cardPadding,
-          AppSpacing.sm, AppSpacing.cardPadding, AppSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.smMd,
+        AppSpacing.xs,
+        AppSpacing.smMd,
+        AppSpacing.sm,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -505,20 +910,19 @@ class _DonutChartState extends State<_DonutChart> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${widget.matching}',
-                        style:
-                            AppTypography.headlineLarge(context).copyWith(
+                        '${widget.totalAcres.round()}',
+                        style: AppTypography.headlineLarge(context).copyWith(
                           fontWeight: FontWeight.w900,
                           color: AppColors.onBackground,
                         ),
                       ),
                       Text(
-                        'Matching',
+                        'Total',
                         style: AppTypography.labelSmall(context)
                             .copyWith(color: AppColors.onSurface),
                       ),
                       Text(
-                        'Plots',
+                        'Acres',
                         style: AppTypography.labelSmall(context)
                             .copyWith(color: AppColors.onSurface),
                       ),
@@ -531,48 +935,93 @@ class _DonutChartState extends State<_DonutChart> {
 
           const SizedBox(width: AppSpacing.md),
 
-          // ── Legend ─────────────────────────────────────────────
+          // ── Variety count table ────────────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: widget.segments.map((s) {
-                final pct =
-                    total > 0 ? (s.value / total) * 100 : 0.0;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: s.color,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          s.label,
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: AppColors.onBackground,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 14),
                       Text(
-                        '${s.value.toInt()}',
-                        style: AppTypography.labelMedium(context).copyWith(
-                          color: AppColors.onBackground,
-                          fontWeight: FontWeight.w700,
+                        'Variety',
+                        style: AppTypography.labelSmall(context).copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
                   ),
-                );
-              }).toList(),
+                ),
+                ...widget.segments.map((s) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: s.color,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                s.label,
+                                style:
+                                    AppTypography.labelSmall(context).copyWith(
+                                  color: AppColors.onBackground,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 1),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 14),
+                          child: Text(
+                            'Local ${s.localAcres.round()} ac  •  Export ${s.exportAcres.round()} ac',
+                            style: AppTypography.labelSmall(context).copyWith(
+                              color: AppColors.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                              height: 1.15,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                if (widget.segments.isEmpty)
+                  Text(
+                    'No plots found',
+                    style: AppTypography.labelSmall(context).copyWith(
+                      color: AppColors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                const SizedBox(height: 3),
+                Text(
+                  'Acres split by Local and Export.',
+                  style: AppTypography.labelSmall(context).copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
@@ -581,64 +1030,83 @@ class _DonutChartState extends State<_DonutChart> {
   }
 }
 
-// ── Insight banner ────────────────────────────────────────────────────────────
-class _InsightBanner extends StatelessWidget {
-  const _InsightBanner({
-    required this.window,
-    required this.radius,
-    required this.matching,
+class _VarietyCount {
+  const _VarietyCount({
+    this.totalPlots = 0,
+    this.localPlots = 0,
+    this.exportPlots = 0,
+    this.totalAcres = 0,
+    this.localAcres = 0,
+    this.exportAcres = 0,
   });
 
-  final String window;
-  final String radius;
-  final int matching;
+  final int totalPlots;
+  final int localPlots;
+  final int exportPlots;
+  final double totalAcres;
+  final double localAcres;
+  final double exportAcres;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.smMd),
-      decoration: const BoxDecoration(
-        color: AppColors.primaryContainer,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(AppSpacing.radiusLg),
-          bottomRight: Radius.circular(AppSpacing.radiusLg),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            child: const Icon(Icons.lightbulb_rounded,
-                color: AppColors.primary, size: 14),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              '$matching plots with similar pruning found within $radius. '
-              'Window: $window. Competition concentrated in Thompson Seedless & Sonaka.',
-              style: AppTypography.bodySmall(context).copyWith(
-                color: AppColors.onPrimaryContainer,
-                fontWeight: FontWeight.w500,
-                height: 1.45,
-              ),
-            ),
-          ),
-        ],
-      ),
+  _VarietyCount add(_CompetitionPlot plot) {
+    final acres = plot.area * 2.47105;
+    final isLocal = plot.harvestingType == 'Local';
+    final isExport = plot.harvestingType == 'Export';
+
+    return _VarietyCount(
+      totalPlots: totalPlots + 1,
+      localPlots: localPlots + (isLocal ? 1 : 0),
+      exportPlots: exportPlots + (isExport ? 1 : 0),
+      totalAcres: totalAcres + acres,
+      localAcres: localAcres + (isLocal ? acres : 0),
+      exportAcres: exportAcres + (isExport ? acres : 0),
     );
   }
 }
 
 // ── Data model ────────────────────────────────────────────────────────────────
+class _CompetitionPlot {
+  const _CompetitionPlot({
+    required this.variety,
+    required this.harvestingType,
+    required this.area,
+    required this.pruningOffsetDays,
+    required this.location,
+  });
+
+  final String variety;
+  final String harvestingType;
+  final double area;
+  final int pruningOffsetDays;
+  final _LatLng location;
+}
+
+class _LatLng {
+  const _LatLng(this.latitude, this.longitude);
+
+  final double latitude;
+  final double longitude;
+}
+
 class _Seg {
+  const _Seg(
+    this.label,
+    this.value,
+    this.totalPlots,
+    this.localPlots,
+    this.localAcres,
+    this.exportPlots,
+    this.exportAcres,
+    this.color,
+  );
+
   final String label;
   final double value;
+  final int totalPlots;
+  final int localPlots;
+  final double localAcres;
+  final int exportPlots;
+  final double exportAcres;
   final Color color;
-  const _Seg(this.label, this.value, this.color);
+
+  double get totalAcres => value;
 }

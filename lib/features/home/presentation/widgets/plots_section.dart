@@ -5,19 +5,18 @@ import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
-import '../../../activity/domain/entities/activity_entity.dart';
 import '../../domain/entities/plot_entity.dart';
 import '../providers/plot_notifier.dart';
 import '../providers/plot_state.dart';
 
-/// Plot Section — hero gradient card (~20% screen height).
+/// Plot Section — compact hero gradient card.
 ///
 /// Layout:
 ///   ┌──────────────────────────────────────────────────────────┐  ─┐
-///   │  [Plot A · Grapes  ▾]                     [Flowering ●]  │   │ ~20%
-///   │  25 Days                                                  │   │ screen
-///   │  Berry Setting                                            │   │ height
-///   │  Pruning Date: 02 Jun 2026           [decorative block]  │   │
+///   │  Selected Plot                                            │   │
+///   │  P1 - Thompson Seedless ▾                                 │   │
+///   │  [April Cycle] of Season 2026-27                          │   │
+///   │  [08 Jun] [58] [Berry Setting]                            │   │
 ///   │  [View Plot Details →]                                    │   │
 ///   └──────────────────────────────────────────────────────────┘  ─┘
 class PlotsSection extends ConsumerWidget {
@@ -43,229 +42,231 @@ class PlotsSection extends ConsumerWidget {
         : activityState.activities.where((a) => a.isActive).firstOrNull ??
             activityState.activities.where((a) => a.isPending).firstOrNull;
 
-    // Responsive hero height ~20% of screen
-    final heroHeight = MediaQuery.of(context).size.height * 0.20;
+    final seasonName = _seasonName(plot.pruningDate);
+    final cycleName = _cycleName(plot.pruningDate);
+    final stageName = activeActivity != null
+        ? activeActivity.type.displayName
+        : _deriveStage(plot.daysSincePruning);
+    final displayVariety = _displayVariety(plot.cropType);
+    final selectedPlotLabel = '${plot.name} - $displayVariety';
+    final showCompleteAprilCycle = _shouldShowCompleteAprilCycle(plot);
 
-    return SizedBox(
-      height: heroHeight,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [cs.primary, cs.secondary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          boxShadow: [
-            BoxShadow(
-              color: cs.shadow.withValues(alpha: 0.10),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.lerp(cs.primary, Colors.black, 0.06) ?? cs.primary,
+            cs.primary,
+            Color.lerp(cs.secondary, Colors.white, 0.08) ?? cs.secondary,
           ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomRight,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.smMd, AppSpacing.md, AppSpacing.smMd),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ── Row 1: full-width plot selector ───────────────
-              GestureDetector(
-                onTap: () => _openSelector(context, state, notifier),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: cs.primary.withValues(alpha: 0.22),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        child: Stack(
+          children: [
+            Positioned(
+              left: -58,
+              top: -68,
+              child: Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.09),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 34,
+              top: -24,
+              child: Transform.rotate(
+                angle: -0.45,
                 child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 7),
+                  width: 210,
+                  height: 20,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.55),
-                      width: 1.2,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              right: -46,
+              bottom: -56,
+              child: Container(
+                width: 146,
+                height: 146,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+            ),
+            Positioned(
+              right: -6,
+              top: 56,
+              child: Opacity(
+                opacity: 0.42,
+                child: _GrapePainting(size: 76),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.smMd),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () => _openSelector(context, state, notifier),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.smMd,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.24),
+                            Colors.white.withValues(alpha: 0.12),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusMd),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.34),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.10),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Selected Plot',
+                            style: AppTypography.labelSmall(context).copyWith(
+                              color: Colors.white.withValues(alpha: 0.72),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  selectedPlotLabel,
+                                  style: AppTypography.titleLarge(context)
+                                      .copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.05,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Row(
+                  const SizedBox(height: AppSpacing.smMd),
+                  Row(
                     children: [
-                      // Farm icon
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(Icons.agriculture_rounded,
-                            color: Colors.white, size: 13),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // Plot name
+                      _CycleChip(label: cycleName),
+                      const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(
-                          state.plots.isEmpty
-                              ? 'No plots'
-                              : '${plot.name} · ${plot.cropType}',
-                          style: AppTypography.titleSmall(context).copyWith(
-                            color: Colors.white,
+                          'of $seasonName',
+                          style: AppTypography.labelMedium(context).copyWith(
+                            color: Colors.white.withValues(alpha: 0.78),
                             fontWeight: FontWeight.w700,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-
-                      // Plot count pill — shows user there are more to choose
-                      if (state.plots.length > 1) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(
-                                AppSpacing.radiusFull),
-                          ),
-                          child: Text(
-                            '${state.plots.length}',
-                            style: AppTypography.labelSmall(context).copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.smMd),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _HeroMetricBox(
+                          value: _formatDateShort(plot.pruningDate),
+                          label: 'Cutting Date',
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: _HeroMetricBox(
+                          value: plot.hasPruningDate
+                              ? '${plot.daysSincePruning}'
+                              : '—',
+                          label: 'Days After Pruning',
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: _HeroMetricBox(
+                          label: 'Current Activity',
+                          valueWidget: _HeroStatusPill(label: stageName),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.smMd),
+                  Row(
+                    children: [
+                      _HeroActionButton(
+                        label: 'View Plot Details',
+                        icon: Icons.arrow_forward_rounded,
+                        onTap: () => _openPlotDetails(context, plot),
+                      ),
+                      if (showCompleteAprilCycle) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        _HeroActionButton(
+                          label: 'Complete Cycle',
+                          icon: Icons.task_alt_rounded,
+                          compact: true,
+                          onTap: () => _pickNextCycleDate(
+                            context,
+                            notifier,
+                            plot,
                           ),
                         ),
                       ],
-
-                      const SizedBox(width: 4),
-                      // Chevron — clear dropdown affordance
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.20),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
                     ],
                   ),
-                ),
+                ],
               ),
-
-              const SizedBox(height: 8),
-
-              // ── Row 2: info left + small leaf right ────────────
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Left: day + activity + date — all tight
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // "Day 15"
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                'Day ',
-                                style: AppTypography.titleLarge(context)
-                                    .copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white
-                                      .withValues(alpha: 0.75),
-                                ),
-                              ),
-                              Text(
-                                plot.hasPruningDate
-                                    ? '${plot.daysSincePruning}'
-                                    : '—',
-                                style:
-                                    AppTypography.displaySmall(context)
-                                        .copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  height: 1.05,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            activeActivity != null
-                                ? activeActivity.type.displayName
-                                : _deriveStage(plot.daysSincePruning),
-                            style:
-                                AppTypography.titleSmall(context).copyWith(
-                              color: Colors.white
-                                  .withValues(alpha: 0.88),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            plot.pruningDate != null
-                                ? 'Pruning: ${_formatDate(plot.pruningDate)}'
-                                : 'Pruning Date: —',
-                            style:
-                                AppTypography.bodySmall(context).copyWith(
-                              color: Colors.white
-                                  .withValues(alpha: 0.68),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Right: compact grape leaf illustration
-                    _GrapeLeaf(size: heroHeight * 0.52),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              // ── Row 3: View Plot Details button ───────────────
-              GestureDetector(
-                onTap: () => _openPlotDetails(context, plot),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusMd),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'View Plot Details',
-                        style:
-                            AppTypography.labelMedium(context).copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_forward_rounded,
-                          size: 13, color: AppColors.primary),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -275,7 +276,7 @@ class PlotsSection extends ConsumerWidget {
 
   void _openSelector(
       BuildContext context, PlotState state, PlotNotifier notifier) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
@@ -391,13 +392,13 @@ class PlotsSection extends ConsumerWidget {
                             children: [
                               Text(
                                 p.name,
-                                style: AppTypography.titleLarge(context).copyWith(
+                                style:
+                                    AppTypography.titleLarge(context).copyWith(
                                   color: isSel
                                       ? AppColors.primary
                                       : AppColors.onBackground,
-                                  fontWeight: isSel
-                                      ? FontWeight.w700
-                                      : FontWeight.w600,
+                                  fontWeight:
+                                      isSel ? FontWeight.w700 : FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -433,13 +434,11 @@ class PlotsSection extends ConsumerWidget {
                           height: 22,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isSel
-                                ? AppColors.primary
-                                : Colors.transparent,
+                            color:
+                                isSel ? AppColors.primary : Colors.transparent,
                             border: Border.all(
-                              color: isSel
-                                  ? AppColors.primary
-                                  : AppColors.outline,
+                              color:
+                                  isSel ? AppColors.primary : AppColors.outline,
                               width: 1.5,
                             ),
                           ),
@@ -461,7 +460,7 @@ class PlotsSection extends ConsumerWidget {
   }
 
   void _openPlotDetails(BuildContext context, PlotEntity plot) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -476,17 +475,304 @@ class PlotsSection extends ConsumerWidget {
     return 'Ripening & Canopy';
   }
 
-  String _formatDate(DateTime? dt) {
+  String _cycleName(DateTime? pruningDate) {
+    if (pruningDate == null) return 'Cycle not set';
+    if (pruningDate.month >= DateTime.april &&
+        pruningDate.month <= DateTime.september) {
+      return 'April Cycle';
+    }
+    return 'October Cycle';
+  }
+
+  String _formatDateShort(DateTime? dt) {
     if (dt == null) return '—';
-    return DateFormat('d MMM yyyy').format(dt);
+    return DateFormat('dd MMM').format(dt);
+  }
+
+  String _seasonName(DateTime? dt) {
+    if (dt == null) return 'Season not set';
+    final nextYear = ((dt.year + 1) % 100).toString().padLeft(2, '0');
+    return 'Season ${dt.year}-$nextYear';
+  }
+
+  String _displayVariety(String cropType) {
+    if (cropType.trim().isEmpty || cropType.toLowerCase() == 'grapes') {
+      return 'Thompson Seedless';
+    }
+    return cropType;
+  }
+
+  bool _shouldShowCompleteAprilCycle(PlotEntity plot) {
+    final pruningDate = plot.pruningDate;
+    if (pruningDate == null || plot.hasScheduledNextPruningDate) return false;
+    final isAprilCycle = pruningDate.month >= DateTime.april &&
+        pruningDate.month <= DateTime.september;
+    return isAprilCycle && plot.daysSincePruning >= 100;
+  }
+
+  Future<void> _pickNextCycleDate(
+    BuildContext context,
+    PlotNotifier notifier,
+    PlotEntity plot,
+  ) async {
+    final now = DateTime.now();
+    final currentPruning = plot.pruningDate ?? now;
+    final octoberDate = DateTime(currentPruning.year, DateTime.october);
+    final initialDate = octoberDate.isBefore(now) ? now : octoberDate;
+
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: DateTime(now.year + 2, DateTime.december, 31),
+      helpText: 'Next cycle pruning date',
+    );
+
+    if (selectedDate == null || !context.mounted) return;
+
+    notifier.completeAprilCycleAndScheduleNext(
+      plotId: plot.id,
+      nextPruningDate: selectedDate,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          selectedDate.isAfter(DateTime.now())
+              ? 'Next cycle scheduled for ${DateFormat('dd MMM yyyy').format(selectedDate)}'
+              : 'Next cycle started',
+        ),
+      ),
+    );
   }
 }
 
-// ── Small grape bunch illustration ───────────────────────────────────────────
-/// Compact grape bunch drawn with CustomPainter.
-/// Fixed inside the Expanded row — never overflows the hero card.
-class _GrapeLeaf extends StatelessWidget {
-  const _GrapeLeaf({required this.size});
+class _HeroActionButton extends StatelessWidget {
+  const _HeroActionButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.compact = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(
+      flex: compact ? 1 : 2,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? AppSpacing.sm : AppSpacing.smMd,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white,
+                Colors.white.withValues(alpha: 0.88),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.10),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  style: AppTypography.labelMedium(context).copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(icon, size: 13, color: AppColors.primary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CycleChip extends StatelessWidget {
+  const _CycleChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white,
+            Colors.white.withValues(alpha: 0.88),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.46)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: AppTypography.labelMedium(context).copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroStatusPill extends StatelessWidget {
+  const _HeroStatusPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.smMd,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white,
+            Colors.white.withValues(alpha: 0.88),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.52)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: AppTypography.labelSmall(context).copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w800,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class _HeroMetricBox extends StatelessWidget {
+  const _HeroMetricBox({
+    required this.label,
+    this.value,
+    this.valueWidget,
+  });
+
+  final String label;
+  final String? value;
+  final Widget? valueWidget;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.24),
+            Colors.white.withValues(alpha: 0.10),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          valueWidget ??
+              Text(
+                value ?? '—',
+                style: AppTypography.titleLarge(context).copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  height: 1.0,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: AppTypography.labelSmall(context).copyWith(
+              color: Colors.white.withValues(alpha: 0.74),
+              fontWeight: FontWeight.w700,
+              height: 1.1,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GrapePainting extends StatelessWidget {
+  const _GrapePainting({required this.size});
+
   final double size;
 
   @override
@@ -494,85 +780,84 @@ class _GrapeLeaf extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _GrapeLeafPainter()),
+      child: CustomPaint(painter: _GrapePaintingPainter()),
     );
   }
 }
 
-class _GrapeLeafPainter extends CustomPainter {
+class _GrapePaintingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
+    final r = w * 0.085;
+    final cx = w * 0.52;
+    final startY = h * 0.24;
+    final rowGap = r * 1.85;
 
     final berryFill = Paint()
-      ..color = Colors.white.withValues(alpha: 0.28)
+      ..color = Colors.white.withValues(alpha: 0.24)
       ..style = PaintingStyle.fill;
-
     final berryStroke = Paint()
-      ..color = Colors.white.withValues(alpha: 0.55)
+      ..color = Colors.white.withValues(alpha: 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
-
     final highlight = Paint()
-      ..color = Colors.white.withValues(alpha: 0.42)
+      ..color = Colors.white.withValues(alpha: 0.38)
       ..style = PaintingStyle.fill;
-
     final stemPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.55)
+      ..color = Colors.white.withValues(alpha: 0.50)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
 
-    // ── Berry radius — small so 3×3 grid fits in the box ─────
-    final r = w * 0.10;
-
-    // ── Bunch layout: 1 → 2 → 3 → 2 → 1 (triangle) ──────────
-    final cx = w * 0.50;
-    final startY = h * 0.26;   // top of first berry
-    final rowGap = r * 1.90;   // vertical step between row centres
-
     final rows = <List<Offset>>[
       [Offset(cx, startY)],
-      [Offset(cx - r * 1.10, startY + rowGap),
-       Offset(cx + r * 1.10, startY + rowGap)],
-      [Offset(cx - r * 2.20, startY + rowGap * 2),
-       Offset(cx,             startY + rowGap * 2),
-       Offset(cx + r * 2.20, startY + rowGap * 2)],
-      [Offset(cx - r * 1.10, startY + rowGap * 3),
-       Offset(cx + r * 1.10, startY + rowGap * 3)],
+      [
+        Offset(cx - r * 1.05, startY + rowGap),
+        Offset(cx + r * 1.05, startY + rowGap),
+      ],
+      [
+        Offset(cx - r * 2.1, startY + rowGap * 2),
+        Offset(cx, startY + rowGap * 2),
+        Offset(cx + r * 2.1, startY + rowGap * 2),
+      ],
+      [
+        Offset(cx - r * 1.05, startY + rowGap * 3),
+        Offset(cx + r * 1.05, startY + rowGap * 3),
+      ],
       [Offset(cx, startY + rowGap * 4)],
     ];
 
-    // Draw berries
     for (final row in rows) {
-      for (final c in row) {
-        canvas.drawCircle(c, r, berryFill);
-        canvas.drawCircle(c, r, berryStroke);
-        // Small highlight spot top-left of each berry
+      for (final center in row) {
+        canvas.drawCircle(center, r, berryFill);
+        canvas.drawCircle(center, r, berryStroke);
         canvas.drawCircle(
-          Offset(c.dx - r * 0.28, c.dy - r * 0.28),
-          r * 0.25,
+          Offset(center.dx - r * 0.28, center.dy - r * 0.28),
+          r * 0.24,
           highlight,
         );
       }
     }
 
-    // ── Stem from top berry up to top of canvas ────────────────
     final topBerry = rows.first.first;
-    final stemTop  = Offset(cx, h * 0.04);
+    final stemTop = Offset(cx, h * 0.06);
     final stemPath = Path()
       ..moveTo(topBerry.dx, topBerry.dy - r)
       ..cubicTo(
-        topBerry.dx,      topBerry.dy - r - h * 0.04,
-        stemTop.dx + w * 0.03, stemTop.dy + h * 0.04,
-        stemTop.dx,       stemTop.dy,
+        topBerry.dx,
+        topBerry.dy - r - h * 0.04,
+        stemTop.dx + w * 0.03,
+        stemTop.dy + h * 0.04,
+        stemTop.dx,
+        stemTop.dy,
       );
     canvas.drawPath(stemPath, stemPaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // ── Plot Details Bottom Sheet ─────────────────────────────────────────────────
@@ -599,8 +884,8 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
       ),
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: DraggableScrollableSheet(
           expand: false,
@@ -615,14 +900,12 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
               // Handle
               Center(
                 child: Container(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: AppSpacing.smMd),
+                  margin: const EdgeInsets.symmetric(vertical: AppSpacing.smMd),
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.outline,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusFull),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                   ),
                 ),
               ),
@@ -657,11 +940,8 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
                 children: [
                   _InfoRow(
                       label: 'Variety',
-                      value: plot.cropType.isNotEmpty
-                          ? plot.cropType
-                          : '—'),
-                  _InfoRow(
-                      label: 'Area', value: '${plot.area} hectares'),
+                      value: plot.cropType.isNotEmpty ? plot.cropType : '—'),
+                  _InfoRow(label: 'Area', value: '${plot.area} hectares'),
                   _InfoRow(label: 'Soil Type', value: '—'),
                   _InfoRow(
                     label: 'Pruning Date',
@@ -698,10 +978,9 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text('View All Schedules',
-                            style: AppTypography.labelMedium(context)
-                                .copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600)),
+                            style: AppTypography.labelMedium(context).copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(width: 4),
                         const Icon(Icons.arrow_forward_rounded,
                             size: 13, color: AppColors.primary),
@@ -734,11 +1013,7 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
           'type': 'Spray',
           'date': 'In 5 days'
         },
-        {
-          'title': 'Water Irrigation',
-          'type': 'Water',
-          'date': 'In 7 days'
-        },
+        {'title': 'Water Irrigation', 'type': 'Water', 'date': 'In 7 days'},
       ];
 }
 
@@ -827,9 +1102,7 @@ class _InfoRow extends StatelessWidget {
 
 class _SeasonDropdown extends StatelessWidget {
   const _SeasonDropdown(
-      {required this.seasons,
-      required this.selected,
-      required this.onChanged});
+      {required this.seasons, required this.selected, required this.onChanged});
   final List<String> seasons;
   final String selected;
   final ValueChanged<String> onChanged;
@@ -889,8 +1162,7 @@ class _ScheduleRow extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: c,
-              borderRadius:
-                  BorderRadius.circular(AppSpacing.radiusFull),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             ),
           ),
           const SizedBox(width: AppSpacing.smMd),
