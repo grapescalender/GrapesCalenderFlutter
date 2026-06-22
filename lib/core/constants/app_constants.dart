@@ -6,9 +6,12 @@ class AppConstants {
   // Web note: browsers enforce CORS. For local dev, run the included proxy
   // on http://localhost:3000 to forward to http://localhost:8080.
   static String get apiBaseUrl {
-    if (kIsWeb) return 'http://localhost:3000';
+    if (kIsWeb) {
+      return 'http://localhost:3000';
+    }
     return 'http://localhost:8080';
   }
+
   static const int apiTimeoutSeconds = 30;
   static const int retryAttempts = 3;
 
@@ -16,10 +19,14 @@ class AppConstants {
   static const String tokenKey = 'auth_token';
   static const String refreshTokenKey = 'refresh_token';
   static const String userKey = 'user_data';
+  static const String authMobileNumberKey = 'auth_mobile_number';
   static const String themeKey = 'app_theme';
   static const String languageKey = 'app_language';
   static const String farmerIdKey = 'farmer_id';
   static const String userIdKey = 'user_id';
+  static const String onboardingStateKey = 'farmer_onboarding_state';
+  static const String plotIdKey = 'plot_id';
+  static const String seasonIdKey = 'season_id';
 
   // App Configuration
   static const String appName = 'Drakshsetu';
@@ -64,5 +71,6 @@ class ActivityConstants {
         dipping,
       ];
 
-  static int getSequenceOrder(String activity) => getActivitySequence().indexOf(activity);
+  static int getSequenceOrder(String activity) =>
+      getActivitySequence().indexOf(activity);
 }

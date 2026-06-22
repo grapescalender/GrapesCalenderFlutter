@@ -5,17 +5,20 @@ import '../../core/constants/app_constants.dart';
 import '../../core/localization/localization_service.dart';
 import '../../core/services/mock_data_service.dart' as mock;
 import '../../features/schedule/domain/entities/schedule_entity.dart';
+import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../router/app_router.dart';
 
 /// Localization Service Provider
-final localizationServiceProvider = FutureProvider<LocalizationService>((ref) async {
+final localizationServiceProvider =
+    FutureProvider<LocalizationService>((ref) async {
   final service = LocalizationService();
   await service.init();
   return service;
 });
 
 /// Theme Mode Provider (Light/Dark)
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, bool>((ref) => ThemeModeNotifier());
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, bool>(
+    (ref) => ThemeModeNotifier());
 
 class ThemeModeNotifier extends StateNotifier<bool> {
   ThemeModeNotifier() : super(false) {
@@ -44,7 +47,8 @@ class ThemeModeNotifier extends StateNotifier<bool> {
 }
 
 /// Language Provider
-final languageProvider = StateNotifierProvider<LanguageNotifier, String>((ref) => LanguageNotifier());
+final languageProvider = StateNotifierProvider<LanguageNotifier, String>(
+    (ref) => LanguageNotifier());
 
 class LanguageNotifier extends StateNotifier<String> {
   LanguageNotifier() : super('en') {
@@ -73,13 +77,16 @@ class LanguageNotifier extends StateNotifier<String> {
 }
 
 /// GoRouter Provider
-final goRouterProvider = Provider<GoRouter>((ref) => appRouter);
+final goRouterProvider = FutureProvider<GoRouter>((ref) async {
+  final authService = await ref.watch(authServiceProvider.future);
+  return createAppRouter(authService);
+});
 
 /// Authentication Token Provider
 final authTokenProvider = FutureProvider<String?>((ref) async {
   try {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(AppConstants.tokenKey);
+    final localDataSource = await ref.watch(authLocalDataSourceProvider.future);
+    return localDataSource.getToken();
   } catch (e) {
     return null;
   }
@@ -89,7 +96,8 @@ final authTokenProvider = FutureProvider<String?>((ref) async {
 // Note: These are legacy providers. New features should use feature-specific providers.
 
 /// All plots provider (using mock data model)
-final allPlotsProvider = StateProvider<List<mock.PlotModel>>((ref) => mock.MockData.mockPlots);
+final allPlotsProvider =
+    StateProvider<List<mock.PlotModel>>((ref) => mock.MockData.mockPlots);
 
 /// Selected plot provider
 final selectedPlotProvider = StateProvider<mock.PlotModel?>((ref) {
@@ -105,8 +113,8 @@ final scheduleTypeFilterProvider = StateProvider<ScheduleType?>((ref) {
 /// Current User ID Provider
 final currentUserIdProvider = FutureProvider<String?>((ref) async {
   try {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(AppConstants.farmerIdKey);
+    final localDataSource = await ref.watch(authLocalDataSourceProvider.future);
+    return localDataSource.getFarmerId();
   } catch (e) {
     return null;
   }

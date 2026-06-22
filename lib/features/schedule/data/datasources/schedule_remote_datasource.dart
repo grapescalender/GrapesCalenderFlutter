@@ -1,4 +1,3 @@
-import '../../../../core/error/exceptions.dart';
 import '../models/schedule_model.dart';
 
 /// Remote data source for schedules
@@ -16,6 +15,8 @@ abstract class ScheduleRemoteDataSource {
 
 /// Implementation of ScheduleRemoteDataSource
 class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
+  static final Map<String, List<ScheduleModel>> _createdSchedulesByPlot = {};
+
   @override
   Future<List<ScheduleModel>> getSchedules({
     required String plotId,
@@ -24,7 +25,17 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }) async {
     // TODO: Implement actual API call
     // Mock implementation for development
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    if (_isFirstTimeMockPlot(plotId)) {
+      return _filterAndLimit(
+        schedules: List<ScheduleModel>.from(
+          _createdSchedulesByPlot[plotId] ?? const [],
+        ),
+        type: type,
+        limit: limit,
+      );
+    }
 
     final now = DateTime.now();
     final mockSchedules = [
@@ -37,7 +48,9 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Pesticide Spray - Round 1',
         description: 'Apply pesticide spray to control pests',
         scheduledDate: now.add(const Duration(days: 1)),
-        activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
+        activityIds: [
+          'activity_${plotId}_flooring'
+        ], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 10)),
         updatedAt: now.subtract(const Duration(days: 10)),
       ),
@@ -48,8 +61,12 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         type: 'spray',
         title: 'Pesticide Spray - Round 2',
         description: 'Second round of pesticide application',
-        scheduledDate: now.subtract(const Duration(days: 2)), // Within Flooring activity range
-        activityIds: ['activity_${plotId}_flooring', 'activity_${plotId}_formation'], // Linked to 2 activities
+        scheduledDate: now.subtract(
+            const Duration(days: 2)), // Within Flooring activity range
+        activityIds: [
+          'activity_${plotId}_flooring',
+          'activity_${plotId}_formation'
+        ], // Linked to 2 activities
         createdAt: now.subtract(const Duration(days: 8)),
         updatedAt: now.subtract(const Duration(days: 8)),
       ),
@@ -61,7 +78,9 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Fungicide Application',
         description: 'Apply fungicide to prevent diseases',
         scheduledDate: now.add(const Duration(days: 15)),
-        activityIds: ['activity_${plotId}_formation'], // Linked to Formation activity
+        activityIds: [
+          'activity_${plotId}_formation'
+        ], // Linked to Formation activity
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(days: 5)),
       ),
@@ -87,7 +106,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
       ),
-      
+
       // Nutrition Schedules (5 items)
       ScheduleModel(
         id: '6',
@@ -96,8 +115,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         type: 'nutrition',
         title: 'NPK Fertilizer Application',
         description: 'Apply NPK fertilizer for growth',
-        scheduledDate: now, // Today - within Flooring activity range (started 3 days ago, ongoing)
-        activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity (within date range)
+        scheduledDate:
+            now, // Today - within Flooring activity range (started 3 days ago, ongoing)
+        activityIds: [
+          'activity_${plotId}_flooring'
+        ], // Linked to Flooring activity (within date range)
         createdAt: now.subtract(const Duration(days: 9)),
         updatedAt: now.subtract(const Duration(days: 9)),
       ),
@@ -108,8 +130,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         type: 'nutrition',
         title: 'Organic Compost Application',
         description: 'Apply organic compost for soil health',
-        scheduledDate: now.subtract(const Duration(days: 1)), // Within Flooring activity range
-        activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
+        scheduledDate: now.subtract(
+            const Duration(days: 1)), // Within Flooring activity range
+        activityIds: [
+          'activity_${plotId}_flooring'
+        ], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 7)),
         updatedAt: now.subtract(const Duration(days: 7)),
       ),
@@ -146,7 +171,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         createdAt: now.subtract(const Duration(hours: 12)),
         updatedAt: now.subtract(const Duration(hours: 12)),
       ),
-      
+
       // Work Schedules (5 items)
       ScheduleModel(
         id: '11',
@@ -155,8 +180,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         type: 'work',
         title: 'Pruning Work',
         description: 'Prune branches for better growth',
-        scheduledDate: now.subtract(const Duration(days: 2)), // Within Flooring activity range
-        activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
+        scheduledDate: now.subtract(
+            const Duration(days: 2)), // Within Flooring activity range
+        activityIds: [
+          'activity_${plotId}_flooring'
+        ], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 6)),
         updatedAt: now.subtract(const Duration(days: 6)),
       ),
@@ -168,7 +196,9 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         title: 'Weeding Work',
         description: 'Remove weeds from the plot',
         scheduledDate: now, // Today - within Flooring activity range
-        activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
+        activityIds: [
+          'activity_${plotId}_flooring'
+        ], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(days: 5)),
       ),
@@ -179,8 +209,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         type: 'work',
         title: 'Harvesting Work',
         description: 'Harvest mature crops',
-        scheduledDate: now.subtract(const Duration(days: 3)), // Exactly on Flooring start date
-        activityIds: ['activity_${plotId}_flooring'], // Linked to Flooring activity
+        scheduledDate: now.subtract(
+            const Duration(days: 3)), // Exactly on Flooring start date
+        activityIds: [
+          'activity_${plotId}_flooring'
+        ], // Linked to Flooring activity
         createdAt: now.subtract(const Duration(days: 3)),
         updatedAt: now.subtract(const Duration(days: 3)),
       ),
@@ -206,7 +239,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         createdAt: now.subtract(const Duration(hours: 6)),
         updatedAt: now.subtract(const Duration(hours: 6)),
       ),
-      
+
       // Additional schedules for edge cases (3 more)
       ScheduleModel(
         id: '16',
@@ -243,44 +276,65 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
       ),
     ];
 
-    // Filter by type if provided
-    var filtered = mockSchedules;
-    if (type != null && type != 'all') {
-      filtered = mockSchedules.where((s) => s.type == type).toList();
-    }
-
-    // Sort by date (ascending)
-    filtered.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
-
-    // Limit if provided
-    if (limit != null && limit > 0) {
-      filtered = filtered.take(limit).toList();
-    }
-
-    return filtered;
+    return _filterAndLimit(
+      schedules: mockSchedules,
+      type: type,
+      limit: limit,
+    );
   }
 
   @override
   Future<ScheduleModel> createSchedule(ScheduleModel schedule) async {
     // TODO: Implement actual API call
-    await Future.delayed(const Duration(milliseconds: 300));
-    return schedule.copyWith(
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    final createdSchedule = schedule.copyWith(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
+
+    if (_isFirstTimeMockPlot(schedule.plotId)) {
+      final existing = _createdSchedulesByPlot[schedule.plotId] ?? [];
+      _createdSchedulesByPlot[schedule.plotId] = [
+        ...existing,
+        createdSchedule,
+      ];
+    }
+
+    return createdSchedule;
   }
 
   @override
   Future<ScheduleModel> updateSchedule(ScheduleModel schedule) async {
     // TODO: Implement actual API call
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     return schedule.copyWith(updatedAt: DateTime.now());
   }
 
   @override
   Future<void> deleteSchedule(String scheduleId) async {
     // TODO: Implement actual API call
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+  }
+
+  bool _isFirstTimeMockPlot(String plotId) => plotId == 'onboarding-first-plot';
+
+  List<ScheduleModel> _filterAndLimit({
+    required List<ScheduleModel> schedules,
+    required String? type,
+    required int? limit,
+  }) {
+    var filtered = schedules;
+    if (type != null && type != 'all') {
+      filtered = schedules.where((schedule) => schedule.type == type).toList();
+    }
+
+    filtered.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+
+    if (limit != null && limit > 0) {
+      filtered = filtered.take(limit).toList();
+    }
+
+    return filtered;
   }
 }

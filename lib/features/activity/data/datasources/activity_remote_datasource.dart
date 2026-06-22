@@ -22,12 +22,20 @@ abstract class ActivityRemoteDataSource {
 
 /// Implementation of ActivityRemoteDataSource
 class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
+  static final Map<String, List<ActivityModel>> _startedActivitiesByPlot = {};
+
   @override
   Future<List<ActivityModel>> getActivities({
     required String plotId,
   }) async {
     // TODO: Replace with actual API call
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    if (_isFirstTimeMockPlot(plotId)) {
+      return List<ActivityModel>.from(
+        _startedActivitiesByPlot[plotId] ?? const [],
+      );
+    }
 
     // Mock data - return activities for the plot
     final now = DateTime.now();
@@ -39,7 +47,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
 
     // Find which activity should be active (mock logic)
     // In real app, this would come from backend
-    var activeIndex = 1; // Flooring is active
+    const activeIndex = 1; // Flooring is active
 
     for (var i = 0; i < orderedTypes.length; i++) {
       final type = orderedTypes[i];
@@ -83,11 +91,11 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
     required ActivityType type,
   }) async {
     // TODO: Replace with actual API call
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
     final now = DateTime.now();
-    return ActivityModel(
-      id: 'activity_${plotId}_${type.value}_${now.millisecondsSinceEpoch}',
+    final activity = ActivityModel(
+      id: 'activity_${plotId}_${type.value}',
       plotId: plotId,
       plotName: 'Plot Name',
       type: type.value,
@@ -96,6 +104,16 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       createdAt: now,
       updatedAt: now,
     );
+
+    if (_isFirstTimeMockPlot(plotId)) {
+      _startedActivitiesByPlot[plotId] = _activityWindowFor(
+        plotId: plotId,
+        currentType: type,
+        now: now,
+      );
+    }
+
+    return activity;
   }
 
   @override
@@ -103,7 +121,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
     required String activityId,
   }) async {
     // TODO: Replace with actual API call
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
     // In real app, fetch existing activity and update
     final now = DateTime.now();
@@ -118,5 +136,45 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       createdAt: now.subtract(const Duration(days: 30)),
       updatedAt: now,
     );
+  }
+
+  bool _isFirstTimeMockPlot(String plotId) => plotId == 'onboarding-first-plot';
+
+  List<ActivityModel> _activityWindowFor({
+    required String plotId,
+    required ActivityType currentType,
+    required DateTime now,
+  }) {
+    final orderedTypes = ActivityType.orderedTypes;
+    final currentIndex = orderedTypes.indexOf(currentType);
+    final activities = <ActivityModel>[];
+
+    if (currentIndex > 0) {
+      final previousType = orderedTypes[currentIndex - 1];
+      activities.add(ActivityModel(
+        id: 'activity_${plotId}_${previousType.value}',
+        plotId: plotId,
+        plotName: 'Plot Name',
+        type: previousType.value,
+        status: ActivityStatus.completed.value,
+        startedAt: now.subtract(const Duration(days: 7)),
+        completedAt: now.subtract(const Duration(days: 1)),
+        createdAt: now.subtract(const Duration(days: 7)),
+        updatedAt: now,
+      ));
+    }
+
+    activities.add(ActivityModel(
+      id: 'activity_${plotId}_${currentType.value}',
+      plotId: plotId,
+      plotName: 'Plot Name',
+      type: currentType.value,
+      status: ActivityStatus.active.value,
+      startedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    ));
+
+    return activities;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/pages/farmer_registration_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/domain/services/auth_service.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/schedule/presentation/pages/related_schedule_page.dart';
@@ -42,84 +43,101 @@ class AppRoutes {
 }
 
 /// Go Router configuration
-final GoRouter appRouter = GoRouter(
-  initialLocation: RouteNames.login,
-  routes: [
-    // Authentication routes
-    GoRoute(
-      path: RouteNames.login,
-      builder: (context, state) => const LoginPage(),
-      name: 'login',
-    ),
-    GoRoute(
-      path: RouteNames.farmerRegistration,
-      builder: (context, state) => const FarmerRegistrationPage(),
-      name: 'farmerRegistration',
-    ),
+GoRouter createAppRouter(AuthService authService) {
+  return GoRouter(
+    initialLocation: RouteNames.login,
+    redirect: (context, state) async {
+      final path = state.uri.path;
+      final isPublicRoute =
+          path == RouteNames.login || path == RouteNames.farmerRegistration;
+      final loggedIn = await authService.isLoggedIn();
 
-    // Main app routes with shell navigation
-    ShellRoute(
-      builder: (context, state, child) {
-        // This will be the bottom navigation shell
-        return MainShell(child: child);
-      },
-      routes: [
-        GoRoute(
-          path: RouteNames.home,
-          builder: (context, state) => const HomePage(),
-          name: 'home',
-        ),
-        GoRoute(
-          path: RouteNames.schedule,
-          builder: (context, state) => const SchedulePage(),
-          name: 'schedule',
-        ),
-        GoRoute(
-          path: RouteNames.viewAllSchedules,
-          builder: (context, state) => const ViewAllSchedulePage(),
-          name: 'viewAllSchedules',
-        ),
-        GoRoute(
-          path: RouteNames.relatedSchedules,
-          builder: (context, state) => const RelatedSchedulePage(),
-          name: 'relatedSchedules',
-        ),
-        GoRoute(
-          path: RouteNames.viewAllActivities,
-          builder: (context, state) => const ViewAllActivitiesPage(),
-          name: 'viewAllActivities',
-        ),
-        GoRoute(
-          path: RouteNames.activity,
-          builder: (context, state) => const ActivityPage(),
-          name: 'activity',
-        ),
-        GoRoute(
-          path: RouteNames.products,
-          builder: (context, state) => const ProductKnowledgePage(),
-          name: 'products',
-        ),
-        GoRoute(
-          path: RouteNames.profile,
-          builder: (context, state) => const ProfilePage(),
-          name: 'profile',
-        ),
-      ],
-    ),
-  ],
-);
+      if (!loggedIn && !isPublicRoute) {
+        return RouteNames.login;
+      }
+
+      if (loggedIn && path == RouteNames.login) {
+        return RouteNames.home;
+      }
+
+      return null;
+    },
+    routes: [
+      // Authentication routes
+      GoRoute(
+        path: RouteNames.login,
+        builder: (context, state) => const LoginPage(),
+        name: 'login',
+      ),
+      GoRoute(
+        path: RouteNames.farmerRegistration,
+        builder: (context, state) => const FarmerRegistrationPage(),
+        name: 'farmerRegistration',
+      ),
+
+      // Main app routes with shell navigation
+      ShellRoute(
+        builder: (context, state, child) {
+          // This will be the bottom navigation shell
+          return MainShell(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: RouteNames.home,
+            builder: (context, state) => const HomePage(),
+            name: 'home',
+          ),
+          GoRoute(
+            path: RouteNames.schedule,
+            builder: (context, state) => const SchedulePage(),
+            name: 'schedule',
+          ),
+          GoRoute(
+            path: RouteNames.viewAllSchedules,
+            builder: (context, state) => const ViewAllSchedulePage(),
+            name: 'viewAllSchedules',
+          ),
+          GoRoute(
+            path: RouteNames.relatedSchedules,
+            builder: (context, state) => const RelatedSchedulePage(),
+            name: 'relatedSchedules',
+          ),
+          GoRoute(
+            path: RouteNames.viewAllActivities,
+            builder: (context, state) => const ViewAllActivitiesPage(),
+            name: 'viewAllActivities',
+          ),
+          GoRoute(
+            path: RouteNames.activity,
+            builder: (context, state) => const ActivityPage(),
+            name: 'activity',
+          ),
+          GoRoute(
+            path: RouteNames.products,
+            builder: (context, state) => const ProductKnowledgePage(),
+            name: 'products',
+          ),
+          GoRoute(
+            path: RouteNames.profile,
+            builder: (context, state) => const ProfilePage(),
+            name: 'profile',
+          ),
+        ],
+      ),
+    ],
+  );
+}
 
 /// Main shell widget with bottom navigation
 class MainShell extends StatelessWidget {
-
   const MainShell({Key? key, required this.child}) : super(key: key);
   final Widget child;
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      body: child,
-      bottomNavigationBar: _MainBottomNav(),
-    );
+        body: child,
+        bottomNavigationBar: _MainBottomNav(),
+      );
 }
 
 /// Bottom navigation bar widget
@@ -192,7 +210,7 @@ class _MainBottomNav extends StatelessWidget {
 
   void _onItemTapped(BuildContext context, int index) {
     if (!context.mounted) return;
-    
+
     final router = GoRouter.of(context);
     switch (index) {
       case 0:

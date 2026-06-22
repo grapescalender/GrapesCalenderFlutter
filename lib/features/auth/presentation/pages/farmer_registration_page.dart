@@ -5,9 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/router/app_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../core/error/failures.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/responsive_wrapper.dart';
+import '../../data/models/farmer_profile_model.dart';
+import '../../data/models/plot_registration_model.dart';
+import '../../data/models/season_setup_model.dart';
+import '../../domain/entities/farmer_onboarding_state.dart';
 import '../providers/auth_providers.dart';
 
 class FarmerRegistrationPage extends ConsumerStatefulWidget {
@@ -47,9 +52,23 @@ class _FarmerRegistrationPageState
   bool _otpSent = false;
   bool _otpVerified = false;
   bool _skippedPlot = false;
+  bool _isLoading = false;
   String _preferredLanguage = 'Marathi';
   String _currentCycle = 'April Cycle';
   DateTime? _pruningDate;
+  int? _userId;
+  int? _farmerId;
+  int? _selectedSeasonPlotId;
+  int? _editingPlotIndex;
+  bool _plotAddedSuccess = false;
+  List<int> _startedSeasonPlotIds = [];
+  List<PlotRegistrationModel> _addedPlots = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveSavedOnboardingState();
+  }
 
   @override
   void dispose() {
@@ -200,6 +219,7 @@ class _FarmerRegistrationPageState
               icon: _otpSent ? Icons.verified_outlined : Icons.send_rounded,
               isFullWidth: true,
               size: AppButtonSize.large,
+              isLoading: _isLoading,
               onPressed: _otpSent ? _verifyOtp : _sendOtp,
             ),
           ],
@@ -247,6 +267,28 @@ class _FarmerRegistrationPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              'Add your grape plots',
+              style: AppTypography.titleLarge(context).copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'You can add one or more plots now. More plots can be added later.',
+              style: AppTypography.bodySmall(context).copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (_addedPlots.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.md),
+              _buildAddedPlots(context),
+            ],
+            if (_plotAddedSuccess) ...[
+              const SizedBox(height: AppSpacing.md),
+              _buildPlotSuccessMessage(context),
+            ],
+            const SizedBox(height: AppSpacing.md),
             _textField(_plotNameController, 'Plot Name', Icons.agriculture),
             _gap(),
             _textField(
@@ -299,20 +341,51 @@ class _FarmerRegistrationPageState
               isFullWidth: true,
               onPressed: _useCurrentLocation,
             ),
+            if (_latitudeController.text.isEmpty ||
+                _longitudeController.text.isEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Location helps with market and distance-based analysis.',
+                style: AppTypography.bodySmall(context).copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             AppButton.primary(
-              label: 'Continue',
-              icon: Icons.arrow_forward_rounded,
+              label: _editingPlotIndex == null ? 'Save Plot' : 'Update Plot',
+              icon: Icons.save_outlined,
               isFullWidth: true,
               size: AppButtonSize.large,
+              isLoading: _isLoading,
               onPressed: _savePlot,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton.text(
-              label: 'Skip Add Plot',
-              isFullWidth: true,
-              onPressed: _skipPlot,
-            ),
+            if (_addedPlots.isNotEmpty && _plotAddedSuccess) ...[
+              const SizedBox(height: AppSpacing.sm),
+              AppButton.secondary(
+                label: 'Add Another Plot',
+                icon: Icons.add_rounded,
+                isFullWidth: true,
+                onPressed: _clearPlotForm,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              AppButton.primary(
+                label: 'Continue',
+                icon: Icons.arrow_forward_rounded,
+                isFullWidth: true,
+                size: AppButtonSize.large,
+                onPressed: _continueToSeasonSetup,
+              ),
+            ] else if (_addedPlots.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              AppButton.primary(
+                label: 'Continue',
+                icon: Icons.arrow_forward_rounded,
+                isFullWidth: true,
+                size: AppButtonSize.large,
+                onPressed: _continueToSeasonSetup,
+              ),
+            ],
           ],
         ),
       );
@@ -322,6 +395,33 @@ class _FarmerRegistrationPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (_startedSeasonPlotIds.isNotEmpty) ...[
+              _buildStartedSeasonPlots(context),
+              const SizedBox(height: AppSpacing.md),
+            ],
+            DropdownButtonFormField<int>(
+              initialValue: _selectedSeasonPlotId ??
+                  (_addedPlots.isNotEmpty ? _addedPlots.first.plotId : null),
+              decoration: const InputDecoration(
+                labelText: 'Select Plot for Season',
+                prefixIcon: Icon(Icons.agriculture_rounded),
+              ),
+              items: _addedPlots
+                  .where((plot) => plot.plotId != null)
+                  .map((plot) => DropdownMenuItem(
+                        value: plot.plotId,
+                        child: Text(plot.plotName ?? 'Grape Plot'),
+                      ))
+                  .toList(),
+              validator: (value) =>
+                  value == null ? 'Select a plot for season' : null,
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _selectedSeasonPlotId = value);
+                }
+              },
+            ),
+            _gap(),
             _textField(
               _seasonYearController,
               'Season Year',
@@ -364,7 +464,24 @@ class _FarmerRegistrationPageState
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            _nextButton(_saveSeason, label: 'Start Season'),
+            _nextButton(_saveSeason, label: 'Start Season for Selected Plot'),
+            if (_startedSeasonPlotIds.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              AppButton.secondary(
+                label: 'Start Season for Another Plot',
+                icon: Icons.add_rounded,
+                isFullWidth: true,
+                onPressed: _selectNextPlotWithoutSeason,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              AppButton.primary(
+                label: 'Go to Dashboard',
+                icon: Icons.dashboard_rounded,
+                isFullWidth: true,
+                size: AppButtonSize.large,
+                onPressed: _finishRegistration,
+              ),
+            ],
           ],
         ),
       );
@@ -404,6 +521,141 @@ class _FarmerRegistrationPageState
     );
   }
 
+  Widget _buildAddedPlots(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Added Plots: ${_addedPlots.length}',
+          style: AppTypography.labelLarge(context).copyWith(
+            color: cs.primary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ..._addedPlots.asMap().entries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.smMd),
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    border: Border.all(color: cs.outline),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.value.plotName ?? 'Grape Plot',
+                              style: AppTypography.labelLarge(context)
+                                  .copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              '${entry.value.variety ?? 'Variety'} • ${entry.value.area ?? 0} acres',
+                              style: AppTypography.bodySmall(context).copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Edit plot',
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _editPlot(entry.key),
+                      ),
+                      IconButton(
+                        tooltip: 'Delete plot',
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _deletePlot(entry.key),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  Widget _buildPlotSuccessMessage(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.smMd),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: cs.primary, size: 20),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              'Plot added successfully',
+              style: AppTypography.bodyMedium(context).copyWith(
+                color: cs.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStartedSeasonPlots(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final startedPlots = _addedPlots
+        .where((plot) => _startedSeasonPlotIds.contains(plot.plotId))
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.smMd),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: cs.outline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Season Started: ${startedPlots.length}',
+            style: AppTypography.labelLarge(context).copyWith(
+              color: cs.primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          ...startedPlots.map(
+            (plot) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: cs.primary, size: 18),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      plot.plotName ?? 'Grape Plot',
+                      style: AppTypography.bodyMedium(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _textField(
     TextEditingController controller,
     String label,
@@ -427,33 +679,120 @@ class _FarmerRegistrationPageState
 
   Widget _gap() => const SizedBox(height: AppSpacing.md);
 
-  Widget _nextButton(VoidCallback onPressed, {String label = 'Continue'}) =>
+  Widget _nextButton(
+    Future<void> Function() onPressed, {
+    String label = 'Continue',
+  }) =>
       AppButton.primary(
         label: label,
         icon: Icons.arrow_forward_rounded,
         isFullWidth: true,
         size: AppButtonSize.large,
-        onPressed: onPressed,
+        isLoading: _isLoading,
+        onPressed: () => onPressed(),
       );
 
-  void _sendOtp() {
-    if (_mobileFormKey.currentState?.validate() != true) {
-      return;
-    }
-    FocusScope.of(context).unfocus();
-    setState(() => _otpSent = true);
-    _showMessage('OTP sent to ${_mobileController.text}');
+  Future<void> _resolveSavedOnboardingState() async {
+    final repository =
+        await ref.read(farmerRegistrationRepositoryProvider.future);
+    final localDataSource = await ref.read(authLocalDataSourceProvider.future);
+    final result = await repository.getOnboardingState();
+
+    result.fold(
+      (failure) => _showMessage(_failureMessage(failure)),
+      (state) async {
+        _userId = int.tryParse(await localDataSource.getUserId() ?? '');
+        _farmerId = int.tryParse(await localDataSource.getFarmerId() ?? '');
+        if (_farmerId != null) {
+          final plotsResult = await repository.getPlots(farmerId: _farmerId!);
+          plotsResult.fold(
+            (_) {},
+            (plots) {
+              _addedPlots = plots;
+              _selectedSeasonPlotId =
+                  plots.isNotEmpty ? plots.first.plotId : null;
+            },
+          );
+        }
+
+        if (!mounted) {
+          return;
+        }
+        if (state == FarmerOnboardingState.completed) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              context.go(AppRoutes.home);
+            }
+          });
+          return;
+        }
+
+        setState(() {
+          _otpVerified = state != FarmerOnboardingState.mobileNotVerified;
+          _otpSent = _otpVerified;
+          _stepIndex = _stepIndexForState(state);
+        });
+      },
+    );
   }
 
-  void _verifyOtp() {
+  Future<void> _sendOtp() async {
     if (_mobileFormKey.currentState?.validate() != true) {
       return;
     }
     FocusScope.of(context).unfocus();
-    setState(() {
-      _otpVerified = true;
-      _stepIndex = 1;
-    });
+    setState(() => _isLoading = true);
+
+    final repository =
+        await ref.read(farmerRegistrationRepositoryProvider.future);
+    final result = await repository.sendOtp(
+      mobileNumber: _mobileController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isLoading = false);
+    result.fold(
+      (failure) => _showMessage(_failureMessage(failure)),
+      (response) {
+        setState(() => _otpSent = true);
+        _showMessage(response.message ?? 'OTP sent successfully');
+      },
+    );
+  }
+
+  Future<void> _verifyOtp() async {
+    if (_mobileFormKey.currentState?.validate() != true) {
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    setState(() => _isLoading = true);
+
+    final repository =
+        await ref.read(farmerRegistrationRepositoryProvider.future);
+    final result = await repository.verifyOtp(
+      mobileNumber: _mobileController.text,
+      otp: _otpController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isLoading = false);
+    result.fold(
+      (failure) => _showMessage(_failureMessage(failure)),
+      (response) {
+        _userId = response.userId;
+        final state = response.isProfileCompleted == true
+            ? FarmerOnboardingState.plotPending
+            : FarmerOnboardingState.profilePending;
+        setState(() {
+          _otpVerified = true;
+          _stepIndex = _stepIndexForState(state);
+        });
+      },
+    );
   }
 
   void _resendOtp() {
@@ -461,31 +800,193 @@ class _FarmerRegistrationPageState
     _showMessage('OTP resent');
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     if (_profileFormKey.currentState?.validate() != true) {
       return;
     }
-    setState(() => _stepIndex = 2);
+    setState(() => _isLoading = true);
+
+    final repository =
+        await ref.read(farmerRegistrationRepositoryProvider.future);
+    final result = await repository.createFarmerProfile(
+      FarmerProfileModel.request(
+        userId: _userId ?? 101,
+        farmerName: _farmerNameController.text.trim(),
+        village: _villageController.text.trim(),
+        taluka: _talukaController.text.trim(),
+        district: _districtController.text.trim(),
+        preferredLanguage: _preferredLanguage,
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isLoading = false);
+    result.fold(
+      (failure) => _showMessage(_failureMessage(failure)),
+      (response) {
+        _farmerId = response.farmerId;
+        setState(() => _stepIndex = _stepIndexForState(
+              FarmerOnboardingState.plotPending,
+            ));
+      },
+    );
   }
 
-  void _savePlot() {
+  Future<void> _savePlot() async {
     if (_plotFormKey.currentState?.validate() != true) {
       return;
     }
+    final area = double.tryParse(_areaController.text);
+    if (area == null || area <= 0) {
+      _showMessage('Area must be greater than 0');
+      return;
+    }
+    setState(() => _isLoading = true);
+
+    final repository =
+        await ref.read(farmerRegistrationRepositoryProvider.future);
+    final request = PlotRegistrationModel.request(
+      plotName: _plotNameController.text.trim(),
+      area: area,
+      variety: _varietyController.text.trim(),
+      soilType: _soilTypeController.text.trim(),
+      rootType: _rootTypeController.text.trim(),
+      plantationYear: int.tryParse(_plantationYearController.text),
+      latitude: double.tryParse(_latitudeController.text),
+      longitude: double.tryParse(_longitudeController.text),
+    );
+
+    if (_editingPlotIndex != null) {
+      final existing = _addedPlots[_editingPlotIndex!];
+      final updatedPlot = PlotRegistrationModel(
+        plotId: existing.plotId,
+        plotName: request.plotName,
+        area: request.area,
+        variety: request.variety,
+        soilType: request.soilType,
+        rootType: request.rootType,
+        plantationYear: request.plantationYear,
+        latitude: request.latitude,
+        longitude: request.longitude,
+        success: true,
+      );
+      setState(() {
+        _addedPlots = [
+          ..._addedPlots.take(_editingPlotIndex!),
+          updatedPlot,
+          ..._addedPlots.skip(_editingPlotIndex! + 1),
+        ];
+        _plotAddedSuccess = true;
+        _editingPlotIndex = null;
+        _isLoading = false;
+      });
+      _clearPlotForm(clearSuccess: false);
+      return;
+    }
+
+    final result = await repository.addPlot(
+      farmerId: _farmerId ?? 501,
+      request: request,
+    );
+
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isLoading = false);
+    result.fold(
+      (failure) => _showMessage(_failureMessage(failure)),
+      (response) {
+        setState(() {
+          _skippedPlot = false;
+          _plotAddedSuccess = true;
+          final savedPlot = PlotRegistrationModel(
+            plotId: response.plotId,
+            plotName: request.plotName,
+            area: request.area,
+            variety: request.variety,
+            soilType: request.soilType,
+            rootType: request.rootType,
+            plantationYear: request.plantationYear,
+            latitude: request.latitude,
+            longitude: request.longitude,
+            success: true,
+          );
+          _addedPlots = [..._addedPlots, savedPlot];
+          _selectedSeasonPlotId ??= response.plotId;
+        });
+        _clearPlotForm(clearSuccess: false);
+      },
+    );
+  }
+
+  Future<void> _continueToSeasonSetup() async {
+    if (_addedPlots.isEmpty) {
+      _showMessage('Add at least one plot before continuing');
+      return;
+    }
+    final repository =
+        await ref.read(farmerRegistrationRepositoryProvider.future);
+    final result = await repository.continueToSeasonSetup();
+    result.fold(
+      (failure) => _showMessage(_failureMessage(failure)),
+      (_) => setState(() {
+        _selectedSeasonPlotId ??= _addedPlots.first.plotId;
+        _stepIndex = _stepIndexForState(FarmerOnboardingState.seasonPending);
+      }),
+    );
+  }
+
+  void _clearPlotForm({bool clearSuccess = true}) {
+    _plotNameController.clear();
+    _areaController.clear();
+    _varietyController.clear();
+    _soilTypeController.clear();
+    _rootTypeController.clear();
+    _plantationYearController.clear();
+    _latitudeController.clear();
+    _longitudeController.clear();
     setState(() {
-      _skippedPlot = false;
-      _stepIndex = 3;
+      _editingPlotIndex = null;
+      if (clearSuccess) {
+        _plotAddedSuccess = false;
+      }
     });
   }
 
-  void _skipPlot() {
+  void _editPlot(int index) {
+    final plot = _addedPlots[index];
+    _plotNameController.text = plot.plotName ?? '';
+    _areaController.text = plot.area?.toString() ?? '';
+    _varietyController.text = plot.variety ?? '';
+    _soilTypeController.text = plot.soilType ?? '';
+    _rootTypeController.text = plot.rootType ?? '';
+    _plantationYearController.text = plot.plantationYear?.toString() ?? '';
+    _latitudeController.text = plot.latitude?.toString() ?? '';
+    _longitudeController.text = plot.longitude?.toString() ?? '';
     setState(() {
-      _skippedPlot = true;
-      _stepIndex = 4;
+      _editingPlotIndex = index;
+      _plotAddedSuccess = false;
     });
   }
 
-  void _saveSeason() {
+  void _deletePlot(int index) {
+    final removedPlot = _addedPlots[index];
+    setState(() {
+      _addedPlots = [
+        ..._addedPlots.take(index),
+        ..._addedPlots.skip(index + 1),
+      ];
+      if (_selectedSeasonPlotId == removedPlot.plotId) {
+        _selectedSeasonPlotId =
+            _addedPlots.isNotEmpty ? _addedPlots.first.plotId : null;
+      }
+      _plotAddedSuccess = false;
+    });
+  }
+
+  Future<void> _saveSeason() async {
     if (_seasonFormKey.currentState?.validate() != true) {
       return;
     }
@@ -493,7 +994,55 @@ class _FarmerRegistrationPageState
       _showMessage('Select pruning date');
       return;
     }
-    setState(() => _stepIndex = 4);
+    if (_selectedSeasonPlotId == null) {
+      _showMessage('Select a plot for season');
+      return;
+    }
+    setState(() => _isLoading = true);
+
+    final repository =
+        await ref.read(farmerRegistrationRepositoryProvider.future);
+    final result = await repository.startSeason(
+      plotId: _selectedSeasonPlotId!,
+      request: SeasonSetupModel.request(
+        seasonYear: _seasonYearController.text.trim(),
+        currentCycle: _cycleApiValue(_currentCycle),
+        pruningDate: _formatApiDate(_pruningDate!),
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isLoading = false);
+    result.fold(
+      (failure) => _showMessage(_failureMessage(failure)),
+      (_) {
+        setState(() {
+          if (!_startedSeasonPlotIds.contains(_selectedSeasonPlotId)) {
+            _startedSeasonPlotIds = [
+              ..._startedSeasonPlotIds,
+              _selectedSeasonPlotId!,
+            ];
+          }
+          final remainingPlots = _addedPlots
+              .where((plot) => !_startedSeasonPlotIds.contains(plot.plotId))
+              .toList();
+          if (remainingPlots.isNotEmpty) {
+            _selectedSeasonPlotId = remainingPlots.first.plotId;
+          }
+        });
+        _showMessage('Season started for selected plot');
+      },
+    );
+  }
+
+  void _selectNextPlotWithoutSeason() {
+    final nextPlot = _addedPlots.firstWhere(
+      (plot) => !_startedSeasonPlotIds.contains(plot.plotId),
+      orElse: () => _addedPlots.first,
+    );
+    setState(() => _selectedSeasonPlotId = nextPlot.plotId);
   }
 
   Future<void> _pickPruningDate(BuildContext context) async {
@@ -524,18 +1073,26 @@ class _FarmerRegistrationPageState
       taluka: _talukaController.text.trim(),
       district: _districtController.text.trim(),
       preferredLanguage: _preferredLanguage,
-      plotName: _skippedPlot ? null : _plotNameController.text.trim(),
-      area: _skippedPlot ? null : double.tryParse(_areaController.text),
-      variety: _skippedPlot ? null : _varietyController.text.trim(),
-      soilType: _skippedPlot ? null : _soilTypeController.text.trim(),
-      rootType: _skippedPlot ? null : _rootTypeController.text.trim(),
-      plantationYear:
-          _skippedPlot ? null : _plantationYearController.text.trim(),
-      latitude: _skippedPlot ? null : _latitudeController.text.trim(),
-      longitude: _skippedPlot ? null : _longitudeController.text.trim(),
+      plotName: _addedPlots.isNotEmpty ? _addedPlots.first.plotName : null,
+      area: _addedPlots.isNotEmpty ? _addedPlots.first.area : null,
+      variety: _addedPlots.isNotEmpty ? _addedPlots.first.variety : null,
+      soilType: _addedPlots.isNotEmpty ? _addedPlots.first.soilType : null,
+      rootType: _addedPlots.isNotEmpty ? _addedPlots.first.rootType : null,
+      plantationYear: _addedPlots.isNotEmpty
+          ? _addedPlots.first.plantationYear?.toString()
+          : null,
+      latitude: _addedPlots.isNotEmpty
+          ? _addedPlots.first.latitude?.toString()
+          : null,
+      longitude: _addedPlots.isNotEmpty
+          ? _addedPlots.first.longitude?.toString()
+          : null,
       seasonYear: _skippedPlot ? null : _seasonYearController.text.trim(),
       currentCycle: _skippedPlot ? null : _currentCycle,
       pruningDate: _skippedPlot ? null : _pruningDate,
+      plots: _addedPlots,
+      selectedSeasonPlotId: _selectedSeasonPlotId,
+      startedSeasonPlotIds: _startedSeasonPlotIds,
     );
 
     ref.read(authNotifierProvider.notifier).completeFarmerRegistration(
@@ -558,6 +1115,37 @@ class _FarmerRegistrationPageState
   String _formatDate(DateTime date) =>
       '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 
+  String _formatApiDate(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  String _cycleApiValue(String cycle) =>
+      cycle == 'October Cycle' ? 'OCTOBER' : 'APRIL';
+
+  int _stepIndexForState(FarmerOnboardingState state) {
+    switch (state) {
+      case FarmerOnboardingState.mobileNotVerified:
+        return 0;
+      case FarmerOnboardingState.profilePending:
+        return 1;
+      case FarmerOnboardingState.plotPending:
+        return 2;
+      case FarmerOnboardingState.seasonPending:
+        return 3;
+      case FarmerOnboardingState.completed:
+        return 4;
+    }
+  }
+
+  String _failureMessage(Failure failure) => failure.when(
+        network: (message, _) => message,
+        server: (message, _) => message,
+        cache: (message) => message,
+        authentication: (message) => message,
+        authorization: (message) => message,
+        validation: (message, _) => message,
+        unknown: (message, _) => message,
+      );
+
   List<_RegistrationStep> get _steps => const [
         _RegistrationStep(
           title: 'Mobile Number Login',
@@ -568,8 +1156,9 @@ class _FarmerRegistrationPageState
           subtitle: 'Add only the details needed to start.',
         ),
         _RegistrationStep(
-          title: 'Add First Plot',
-          subtitle: 'Create the first table grapes plot or skip for now.',
+          title: 'Add your grape plots',
+          subtitle:
+              'You can add one or more plots now. More plots can be added later.',
         ),
         _RegistrationStep(
           title: 'Start Season',
@@ -604,11 +1193,15 @@ class _StepProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final labels = currentStep == 1
+        ? const ['Mobile']
+        : const ['Profile', 'Plots', 'Season', 'Done'];
+    final activeIndex = currentStep == 1 ? 0 : (currentStep - 2).clamp(0, 3);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Step $currentStep of $totalSteps',
+          currentStep == 1 ? 'Mobile verification' : labels.join(' → '),
           style: AppTypography.labelLarge(context).copyWith(
             color: cs.primary,
             fontWeight: FontWeight.w800,
@@ -616,7 +1209,7 @@ class _StepProgress extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         LinearProgressIndicator(
-          value: currentStep / totalSteps,
+          value: currentStep == 1 ? 0.15 : (activeIndex + 1) / labels.length,
           minHeight: 8,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
         ),

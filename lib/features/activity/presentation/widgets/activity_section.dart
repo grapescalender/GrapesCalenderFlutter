@@ -78,12 +78,6 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       return const SizedBox.shrink();
     }
 
-    if (!activityState.isLoading &&
-        activityState.errorMessage == null &&
-        activityState.activities.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -101,6 +95,8 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       status = AsyncViewStatus.loading;
     } else if (state.errorMessage != null) {
       status = AsyncViewStatus.error;
+    } else if (state.activities.isEmpty) {
+      status = AsyncViewStatus.empty;
     } else {
       status = AsyncViewStatus.success;
     }
@@ -111,8 +107,9 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       errorMessage: state.errorMessage,
       inlineError: true,
       emptyIcon: Icons.timeline_outlined,
-      emptyTitle: 'No activities found',
-      emptySubtitle: 'Activities will appear once your plot cycle starts',
+      emptyTitle: 'No activities linked yet',
+      emptySubtitle:
+          'Add a schedule and connect it to the activity happening in this plot.',
       compactEmpty: true,
       loading: AppLoadingState.blocks(heights: const [80, 100]),
       builder: (context) => Padding(

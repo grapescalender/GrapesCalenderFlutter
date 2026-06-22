@@ -50,6 +50,28 @@ class PlotNotifier extends StateNotifier<PlotState> {
         onboardingData != null &&
         onboardingData.hasPlot) {
       final now = DateTime.now();
+      if (onboardingData.plots.isNotEmpty) {
+        return onboardingData.plots.map((plot) {
+          final isSeasonPlot =
+              plot.plotId == onboardingData.selectedSeasonPlotId;
+          final hasStartedSeason =
+              onboardingData.startedSeasonPlotIds.contains(plot.plotId);
+          return PlotEntity(
+            id: isSeasonPlot
+                ? 'onboarding-first-plot'
+                : 'onboarding-plot-${plot.plotId}',
+            name: plot.plotName ?? 'Grape Plot',
+            area: plot.area ?? 0,
+            location: onboardingData.village,
+            cropType: plot.variety ?? 'Table Grapes',
+            pruningDate: hasStartedSeason ? onboardingData.pruningDate : null,
+            isRunning: hasStartedSeason,
+            createdAt: now,
+            updatedAt: now,
+          );
+        }).toList();
+      }
+
       return [
         PlotEntity(
           id: 'onboarding-first-plot',

@@ -4,17 +4,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/localization/app_localizations.dart';
-import 'core/di/injection_container.dart';
-import 'core/design_system/theme/app_theme.dart';
 import 'core/design_system/theme/app_theme_provider.dart';
-import 'config/router/app_router.dart';
+import 'config/providers/app_providers.dart' show goRouterProvider;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize any required services here
   // e.g., Isar database, Firebase, etc.
-  
+
   runApp(
     const ProviderScope(
       child: MyApp(),
@@ -31,29 +29,52 @@ class MyApp extends ConsumerWidget {
     final themeData = ref.watch(themeDataProvider);
     final darkThemeData = ref.watch(darkThemeDataProvider);
     final locale = ref.watch(localizationServiceProvider);
+    final router = ref.watch(goRouterProvider);
 
-    return MaterialApp.router(
-      title: 'Smart Farm Pruning Manager',
-      debugShowCheckedModeBanner: false,
-      themeAnimationDuration: AppConstants.normalAnimationDuration,
-      themeAnimationCurve: Curves.easeInOutCubic,
-      
-      // Theme configuration
-      theme: themeData,
-      darkTheme: darkThemeData,
-      themeMode: themeMode,
-      
-      // Localization configuration
-      locale: locale,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocales.supportedLocales,
-      
-      // Router configuration
-      routerConfig: appRouter,
+    return router.when(
+      data: (routerConfig) => MaterialApp.router(
+        title: 'Smart Farm Pruning Manager',
+        debugShowCheckedModeBanner: false,
+        themeAnimationDuration: AppConstants.normalAnimationDuration,
+        themeAnimationCurve: Curves.easeInOutCubic,
+
+        // Theme configuration
+        theme: themeData,
+        darkTheme: darkThemeData,
+        themeMode: themeMode,
+
+        // Localization configuration
+        locale: locale,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocales.supportedLocales,
+
+        // Router configuration
+        routerConfig: routerConfig,
+      ),
+      loading: () => MaterialApp(
+        title: 'Smart Farm Pruning Manager',
+        debugShowCheckedModeBanner: false,
+        theme: themeData,
+        darkTheme: darkThemeData,
+        themeMode: themeMode,
+        locale: locale,
+        supportedLocales: AppLocales.supportedLocales,
+        home: const SizedBox.shrink(),
+      ),
+      error: (_, __) => MaterialApp(
+        title: 'Smart Farm Pruning Manager',
+        debugShowCheckedModeBanner: false,
+        theme: themeData,
+        darkTheme: darkThemeData,
+        themeMode: themeMode,
+        locale: locale,
+        supportedLocales: AppLocales.supportedLocales,
+        home: const SizedBox.shrink(),
+      ),
     );
   }
 }

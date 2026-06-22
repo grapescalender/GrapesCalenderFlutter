@@ -6,22 +6,22 @@ import '../../../activity/domain/entities/activity_entity.dart';
 /// Activity Selector Widget
 /// Multi-select widget for selecting 1-2 activities
 class ActivitySelectorWidget extends StatelessWidget {
-
   const ActivitySelectorWidget({
     Key? key,
     required this.activities,
     required this.selectedActivityIds,
     required this.onSelectionChanged,
     this.errorText,
+    this.helperText,
   }) : super(key: key);
   final List<ActivityEntity> activities;
   final List<String> selectedActivityIds;
-  final Function(List<String>) onSelectionChanged;
+  final void Function(List<String>) onSelectionChanged;
   final String? errorText;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
 
     return Column(
@@ -47,7 +47,7 @@ class ActivitySelectorWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        
+
         // Activity Chips
         Wrap(
           spacing: AppSpacing.sm,
@@ -61,7 +61,8 @@ class ActivitySelectorWidget extends StatelessWidget {
               selected: isSelected,
               onSelected: canSelect
                   ? (selected) {
-                      final newSelection = List<String>.from(selectedActivityIds);
+                      final newSelection =
+                          List<String>.from(selectedActivityIds);
                       if (selected) {
                         if (!newSelection.contains(activity.id)) {
                           newSelection.add(activity.id);
@@ -75,22 +76,18 @@ class ActivitySelectorWidget extends StatelessWidget {
               selectedColor: cs.primary.withOpacity(0.10),
               checkmarkColor: cs.primary,
               labelStyle: AppTypography.bodySmall(context).copyWith(
-                color: isSelected
-                    ? cs.primary
-                    : cs.onSurface,
+                color: isSelected ? cs.primary : cs.onSurface,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
               avatar: Icon(
                 activity.type.icon,
                 size: 18,
-                color: isSelected
-                    ? cs.primary
-                    : cs.onSurfaceVariant,
+                color: isSelected ? cs.primary : cs.onSurfaceVariant,
               ),
             );
           }).toList(),
         ),
-        
+
         // Error Text
         if (errorText != null) ...[
           const SizedBox(height: AppSpacing.xs),
@@ -102,11 +99,12 @@ class ActivitySelectorWidget extends StatelessWidget {
             ),
           ),
         ],
-        
+
         // Helper Text
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Select at least 1 activity. Maximum 2 activities allowed.',
+          helperText ??
+              'Select at least 1 activity. Maximum 2 activities allowed.',
           style: AppTypography.bodySmall(context).copyWith(
             color: cs.onSurfaceVariant,
             fontSize: 11,

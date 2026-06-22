@@ -8,7 +8,6 @@ import 'activity_state.dart';
 
 /// Activity notifier that manages activity state
 class ActivityNotifier extends StateNotifier<ActivityState> {
-
   ActivityNotifier({
     required this.getGetActivitiesUseCase,
     required this.getStartActivityUseCase,
@@ -45,17 +44,29 @@ class ActivityNotifier extends StateNotifier<ActivityState> {
         },
         (activities) {
           // Update plot names
-          final updatedActivities = activities.map((activity) => ActivityEntity(
-              id: activity.id,
-              plotId: activity.plotId,
-              plotName: plotName,
-              type: activity.type,
-              status: activity.status,
-              startedAt: activity.startedAt,
-              completedAt: activity.completedAt,
-              createdAt: activity.createdAt,
-              updatedAt: activity.updatedAt,
-            )).toList();
+          final updatedActivities = activities
+              .map((activity) => ActivityEntity(
+                    id: activity.id,
+                    plotId: activity.plotId,
+                    plotName: plotName,
+                    type: activity.type,
+                    status: activity.status,
+                    startedAt: activity.startedAt,
+                    completedAt: activity.completedAt,
+                    createdAt: activity.createdAt,
+                    updatedAt: activity.updatedAt,
+                  ))
+              .toList();
+
+          if (updatedActivities.isEmpty) {
+            state = state.copyWith(
+              activities: const [],
+              activeActivity: null,
+              isLoading: false,
+              errorMessage: null,
+            );
+            return;
+          }
 
           final activeActivity = updatedActivities.firstWhere(
             (activity) => activity.isActive,
@@ -173,12 +184,12 @@ class ActivityNotifier extends StateNotifier<ActivityState> {
   }
 
   String _mapFailureToMessage(Failure failure) => failure.when(
-      network: (message, _) => message,
-      server: (message, _) => message,
-      cache: (message) => message,
-      authentication: (message) => message,
-      authorization: (message) => message,
-      validation: (message, _) => message,
-      unknown: (message, _) => message,
-    );
+        network: (message, _) => message,
+        server: (message, _) => message,
+        cache: (message) => message,
+        authentication: (message) => message,
+        authorization: (message) => message,
+        validation: (message, _) => message,
+        unknown: (message, _) => message,
+      );
 }

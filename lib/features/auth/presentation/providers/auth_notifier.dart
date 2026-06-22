@@ -1,19 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/services/auth_service.dart';
 import '../../domain/usecases/login_usecase.dart';
 import 'auth_state.dart';
 
 /// Auth notifier that manages authentication state
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this.getLoginUseCase) : super(const AuthState.initial()) {
+  AuthNotifier({
+    required this.getLoginUseCase,
+    required this.getAuthService,
+  }) : super(const AuthState.initial()) {
     _checkAuthStatus();
   }
   final Future<LoginUseCase> Function() getLoginUseCase;
+  final Future<AuthService> Function() getAuthService;
 
   Future<void> _checkAuthStatus() async {
-    // TODO: Check if user is already authenticated
-    state = const AuthState.unauthenticated();
+    try {
+      final authService = await getAuthService();
+      state = await authService.restoreAuthState();
+    } on Object {
+      state = const AuthState.unauthenticated();
+    }
   }
 
   Future<void> login(String username, String password) async {
@@ -39,7 +48,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    // TODO: Implement logout with use case
+    final authService = await getAuthService();
+    await authService.logout();
     state = const AuthState.unauthenticated();
   }
 

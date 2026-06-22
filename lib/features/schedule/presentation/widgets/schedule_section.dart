@@ -130,10 +130,6 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
 
     // Store in local variable for null safety
     final plot = selectedPlot;
-    final hasScheduleContent = scheduleState.isLoading ||
-        scheduleState.errorMessage != null ||
-        scheduleState.schedules.isNotEmpty;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -146,16 +142,16 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
             plot.name,
           ),
         ),
-        if (hasScheduleContent) ...[
-          const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
+        if (scheduleState.schedules.isNotEmpty) ...[
           _buildFilterChips(
             context,
             scheduleState.selectedFilter,
             scheduleNotifier,
           ),
           const SizedBox(height: AppSpacing.md),
-          _buildScheduleListContainer(context, scheduleState, plot),
         ],
+        _buildScheduleListContainer(context, scheduleState, plot),
       ],
     );
   }
@@ -210,6 +206,8 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       status = AsyncViewStatus.loading;
     } else if (scheduleState.errorMessage != null) {
       status = AsyncViewStatus.error;
+    } else if (scheduleState.schedules.isEmpty) {
+      status = AsyncViewStatus.empty;
     } else {
       status = AsyncViewStatus.success;
     }
@@ -221,8 +219,14 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       onRetry: _loadSchedulesForSelectedPlot,
       inlineError: true,
       emptyIcon: Icons.calendar_today_outlined,
-      emptyTitle: 'No schedules found',
-      emptySubtitle: 'Add a schedule to plan your farm tasks',
+      emptyTitle: 'No schedules added yet',
+      emptySubtitle:
+          'Create your first spray, nutrition, or work reminder. You can link it with the current activity while adding it.',
+      emptyActionLabel: 'Add Schedule',
+      onEmptyAction: () => _showAddScheduleForm(
+        selectedPlot.id,
+        selectedPlot.name,
+      ),
       compactEmpty: true,
       loading: const AppLoadingState.listRows(itemHeight: 56),
       builder: (context) =>

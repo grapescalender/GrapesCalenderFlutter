@@ -10,7 +10,6 @@ import '../mappers/user_mapper.dart';
 
 /// Implementation of AuthRepository
 class AuthRepositoryImpl implements AuthRepository {
-
   AuthRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
@@ -38,9 +37,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Cache user locally
       await localDataSource.cacheUser(userModel);
+      // Persist the session marker used by startup guards and API requests.
+      await localDataSource.saveToken('mock_access_token_${userModel.id}');
+      await localDataSource.saveAuthMobileNumber(userModel.phoneNumber);
       // Store ids securely (used across features)
       await localDataSource.saveUserId(userModel.id);
-      await localDataSource.saveFarmerId('1'); // TODO: Replace with backend farmer id
+      await localDataSource
+          .saveFarmerId('1'); // TODO: Replace with backend farmer id
 
       // Convert model to entity
       final userEntity = UserMapper.toEntity(userModel);
@@ -70,9 +73,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, void>> logout() async {
     try {
       await remoteDataSource.logout();
-      await localDataSource.clearCache();
-      await localDataSource.clearToken();
-      await localDataSource.clearIds();
+      await localDataSource.clearSession();
       return const Right(null);
     } catch (e) {
       return Left(Failure.unknown(
@@ -112,7 +113,13 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, bool>> isAuthenticated() async {
     try {
       final token = await localDataSource.getToken();
-      return Right(token != null && token.isNotEmpty);
+      final cachedUser = await localDataSource.getCachedUser();
+      final userId = await localDataSource.getUserId();
+      return Right(
+        token != null &&
+            token.isNotEmpty &&
+            (cachedUser != null || (userId != null && userId.isNotEmpty)),
+      );
     } catch (e) {
       return Left(Failure.unknown(
         message: 'Failed to check authentication: ${e.toString()}',

@@ -2,8 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../data/datasources/auth_local_datasource.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
+import '../../data/datasources/mock_farmer_registration_api_service.dart';
+import '../../data/models/plot_registration_model.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/farmer_registration_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/repositories/farmer_registration_repository.dart';
+import '../../domain/services/auth_service.dart';
 import '../../domain/usecases/login_usecase.dart';
 import 'auth_notifier.dart';
 import 'auth_state.dart';
@@ -28,6 +33,9 @@ class FarmerOnboardingData {
     this.seasonYear,
     this.currentCycle,
     this.pruningDate,
+    this.plots = const [],
+    this.selectedSeasonPlotId,
+    this.startedSeasonPlotIds = const [],
   });
 
   final String mobileNumber;
@@ -47,12 +55,22 @@ class FarmerOnboardingData {
   final String? seasonYear;
   final String? currentCycle;
   final DateTime? pruningDate;
+  final List<PlotRegistrationModel> plots;
+  final int? selectedSeasonPlotId;
+  final List<int> startedSeasonPlotIds;
 
-  bool get hasPlot => plotName != null && plotName!.trim().isNotEmpty;
+  bool get hasPlot =>
+      plots.isNotEmpty || (plotName != null && plotName!.trim().isNotEmpty);
 }
 
 final farmerOnboardingDataProvider =
     StateProvider<FarmerOnboardingData?>((ref) => null);
+
+/// Mock farmer registration API service provider
+final mockFarmerRegistrationApiServiceProvider =
+    Provider<MockFarmerRegistrationApiService>(
+  (ref) => MockFarmerRegistrationApiService(),
+);
 
 /// Auth remote data source provider
 final authRemoteDataSourceProvider =
@@ -69,6 +87,12 @@ final authLocalDataSourceProvider =
   );
 });
 
+/// Centralized auth service for session checks and logout cleanup.
+final authServiceProvider = FutureProvider<AuthService>((ref) async {
+  final localDataSource = await ref.watch(authLocalDataSourceProvider.future);
+  return AuthService(localDataSource: localDataSource);
+});
+
 /// Auth repository provider
 final authRepositoryProvider = FutureProvider<AuthRepository>((ref) async {
   final remoteDataSource = ref.watch(authRemoteDataSourceProvider);
@@ -82,6 +106,18 @@ final authRepositoryProvider = FutureProvider<AuthRepository>((ref) async {
   );
 });
 
+/// Farmer registration repository provider
+final farmerRegistrationRepositoryProvider =
+    FutureProvider<FarmerRegistrationRepository>((ref) async {
+  final apiService = ref.watch(mockFarmerRegistrationApiServiceProvider);
+  final localDataSource = await ref.watch(authLocalDataSourceProvider.future);
+
+  return FarmerRegistrationRepositoryImpl(
+    apiService: apiService,
+    localDataSource: localDataSource,
+  );
+});
+
 /// Login use case provider
 final loginUseCaseProvider = FutureProvider<LoginUseCase>((ref) async {
   final repository = await ref.watch(authRepositoryProvider.future);
@@ -90,4 +126,8 @@ final loginUseCaseProvider = FutureProvider<LoginUseCase>((ref) async {
 
 /// Auth state notifier provider
 final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>(
-    (ref) => AuthNotifier(() => ref.watch(loginUseCaseProvider.future)));
+  (ref) => AuthNotifier(
+    getLoginUseCase: () => ref.watch(loginUseCaseProvider.future),
+    getAuthService: () => ref.watch(authServiceProvider.future),
+  ),
+);

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../config/router/app_router.dart';
+import '../../../../config/providers/app_providers.dart'
+    show authTokenProvider, currentUserIdProvider, selectedPlotProvider;
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_theme_provider.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../home/presentation/providers/plot_notifier.dart';
 
 /// Profile Page — premium redesign
 /// All existing actions preserved. Dark mode toggle wired to themeModeProvider.
@@ -30,11 +33,8 @@ class ProfilePage extends ConsumerWidget {
             // ── Farm Info Card ────────────────────────────────────────
             const SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    AppSpacing.smMd,
-                    AppSpacing.screenHorizontal,
-                    0),
+                padding: EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+                    AppSpacing.smMd, AppSpacing.screenHorizontal, 0),
                 child: _FarmInfoCard(),
               ),
             ),
@@ -98,14 +98,12 @@ class ProfilePage extends ConsumerWidget {
                       label: 'Dark Mode',
                       trailing: Switch(
                         value: isDark,
-                        onChanged: (_) => ref
-                            .read(themeModeProvider.notifier)
-                            .toggleTheme(),
+                        onChanged: (_) =>
+                            ref.read(themeModeProvider.notifier).toggleTheme(),
                         activeColor: AppColors.primary,
                       ),
-                      onTap: () => ref
-                          .read(themeModeProvider.notifier)
-                          .toggleTheme(),
+                      onTap: () =>
+                          ref.read(themeModeProvider.notifier).toggleTheme(),
                     ),
                     _SettingItem(
                       icon: Icons.notifications_outlined,
@@ -154,13 +152,30 @@ class ProfilePage extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
                     AppSpacing.md, AppSpacing.screenHorizontal, AppSpacing.xl),
                 child: _LogoutButton(
-                  onTap: () => context.go(AppRoutes.login),
+                  onTap: () => _handleLogout(context, ref),
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    final router = GoRouter.of(context);
+    final authService = await ref.read(authServiceProvider.future);
+
+    await authService.logout(
+      navigateToLogin: () => router.go('/login'),
+      onSessionCleared: () {
+        ref.read(farmerOnboardingDataProvider.notifier).state = null;
+        ref.read(selectedPlotProvider.notifier).state = null;
+        ref.invalidate(plotNotifierProvider);
+        ref.invalidate(authNotifierProvider);
+        ref.invalidate(authTokenProvider);
+        ref.invalidate(currentUserIdProvider);
+      },
     );
   }
 }
@@ -217,12 +232,11 @@ class _ProfileHeader extends StatelessWidget {
                         .copyWith(color: AppColors.onSurface)),
                 const SizedBox(height: AppSpacing.sm),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.successLight,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusFull),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -346,14 +360,11 @@ class _SettingsGroup extends StatelessWidget {
               InkWell(
                 onTap: item.onTap,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(
-                      i == 0 ? AppSpacing.radiusLg : 0),
-                  topRight: Radius.circular(
-                      i == 0 ? AppSpacing.radiusLg : 0),
-                  bottomLeft: Radius.circular(
-                      isLast ? AppSpacing.radiusLg : 0),
-                  bottomRight: Radius.circular(
-                      isLast ? AppSpacing.radiusLg : 0),
+                  topLeft: Radius.circular(i == 0 ? AppSpacing.radiusLg : 0),
+                  topRight: Radius.circular(i == 0 ? AppSpacing.radiusLg : 0),
+                  bottomLeft: Radius.circular(isLast ? AppSpacing.radiusLg : 0),
+                  bottomRight:
+                      Radius.circular(isLast ? AppSpacing.radiusLg : 0),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -374,10 +385,9 @@ class _SettingsGroup extends StatelessWidget {
                       const SizedBox(width: AppSpacing.smMd),
                       Expanded(
                         child: Text(item.label,
-                            style: AppTypography.bodyMedium(context)
-                                .copyWith(
-                                    color: AppColors.onBackground,
-                                    fontWeight: FontWeight.w500)),
+                            style: AppTypography.bodyMedium(context).copyWith(
+                                color: AppColors.onBackground,
+                                fontWeight: FontWeight.w500)),
                       ),
                       if (item.trailing != null)
                         item.trailing!
@@ -428,14 +438,12 @@ class _LogoutButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.errorLight,
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          border: Border.all(
-              color: AppColors.error.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.logout_rounded,
-                size: 20, color: AppColors.error),
+            const Icon(Icons.logout_rounded, size: 20, color: AppColors.error),
             const SizedBox(width: AppSpacing.sm),
             Text('Log Out',
                 style: AppTypography.bodyMedium(context).copyWith(

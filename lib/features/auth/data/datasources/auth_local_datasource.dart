@@ -1,8 +1,11 @@
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/error/exceptions.dart';
+import '../../domain/entities/farmer_onboarding_state.dart';
 import '../models/user_model.dart';
 
 /// Local data source for authentication
@@ -14,16 +17,28 @@ abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);
   Future<String?> getToken();
   Future<void> clearToken();
+  Future<void> saveRefreshToken(String token);
+  Future<String?> getRefreshToken();
+  Future<void> clearRefreshToken();
+  Future<void> saveAuthMobileNumber(String mobileNumber);
+  Future<String?> getAuthMobileNumber();
+  Future<void> clearAuthMobileNumber();
   Future<void> saveFarmerId(String farmerId);
   Future<String?> getFarmerId();
   Future<void> saveUserId(String userId);
   Future<String?> getUserId();
+  Future<void> savePlotId(String plotId);
+  Future<String?> getPlotId();
+  Future<void> saveSeasonId(String seasonId);
+  Future<String?> getSeasonId();
+  Future<void> saveOnboardingState(FarmerOnboardingState state);
+  Future<FarmerOnboardingState> getOnboardingState();
   Future<void> clearIds();
+  Future<void> clearSession();
 }
 
 /// Implementation of AuthLocalDataSource
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
-
   AuthLocalDataSourceImpl({
     required this.sharedPreferences,
     required this.secureStorage,
@@ -45,7 +60,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<UserModel?> getCachedUser() async {
     try {
       final userJson = sharedPreferences.getString(AppConstants.userKey);
-      if (userJson == null) return null;
+      if (userJson == null) {
+        return null;
+      }
       final userMap = json.decode(userJson) as Map<String, dynamic>;
       return UserModel.fromJson(userMap);
     } catch (e) {
@@ -93,6 +110,68 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   }
 
   @override
+  Future<void> saveRefreshToken(String token) async {
+    try {
+      await secureStorage.write(
+        key: AppConstants.refreshTokenKey,
+        value: token,
+      );
+    } catch (e) {
+      throw CacheException('Failed to save refresh token: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<String?> getRefreshToken() async {
+    try {
+      return await secureStorage.read(key: AppConstants.refreshTokenKey);
+    } catch (e) {
+      throw CacheException('Failed to get refresh token: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> clearRefreshToken() async {
+    try {
+      await secureStorage.delete(key: AppConstants.refreshTokenKey);
+    } catch (e) {
+      throw CacheException('Failed to clear refresh token: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> saveAuthMobileNumber(String mobileNumber) async {
+    try {
+      await secureStorage.write(
+        key: AppConstants.authMobileNumberKey,
+        value: mobileNumber,
+      );
+    } catch (e) {
+      throw CacheException(
+          'Failed to save auth mobile number: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<String?> getAuthMobileNumber() async {
+    try {
+      return await secureStorage.read(key: AppConstants.authMobileNumberKey);
+    } catch (e) {
+      throw CacheException('Failed to get auth mobile number: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> clearAuthMobileNumber() async {
+    try {
+      await secureStorage.delete(key: AppConstants.authMobileNumberKey);
+    } catch (e) {
+      throw CacheException(
+          'Failed to clear auth mobile number: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<void> saveFarmerId(String farmerId) async {
     try {
       await secureStorage.write(
@@ -135,12 +214,102 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   }
 
   @override
+  Future<void> savePlotId(String plotId) async {
+    try {
+      await secureStorage.write(
+        key: AppConstants.plotIdKey,
+        value: plotId,
+      );
+    } catch (e) {
+      throw CacheException('Failed to save plot id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<String?> getPlotId() async {
+    try {
+      return await secureStorage.read(key: AppConstants.plotIdKey);
+    } catch (e) {
+      throw CacheException('Failed to get plot id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> saveSeasonId(String seasonId) async {
+    try {
+      await secureStorage.write(
+        key: AppConstants.seasonIdKey,
+        value: seasonId,
+      );
+    } catch (e) {
+      throw CacheException('Failed to save season id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<String?> getSeasonId() async {
+    try {
+      return await secureStorage.read(key: AppConstants.seasonIdKey);
+    } catch (e) {
+      throw CacheException('Failed to get season id: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> saveOnboardingState(FarmerOnboardingState state) async {
+    try {
+      await sharedPreferences.setString(
+        AppConstants.onboardingStateKey,
+        state.storageValue,
+      );
+    } catch (e) {
+      throw CacheException('Failed to save onboarding state: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<FarmerOnboardingState> getOnboardingState() async {
+    try {
+      return FarmerOnboardingStateX.fromStorageValue(
+        sharedPreferences.getString(AppConstants.onboardingStateKey),
+      );
+    } catch (e) {
+      throw CacheException('Failed to get onboarding state: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<void> clearIds() async {
     try {
       await secureStorage.delete(key: AppConstants.farmerIdKey);
       await secureStorage.delete(key: AppConstants.userIdKey);
+      await secureStorage.delete(key: AppConstants.plotIdKey);
+      await secureStorage.delete(key: AppConstants.seasonIdKey);
+      await sharedPreferences.remove(AppConstants.onboardingStateKey);
     } catch (e) {
       throw CacheException('Failed to clear ids: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> clearSession() async {
+    try {
+      // Logout must remove only user/session persistence. Theme, language,
+      // and non-user app settings are intentionally left untouched.
+      await clearCache();
+      await clearToken();
+      await clearRefreshToken();
+      await clearAuthMobileNumber();
+      await clearIds();
+      await sharedPreferences.remove(AppConstants.tokenKey);
+      await sharedPreferences.remove(AppConstants.refreshTokenKey);
+      await sharedPreferences.remove(AppConstants.authMobileNumberKey);
+      await sharedPreferences.remove(AppConstants.farmerIdKey);
+      await sharedPreferences.remove(AppConstants.userIdKey);
+      await sharedPreferences.remove(AppConstants.plotIdKey);
+      await sharedPreferences.remove(AppConstants.seasonIdKey);
+    } catch (e) {
+      throw CacheException('Failed to clear session: ${e.toString()}');
     }
   }
 }
