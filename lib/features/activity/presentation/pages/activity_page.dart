@@ -5,6 +5,7 @@ import '../../../../config/router/app_router.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
 import '../providers/activity_providers.dart';
 import '../../domain/entities/activity_entity.dart';
@@ -30,8 +31,7 @@ class ActivityPage extends ConsumerWidget {
 
     final activities = activityState.activities;
     final completed = activities.where((a) => a.isCompleted).length;
-    final active =
-        activities.where((a) => a.isActive).firstOrNull;
+    final active = activities.where((a) => a.isActive).firstOrNull;
     final pending = activities.where((a) => a.isPending).length;
 
     return Scaffold(
@@ -48,11 +48,8 @@ class ActivityPage extends ConsumerWidget {
             // ── Summary Metrics ──────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    AppSpacing.smMd,
-                    AppSpacing.screenHorizontal,
-                    0),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+                    AppSpacing.smMd, AppSpacing.screenHorizontal, 0),
                 child: Row(
                   children: [
                     _MetricCard(
@@ -75,8 +72,8 @@ class ActivityPage extends ConsumerWidget {
                       label: 'Upcoming',
                       value: '$pending',
                       icon: Icons.schedule_rounded,
-                      iconColor: const Color(0xFFF59E0B),
-                      bg: const Color(0xFFFFF7ED),
+                      iconColor: AppColors.warning,
+                      bg: AppColors.warningLight,
                     ),
                   ],
                 ),
@@ -99,11 +96,8 @@ class ActivityPage extends ConsumerWidget {
             // ── Quick Actions ────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    AppSpacing.md,
-                    AppSpacing.screenHorizontal,
-                    0),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+                    AppSpacing.md, AppSpacing.screenHorizontal, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -118,8 +112,8 @@ class ActivityPage extends ConsumerWidget {
                             icon: Icons.timeline_rounded,
                             label: 'All Activities',
                             subtitle: 'View timeline',
-                            onTap: () => context.push(
-                                AppRoutes.viewAllActivities),
+                            onTap: () =>
+                                context.push(AppRoutes.viewAllActivities),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.smMd),
@@ -128,8 +122,8 @@ class ActivityPage extends ConsumerWidget {
                             icon: Icons.calendar_month_rounded,
                             label: 'All Schedules',
                             subtitle: 'View calendar',
-                            onTap: () => context.push(
-                                AppRoutes.viewAllSchedules),
+                            onTap: () =>
+                                context.push(AppRoutes.viewAllSchedules),
                           ),
                         ),
                       ],
@@ -186,8 +180,10 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Reports',
-                    style: AppTypography.headlineMedium(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
+                    style: AppTypography.headlineSmall(context).copyWith(
+                      color: AppColors.onBackground,
+                      fontWeight: FontWeight.w900,
+                    )),
                 if (plotName != null)
                   Row(
                     children: [
@@ -227,20 +223,8 @@ class _MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
+      child: DashboardCard(
         padding: const EdgeInsets.all(AppSpacing.smMd),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.outline),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -255,12 +239,15 @@ class _MetricCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(value,
-                style: AppTypography.headlineMedium(context)
-                    .copyWith(fontWeight: FontWeight.w800)),
+                style: AppTypography.titleLarge(context).copyWith(
+                  color: AppColors.onBackground,
+                  fontWeight: FontWeight.w900,
+                  height: 1.0,
+                )),
             Text(label,
-                style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.onSurface,
-                  fontSize: 11,
+                style: AppTypography.labelSmall(context).copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
                 )),
           ],
         ),
@@ -281,8 +268,7 @@ class _ActiveActivityCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -293,8 +279,7 @@ class _ActiveActivityCard extends StatelessWidget {
               color: AppColors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
-            child: Icon(activity.type.icon,
-                color: AppColors.primary, size: 22),
+            child: Icon(activity.type.icon, color: AppColors.primary, size: 22),
           ),
           const SizedBox(width: AppSpacing.smMd),
           Expanded(
@@ -314,34 +299,18 @@ class _ActiveActivityCard extends StatelessWidget {
                 if (activity.startedAt != null)
                   Text(
                     'Started ${_daysAgo(activity.startedAt!)}',
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelSmall(context).copyWith(
                       color: AppColors.primary,
-                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.radio_button_checked_rounded,
-                    size: 12, color: Colors.white),
-                const SizedBox(width: 4),
-                Text('Active',
-                    style: AppTypography.bodySmall(context).copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                    )),
-              ],
-            ),
+          const DashboardPill(
+            label: 'Active',
+            color: AppColors.primary,
+            icon: Icons.radio_button_checked_rounded,
           ),
         ],
       ),
@@ -374,20 +343,8 @@ class _ActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: DashboardCard(
         padding: const EdgeInsets.all(AppSpacing.cardPadding),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.outline),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -402,12 +359,14 @@ class _ActionCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(label,
-                style: AppTypography.titleSmall(context)
-                    .copyWith(fontWeight: FontWeight.w700)),
+                style: AppTypography.titleSmall(context).copyWith(
+                  color: AppColors.onBackground,
+                  fontWeight: FontWeight.w900,
+                )),
             Text(subtitle,
-                style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.onSurface,
-                  fontSize: 11,
+                style: AppTypography.labelSmall(context).copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
                 )),
           ],
         ),
@@ -427,20 +386,8 @@ class _CycleProgress extends StatelessWidget {
     final total = activities.length;
     final pct = total > 0 ? completed / total : 0.0;
 
-    return Container(
+    return DashboardCard(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: AppColors.outline),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -448,8 +395,10 @@ class _CycleProgress extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Cycle Progress',
-                  style: AppTypography.headlineSmall(context)
-                      .copyWith(fontWeight: FontWeight.w700)),
+                  style: AppTypography.headlineSmall(context).copyWith(
+                    color: AppColors.onBackground,
+                    fontWeight: FontWeight.w900,
+                  )),
               Text('$completed / $total',
                   style: AppTypography.bodySmall(context).copyWith(
                     color: AppColors.primary,
@@ -464,8 +413,8 @@ class _CycleProgress extends StatelessWidget {
               value: pct,
               minHeight: 10,
               backgroundColor: AppColors.outline,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
           const SizedBox(height: AppSpacing.smMd),

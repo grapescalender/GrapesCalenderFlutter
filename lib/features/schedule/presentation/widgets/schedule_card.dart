@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../shared/widgets/app_card.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 /// Schedule Card Widget
 /// Displays schedule information in a card format
 class ScheduleCard extends StatelessWidget {
-
   const ScheduleCard({
     Key? key,
     required this.schedule,
@@ -22,7 +21,7 @@ class ScheduleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final semantic = Theme.of(context).extension<AppSemanticColors>()!;
-    return AppCard.defaultStyle(
+    return DashboardCard(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +34,8 @@ class ScheduleCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: _getTypeColor(context, schedule.type).withOpacity(0.1),
+                  color: _getTypeColor(context, schedule.type)
+                      .withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                 ),
                 child: Icon(
@@ -52,16 +52,19 @@ class ScheduleCard extends StatelessWidget {
                   children: [
                     Text(
                       schedule.title,
-                      style: AppTypography.headlineSmall(context),
+                      style: AppTypography.titleLarge(context).copyWith(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.w900,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       schedule.type.displayName,
-                      style: AppTypography.bodySmall(context).copyWith(
+                      style: AppTypography.labelSmall(context).copyWith(
                         color: _getTypeColor(context, schedule.type),
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -69,26 +72,15 @@ class ScheduleCard extends StatelessWidget {
               ),
               // Status Badge
               if (schedule.isCompleted)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: semantic.success.withOpacity(0.14),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-                  ),
-                  child: Text(
-                    'Done',
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: semantic.success,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                DashboardPill(
+                  label: 'Done',
+                  color: semantic.success,
+                  icon: Icons.check_circle_rounded,
                 ),
             ],
           ),
-          if (schedule.description != null && schedule.description!.isNotEmpty) ...[
+          if (schedule.description != null &&
+              schedule.description!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Text(
               schedule.description!,
@@ -160,9 +152,9 @@ class ScheduleCard extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final dateOnly = DateTime(date.year, date.month, date.day);
-    
+
     final difference = dateOnly.difference(today).inDays;
-    
+
     if (difference == 0) {
       return 'Today';
     } else if (difference == 1) {

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 
 /// Schedule Context Message Widget
 /// Shows information about the date range and day count for filtered schedules
 class ScheduleContextMessage extends StatelessWidget {
-
   const ScheduleContextMessage({
     Key? key,
     this.startDate,
@@ -23,42 +24,44 @@ class ScheduleContextMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (startDate == null || endDate == null || startDay == null || endDay == null) {
+    if (startDate == null ||
+        endDate == null ||
+        startDay == null ||
+        endDay == null) {
       return const SizedBox.shrink();
     }
 
-    final cs = Theme.of(context).colorScheme;
     final isToday = _isToday(endDate!);
 
     // Build message text
     String message;
     if (activityName != null) {
-      message = 'This includes schedules linked to $activityName between Day $startDay and Day $endDay (${_formatDateRange(startDate!, endDate!, isToday)})';
+      message =
+          'This includes schedules linked to $activityName between Day $startDay and Day $endDay (${_formatDateRange(startDate!, endDate!, isToday)})';
     } else {
-      message = 'This schedule includes all activities between Day $startDay and Day $endDay (${_formatDateRange(startDate!, endDate!, isToday)})';
+      message =
+          'This schedule includes all activities between Day $startDay and Day $endDay (${_formatDateRange(startDate!, endDate!, isToday)})';
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+    return DashboardCard(
+      margin:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      ),
+      color: AppColors.background,
+      showShadow: false,
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.info_outline,
             size: 20,
-            color: cs.primary,
+            color: AppColors.primary,
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               message,
               style: AppTypography.bodySmall(context).copyWith(
-                color: cs.onSurfaceVariant,
-                fontSize: 12,
+                color: AppColors.onSurfaceVariant,
               ),
             ),
           ),

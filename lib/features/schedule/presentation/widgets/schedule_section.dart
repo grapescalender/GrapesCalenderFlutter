@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../config/router/app_router.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../../shared/widgets/app_ui.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
@@ -133,25 +134,59 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header with Add Schedule icon button
+        // Header sits outside the schedule card, matching Competition Analysis.
         ScheduleHeader(
           title: 'Schedules',
           subtitle: plot.name,
-          onAddTap: () => _showAddScheduleForm(
-            plot.id,
-            plot.name,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        ScheduleSectionContainer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFilterActionRow(
+                context,
+                scheduleState.selectedFilter,
+                scheduleNotifier,
+                onAddTap: () => _showAddScheduleForm(
+                  plot.id,
+                  plot.name,
+                ),
+                showFilters: scheduleState.schedules.isNotEmpty,
+              ),
+              const SizedBox(height: AppSpacing.smMd),
+              _buildScheduleListContainer(context, scheduleState, plot),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-        if (scheduleState.schedules.isNotEmpty) ...[
-          _buildFilterChips(
-            context,
-            scheduleState.selectedFilter,
-            scheduleNotifier,
-          ),
-          const SizedBox(height: AppSpacing.md),
-        ],
-        _buildScheduleListContainer(context, scheduleState, plot),
+      ],
+    );
+  }
+
+  Widget _buildFilterActionRow(
+    BuildContext context,
+    ScheduleType selectedFilter,
+    ScheduleNotifier notifier, {
+    required VoidCallback onAddTap,
+    required bool showFilters,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: showFilters
+              ? _buildFilterChips(
+                  context,
+                  selectedFilter,
+                  notifier,
+                )
+              : const SizedBox.shrink(),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        DashboardIconButton(
+          icon: Icons.add_rounded,
+          onTap: onAddTap,
+          tooltip: 'Add Schedule',
+        ),
       ],
     );
   }
@@ -170,12 +205,10 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     ];
 
     return SizedBox(
-      height: 36,
+      height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenHorizontal,
-        ),
+        padding: EdgeInsets.zero,
         itemCount: filters.length,
         separatorBuilder: (context, index) =>
             const SizedBox(width: AppSpacing.sm),
@@ -194,7 +227,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     );
   }
 
-  /// Schedule List Container - Wrapped in container with rounded corners
+  /// Schedule List Content
   /// Uses ListView.separated for proper list rendering with deterministic itemCount
   Widget _buildScheduleListContainer(
     BuildContext context,
@@ -239,7 +272,6 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     ScheduleState scheduleState,
     PlotEntity selectedPlot,
   ) {
-    final cs = Theme.of(context).colorScheme;
     final filteredSchedules = scheduleState.schedules;
     // If filteredSchedules.length > 5, show first 5 + "See More"
     // If filteredSchedules.length <= 5, show all + NO "See More"
@@ -255,57 +287,59 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
     final itemCount = displaySchedules.length + (shouldShowSeeMore ? 1 : 0);
 
     // Build list using ListView.separated for proper rendering
-    return ScheduleSectionContainer(
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(), // Nested scroll
-        itemCount: itemCount,
-        separatorBuilder: (context, index) {
-          // Don't show divider before "See More" row
-          if (shouldShowSeeMore && index == displaySchedules.length - 1) {
-            return const SizedBox.shrink();
-          }
-          // Divider between schedule items (indented after icon)
-          return Divider(
-            height: 1,
-            thickness: 1,
-            indent: 56, // After icon (40) + spacing (16)
-            endIndent: 0,
-            color: cs.outline.withOpacity(0.3),
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(), // Nested scroll
+      itemCount: itemCount,
+      separatorBuilder: (context, index) {
+        // Don't show divider before "See More" row
+        if (shouldShowSeeMore && index == displaySchedules.length - 1) {
+          return const SizedBox.shrink();
+        }
+        return const SizedBox(height: AppSpacing.xs);
+      },
+      itemBuilder: (context, index) {
+        // If this is the "See More" row index
+        if (shouldShowSeeMore && index == displaySchedules.length) {
+          return SeeMoreRow(
+            onTap: () {
+              if (context.mounted) {
+                context.push(AppRoutes.viewAllSchedules);
+              }
+            },
           );
-        },
-        itemBuilder: (context, index) {
-          // If this is the "See More" row index
-          if (shouldShowSeeMore && index == displaySchedules.length) {
-            return SeeMoreRow(
-              onTap: () {
-                if (context.mounted) {
-                  context.push(AppRoutes.viewAllSchedules);
-                }
-              },
-            );
-          }
+        }
 
-          // Schedule item
-          final schedule = displaySchedules[index];
-          return ScheduleListItem(
-            key: ValueKey('schedule_${schedule.id}'),
-            schedule: schedule,
+        // Schedule item
+        final schedule = displaySchedules[index];
+        return ScheduleListItem(
+          key: ValueKey('schedule_${schedule.id}'),
+          schedule: schedule,
+          pruningDate: selectedPlot.pruningDate,
+          onTap: () => _showScheduleDetail(
+            context,
+            schedule,
             pruningDate: selectedPlot.pruningDate,
-            onTap: () => _showScheduleDetail(context, schedule),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
   /// Show Schedule Detail Popup (Bottom Sheet)
-  void _showScheduleDetail(BuildContext context, ScheduleEntity schedule) {
+  void _showScheduleDetail(
+    BuildContext context,
+    ScheduleEntity schedule, {
+    DateTime? pruningDate,
+  }) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ScheduleDetailPopup(schedule: schedule),
+      builder: (context) => ScheduleDetailPopup(
+        schedule: schedule,
+        pruningDate: pruningDate,
+      ),
     );
   }
 

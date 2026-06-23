@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../domain/entities/activity_entity.dart';
 import '../../../../shared/utils/date_utils.dart' as date_utils;
 
@@ -33,17 +34,6 @@ class ActivityCard extends StatelessWidget {
         return AppColors.primary;
       case ActivityStatus.pending:
         return AppColors.onSurface;
-    }
-  }
-
-  Color _statusBg(ActivityStatus s) {
-    switch (s) {
-      case ActivityStatus.completed:
-        return AppColors.successLight;
-      case ActivityStatus.active:
-        return AppColors.primaryContainer;
-      case ActivityStatus.pending:
-        return AppColors.background;
     }
   }
 
@@ -83,15 +73,13 @@ class ActivityCard extends StatelessWidget {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           border: Border.all(
-            color: isSelected && isActive
-                ? AppColors.primary
-                : AppColors.outline,
+            color:
+                isSelected && isActive ? AppColors.primary : AppColors.outline,
             width: isSelected && isActive ? 1.5 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(
-                  alpha: isSelected && isActive ? 0.07 : 0.04),
+              color: AppColors.shadow,
               blurRadius: isSelected && isActive ? 12 : 6,
               offset: const Offset(0, 2),
             ),
@@ -103,7 +91,9 @@ class ActivityCard extends StatelessWidget {
             // ── Header strip ───────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 12),
+                horizontal: AppSpacing.smMd,
+                vertical: AppSpacing.smMd,
+              ),
               decoration: BoxDecoration(
                 color: isActive
                     ? AppColors.primaryContainer
@@ -123,8 +113,7 @@ class ActivityCard extends StatelessWidget {
                     height: 36,
                     decoration: BoxDecoration(
                       color: _statusColor(s).withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusSm),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                     ),
                     child: Icon(activity.type.icon,
                         color: _statusColor(s), size: 18),
@@ -136,54 +125,26 @@ class ActivityCard extends StatelessWidget {
                       children: [
                         Text(
                           activity.type.displayName,
-                          style: AppTypography.headlineSmall(context)
-                              .copyWith(
-                            fontWeight: FontWeight.w700,
+                          style: AppTypography.titleLarge(context).copyWith(
+                            fontWeight: FontWeight.w900,
                             color: _statusColor(s),
-                            fontSize: 15,
                           ),
                         ),
                         if (activity.plotName.isNotEmpty)
                           Text(
                             activity.plotName,
-                            style: AppTypography.bodySmall(context)
-                                .copyWith(
-                              color: AppColors.onSurface,
-                              fontSize: 11,
+                            style: AppTypography.bodySmall(context).copyWith(
+                              color: AppColors.onSurfaceVariant,
                             ),
                           ),
                       ],
                     ),
                   ),
                   // Status chip
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _statusBg(s),
-                      borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusFull),
-                      border: Border.all(
-                        color: _statusColor(s).withValues(alpha: 0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(_statusIcon(s),
-                            size: 12, color: _statusColor(s)),
-                        const SizedBox(width: 4),
-                        Text(
-                          _statusLabel(s),
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: _statusColor(s),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
+                  DashboardPill(
+                    label: _statusLabel(s),
+                    color: _statusColor(s),
+                    icon: _statusIcon(s),
                   ),
                 ],
               ),
@@ -191,7 +152,12 @@ class ActivityCard extends StatelessWidget {
 
             // ── Body ──────────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.smMd,
+                AppSpacing.smMd,
+                AppSpacing.smMd,
+                AppSpacing.smMd,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -204,10 +170,8 @@ class ActivityCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           _dateRange(),
-                          style:
-                              AppTypography.bodySmall(context).copyWith(
+                          style: AppTypography.bodySmall(context).copyWith(
                             color: AppColors.onSurface,
-                            fontSize: 12,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -219,22 +183,10 @@ class ActivityCard extends StatelessWidget {
                   // Day range pill — only when meaningful
                   if (dayCount > 0) ...[
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(
-                            AppSpacing.radiusFull),
-                      ),
-                      child: Text(
-                        'Day ${startDay + 1} – Day $dayCount',
-                        style: AppTypography.bodySmall(context).copyWith(
-                          color: AppColors.onSurface,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 11,
-                        ),
-                      ),
+                    DashboardPill(
+                      label: 'Day ${startDay + 1} – Day $dayCount',
+                      color: AppColors.primary,
+                      selected: false,
                     ),
                   ],
                 ],

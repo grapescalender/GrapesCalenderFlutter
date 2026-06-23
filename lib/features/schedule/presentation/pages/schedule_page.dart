@@ -7,9 +7,7 @@ import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
-import '../providers/schedule_notifier.dart';
 import '../providers/schedule_providers.dart';
-import '../providers/schedule_state.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../widgets/add_schedule_form.dart';
 import '../widgets/schedule_detail_popup.dart';
@@ -67,7 +65,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     final today = DateTime(now.year, now.month, now.day);
 
     final todaySchedules = allSchedules
-        .where((s) => DateTime(s.scheduledDate.year, s.scheduledDate.month,
+        .where((s) =>
+            DateTime(s.scheduledDate.year, s.scheduledDate.month,
                 s.scheduledDate.day) ==
             today)
         .toList();
@@ -98,11 +97,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
             // ── Today Summary ─────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    AppSpacing.smMd,
-                    AppSpacing.screenHorizontal,
-                    0),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+                    AppSpacing.smMd, AppSpacing.screenHorizontal, 0),
                 child: _TodaySummary(
                     schedules: todaySchedules,
                     isLoading: scheduleState.isLoading),
@@ -163,7 +159,11 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                         i == upcoming.length - 1 ? AppSpacing.xl : 0),
                     child: _UpcomingCard(
                       schedule: upcoming[i],
-                      onTap: () => _showDetail(ctx, upcoming[i]),
+                      onTap: () => _showDetail(
+                        ctx,
+                        upcoming[i],
+                        pruningDate: plot?.pruningDate,
+                      ),
                     ),
                   ),
                   childCount: upcoming.length,
@@ -182,17 +182,24 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     );
   }
 
-  void _showDetail(BuildContext context, ScheduleEntity s) {
-    showModalBottomSheet(
+  void _showDetail(
+    BuildContext context,
+    ScheduleEntity s, {
+    DateTime? pruningDate,
+  }) {
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => ScheduleDetailPopup(schedule: s),
+      builder: (_) => ScheduleDetailPopup(
+        schedule: s,
+        pruningDate: pruningDate,
+      ),
     );
   }
 
   void _showAddForm(String plotId, String plotName) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -253,8 +260,7 @@ class _CalendarHeader extends StatelessWidget {
                   horizontal: AppSpacing.smMd, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.primaryContainer,
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.radiusFull),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
               ),
               child: Row(
                 children: [
@@ -278,16 +284,9 @@ class _CalendarHeader extends StatelessWidget {
 
 // ── Today Summary ──────────────────────────────────────────────────────────────
 class _TodaySummary extends StatelessWidget {
-  const _TodaySummary(
-      {required this.schedules, required this.isLoading});
+  const _TodaySummary({required this.schedules, required this.isLoading});
   final List<ScheduleEntity> schedules;
   final bool isLoading;
-
-  Color _typeColor(BuildContext ctx, ScheduleType t) {
-    if (t == ScheduleType.spray) return AppColors.info;
-    if (t == ScheduleType.nutrition) return const Color(0xFFF59E0B);
-    return AppColors.primary;
-  }
 
   IconData _typeIcon(ScheduleType t) {
     if (t == ScheduleType.spray) return Icons.water_drop_outlined;
@@ -319,12 +318,11 @@ class _TodaySummary extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   )),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius:
-                      BorderRadius.circular(AppSpacing.radiusFull),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                 ),
                 child: Text(
                   isLoading ? '—' : '${schedules.length}',
@@ -355,20 +353,17 @@ class _TodaySummary extends StatelessWidget {
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: schedules.map((s) {
-                final tc = _typeColor(context, s.type);
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusMd),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(_typeIcon(s.type),
-                          size: 13, color: Colors.white),
+                      Icon(_typeIcon(s.type), size: 13, color: Colors.white),
                       const SizedBox(width: 5),
                       Text(
                         s.title.length > 18
@@ -399,8 +394,7 @@ class _UpcomingCard extends StatelessWidget {
 
   Color _typeColor(BuildContext ctx) {
     if (schedule.type == ScheduleType.spray) return AppColors.info;
-    if (schedule.type == ScheduleType.nutrition)
-      return const Color(0xFFF59E0B);
+    if (schedule.type == ScheduleType.nutrition) return const Color(0xFFF59E0B);
     return AppColors.primary;
   }
 
@@ -478,12 +472,10 @@ class _UpcomingCard extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 9, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.background,
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.radiusFull),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                 border: Border.all(color: AppColors.outline),
               ),
               child: Text(_relDate(),

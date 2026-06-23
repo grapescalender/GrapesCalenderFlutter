@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
 import '../../domain/entities/schedule_entity.dart';
@@ -143,7 +144,8 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Plot Name
-                      AppCard.flat(
+                      DashboardCard(
+                        showShadow: false,
                         child: Row(
                           children: [
                             Icon(
@@ -176,9 +178,10 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                       // Title
                       TextFormField(
                         controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Title',
-                          hintText: 'Enter schedule title',
+                        decoration: DashboardField.decoration(
+                          context: context,
+                          label: 'Title',
+                          hint: 'Enter schedule title',
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -207,9 +210,10 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                       // Description
                       TextFormField(
                         controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description (Optional)',
-                          hintText: 'Enter description',
+                        decoration: DashboardField.decoration(
+                          context: context,
+                          label: 'Description (Optional)',
+                          hint: 'Enter description',
                         ),
                         maxLines: 3,
                       ),
@@ -279,33 +283,27 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     Color color,
   ) {
     final isSelected = _selectedType == type;
-    final cs = Theme.of(context).colorScheme;
-
     return GestureDetector(
       onTap: () => setState(() => _selectedType = type),
-      child: Container(
+      child: DashboardCard(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? color.withOpacity(0.1) : cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-          border: isSelected
-              ? Border.all(color: color, width: 2)
-              : Border.all(color: cs.outline),
-        ),
+        color: isSelected ? color.withValues(alpha: 0.10) : AppColors.surface,
+        borderColor: isSelected ? color : AppColors.outline,
+        radius: AppSpacing.radiusMd,
+        showShadow: false,
         child: Column(
           children: [
             Icon(
               icon,
-              color: isSelected ? color : cs.onSurfaceVariant,
+              color: isSelected ? color : AppColors.onSurfaceVariant,
               size: 24,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               type.displayName,
-              style: AppTypography.bodySmall(context).copyWith(
-                color: isSelected ? color : cs.onSurface,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              style: AppTypography.labelSmall(context).copyWith(
+                color: isSelected ? color : AppColors.onSurface,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
               ),
             ),
           ],
@@ -318,8 +316,8 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _selectDate(context),
-      child: AppCard.flat(
-        border: Border.all(color: cs.outline),
+      child: DashboardCard(
+        showShadow: false,
         child: Row(
           children: [
             Icon(
@@ -334,14 +332,17 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                 children: [
                   Text(
                     'Date',
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelSmall(context).copyWith(
                       color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     DateFormat('MMM dd, yyyy').format(_selectedDate),
-                    style: AppTypography.bodyMedium(context),
+                    style: AppTypography.titleSmall(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -360,8 +361,8 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _selectTime(context),
-      child: AppCard.flat(
-        border: Border.all(color: cs.outline),
+      child: DashboardCard(
+        showShadow: false,
         child: Row(
           children: [
             Icon(
@@ -376,14 +377,17 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                 children: [
                   Text(
                     'Time',
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelSmall(context).copyWith(
                       color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     _selectedTime.format(context),
-                    style: AppTypography.bodyMedium(context),
+                    style: AppTypography.titleSmall(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -430,9 +434,10 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       children: [
         DropdownButtonFormField<ActivityType>(
           initialValue: _selectedCurrentActivityType,
-          decoration: const InputDecoration(
-            labelText: 'Current Activity',
-            prefixIcon: Icon(Icons.timeline_rounded),
+          decoration: DashboardField.decoration(
+            context: context,
+            label: 'Current Activity',
+            icon: Icons.timeline_rounded,
           ),
           items: ActivityType.orderedTypes
               .map(

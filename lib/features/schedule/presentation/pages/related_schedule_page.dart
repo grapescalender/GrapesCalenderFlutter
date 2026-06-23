@@ -5,12 +5,10 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../shared/widgets/app_card.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
-import '../providers/schedule_notifier.dart';
 import '../providers/schedule_providers.dart';
 import '../providers/schedule_state.dart';
 import '../utils/schedule_filter_utils.dart';
@@ -44,8 +42,8 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
 
     PlotEntity? plot;
     try {
-      plot = plotState.plots
-          .firstWhere((p) => p.id == plotState.selectedPlotId);
+      plot =
+          plotState.plots.firstWhere((p) => p.id == plotState.selectedPlotId);
     } catch (_) {
       plot = plotState.plots.first;
     }
@@ -88,8 +86,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
       endDate: endDate,
     );
     if (_selectedFilter != ScheduleType.all) {
-      filtered =
-          filtered.where((s) => s.type == _selectedFilter).toList();
+      filtered = filtered.where((s) => s.type == _selectedFilter).toList();
     }
     return filtered;
   }
@@ -100,8 +97,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
             all.where((s) => s.type == ScheduleType.spray).length,
         ScheduleType.nutrition:
             all.where((s) => s.type == ScheduleType.nutrition).length,
-        ScheduleType.work:
-            all.where((s) => s.type == ScheduleType.work).length,
+        ScheduleType.work: all.where((s) => s.type == ScheduleType.work).length,
       };
 
   @override
@@ -126,8 +122,7 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
       );
     }
 
-    final activityName =
-        activityInfo['activityName'] as String? ?? 'Activity';
+    final activityName = activityInfo['activityName'] as String? ?? 'Activity';
     final startDate = activityInfo['startDate'] as DateTime?;
     final endDate = activityInfo['endDate'] as DateTime?;
     final startDay = activityInfo['startDay'] as int?;
@@ -204,8 +199,8 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     final plotState = ref.read(plotNotifierProvider);
     PlotEntity? plot;
     try {
-      plot = plotState.plots
-          .firstWhere((p) => p.id == plotState.selectedPlotId);
+      plot =
+          plotState.plots.firstWhere((p) => p.id == plotState.selectedPlotId);
     } catch (_) {
       if (plotState.plots.isNotEmpty) plot = plotState.plots.first;
     }
@@ -213,28 +208,38 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
     return RefreshIndicator(
       onRefresh: () async {
         _loadSchedules();
-        await Future.delayed(const Duration(milliseconds: 400));
+        await Future<void>.delayed(const Duration(milliseconds: 400));
       },
       child: ListView.separated(
         padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         itemCount: schedules.length,
-        separatorBuilder: (_, __) =>
-            const SizedBox(height: AppSpacing.smMd),
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.smMd),
         itemBuilder: (ctx, i) => _ScheduleCard(
           schedule: schedules[i],
           pruningDate: plot?.pruningDate,
-          onTap: () => _showDetail(ctx, schedules[i]),
+          onTap: () => _showDetail(
+            ctx,
+            schedules[i],
+            pruningDate: plot?.pruningDate,
+          ),
         ),
       ),
     );
   }
 
-  void _showDetail(BuildContext context, ScheduleEntity schedule) {
-    showModalBottomSheet(
+  void _showDetail(
+    BuildContext context,
+    ScheduleEntity schedule, {
+    DateTime? pruningDate,
+  }) {
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => ScheduleDetailPopup(schedule: schedule),
+      builder: (_) => ScheduleDetailPopup(
+        schedule: schedule,
+        pruningDate: pruningDate,
+      ),
     );
   }
 }
@@ -261,8 +266,7 @@ class _PageAppBar extends StatelessWidget {
                 height: 36,
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius:
-                      BorderRadius.circular(AppSpacing.radiusSm),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   border: Border.all(color: AppColors.outline),
                 ),
                 child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -396,8 +400,7 @@ class _FilterTabs extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenHorizontal),
               itemCount: _filters.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(width: AppSpacing.sm),
+              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
               itemBuilder: (_, i) {
                 final f = _filters[i];
                 final count = counts[f] ?? 0;
@@ -410,11 +413,10 @@ class _FilterTabs extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.smMd, vertical: 0),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.background,
-                      borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusFull),
+                      color:
+                          isSelected ? AppColors.primary : AppColors.background,
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusFull),
                       border: isSelected
                           ? null
                           : Border.all(color: AppColors.outline),
@@ -428,9 +430,8 @@ class _FilterTabs extends StatelessWidget {
                             color: isSelected
                                 ? Colors.white
                                 : AppColors.onBackground,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w500,
                           ),
                         ),
                         if (count > 0) ...[
@@ -442,13 +443,12 @@ class _FilterTabs extends StatelessWidget {
                               color: isSelected
                                   ? Colors.white.withValues(alpha: 0.22)
                                   : AppColors.outline,
-                              borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusFull),
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusFull),
                             ),
                             child: Text(
                               '$count',
-                              style:
-                                  AppTypography.bodySmall(context).copyWith(
+                              style: AppTypography.bodySmall(context).copyWith(
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.onBackground,
@@ -531,8 +531,7 @@ class _ScheduleCard extends StatelessWidget {
           children: [
             // Header strip
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: tc.withValues(alpha: 0.07),
                 borderRadius: const BorderRadius.only(
@@ -547,8 +546,7 @@ class _ScheduleCard extends StatelessWidget {
                     height: 34,
                     decoration: BoxDecoration(
                       color: tc.withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusSm),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                     ),
                     child: Icon(_typeIcon, color: tc, size: 18),
                   ),
@@ -565,8 +563,8 @@ class _ScheduleCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: tc.withValues(alpha: 0.12),
                       borderRadius:
@@ -632,8 +630,7 @@ class _ScheduleCard extends StatelessWidget {
                               size: 11, color: AppColors.success),
                           const SizedBox(width: 3),
                           Text('Done',
-                              style: AppTypography.bodySmall(context)
-                                  .copyWith(
+                              style: AppTypography.bodySmall(context).copyWith(
                                 color: AppColors.success,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 10,

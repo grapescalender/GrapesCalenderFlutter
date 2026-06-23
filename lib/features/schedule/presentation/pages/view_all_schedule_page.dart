@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../config/router/app_router.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
@@ -63,7 +63,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
         filterType: ScheduleType.all,
         limit: null, // No limit - show all
       );
-        }
+    }
   }
 
   /// Get date filter, day range, and activity filter from route extra
@@ -86,7 +86,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
   String _getPageTitle() {
     final dateFilter = _getDateFilter();
     final activityName = dateFilter?['activityName'] as String?;
-    
+
     if (activityName != null) {
       return '$activityName - Related Schedules';
     }
@@ -95,7 +95,6 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final plotState = ref.watch(plotNotifierProvider);
     final scheduleState = ref.watch(scheduleNotifierProvider);
     final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
@@ -122,7 +121,8 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
             subtitle: selectedPlot?.name,
             icon: Icons.calendar_month_rounded,
             onAdd: selectedPlot != null
-                ? () => _showAddScheduleForm(selectedPlot!.id, selectedPlot.name)
+                ? () =>
+                    _showAddScheduleForm(selectedPlot!.id, selectedPlot.name)
                 : null,
           ),
 
@@ -144,7 +144,8 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 
                 // Filter Chips (only show if not filtering by activity)
                 if (_getDateFilter()?['activityId'] == null) ...[
-                  _buildFilterChips(context, scheduleState.selectedFilter, scheduleNotifier),
+                  _buildFilterChips(
+                      context, scheduleState.selectedFilter, scheduleNotifier),
                   const SizedBox(height: AppSpacing.sm),
                 ],
 
@@ -186,9 +187,11 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
         itemCount: filters.length,
-        separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
+        separatorBuilder: (context, index) =>
+            const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
           final filter = filters[index];
           return ScheduleFilterChip(
@@ -286,7 +289,9 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       } else {
         // Fallback: Apply filters separately if not all parameters are available
         if (activityId != null) {
-          filteredSchedules = filteredSchedules.where((schedule) => schedule.activityIds.contains(activityId)).toList();
+          filteredSchedules = filteredSchedules
+              .where((schedule) => schedule.activityIds.contains(activityId))
+              .toList();
         }
 
         if (startDate != null || endDate != null) {
@@ -303,7 +308,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
               schedule.scheduledDate.month,
               schedule.scheduledDate.day,
             );
-            
+
             // Include schedules between startDate and endDate (inclusive)
             if (startDateOnly != null) {
               if (scheduleDateOnly.compareTo(startDateOnly) < 0) {
@@ -325,7 +330,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       // Check if we're filtering by activity
       final dateFilter = _getDateFilter();
       final activityName = dateFilter?['activityName'] as String?;
-      
+
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         child: Center(
@@ -366,7 +371,8 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
     // Group schedules by date (Groww-style list sections)
     final groups = <DateTime, List<ScheduleEntity>>{};
     for (final s in filteredSchedules) {
-      final d = DateTime(s.scheduledDate.year, s.scheduledDate.month, s.scheduledDate.day);
+      final d = DateTime(
+          s.scheduledDate.year, s.scheduledDate.month, s.scheduledDate.day);
       (groups[d] ??= <ScheduleEntity>[]).add(s);
     }
     final dates = groups.keys.toList()..sort();
@@ -404,7 +410,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
             thickness: 1,
             indent: AppSpacing.screenHorizontal + 4,
             endIndent: AppSpacing.screenHorizontal,
-            color: cs.outline.withOpacity(0.7),
+            color: cs.outline.withValues(alpha: 0.7),
           );
         },
         itemBuilder: (context, index) {
@@ -417,7 +423,11 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
             key: ValueKey('schedule_${schedule.id}'),
             schedule: schedule,
             pruningDate: selectedPlot?.pruningDate,
-            onTap: () => _showScheduleDetail(context, schedule),
+            onTap: () => _showScheduleDetail(
+              context,
+              schedule,
+              pruningDate: selectedPlot?.pruningDate,
+            ),
           );
         },
       ),
@@ -425,18 +435,25 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
   }
 
   /// Show Schedule Detail Popup
-  void _showScheduleDetail(BuildContext context, ScheduleEntity schedule) {
-    showModalBottomSheet(
+  void _showScheduleDetail(
+    BuildContext context,
+    ScheduleEntity schedule, {
+    DateTime? pruningDate,
+  }) {
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ScheduleDetailPopup(schedule: schedule),
+      builder: (context) => ScheduleDetailPopup(
+        schedule: schedule,
+        pruningDate: pruningDate,
+      ),
     );
   }
 
   /// Show Add Schedule Form
   void _showAddScheduleForm(String plotId, String plotName) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -449,7 +466,6 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
 }
 
 class _DateHeader extends StatelessWidget {
-
   const _DateHeader({required this.date});
   final DateTime date;
 
@@ -543,8 +559,10 @@ class _ModernAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: AppTypography.headlineSmall(context)
-                          .copyWith(fontWeight: FontWeight.w700)),
+                      style: AppTypography.headlineSmall(context).copyWith(
+                        color: AppColors.onBackground,
+                        fontWeight: FontWeight.w900,
+                      )),
                   if (subtitle != null)
                     Row(
                       children: [
@@ -553,26 +571,17 @@ class _ModernAppBar extends StatelessWidget {
                         const SizedBox(width: 3),
                         Text(subtitle!,
                             style: AppTypography.bodySmall(context)
-                                .copyWith(color: AppColors.onSurface)),
+                                .copyWith(color: AppColors.onSurfaceVariant)),
                       ],
                     ),
                 ],
               ),
             ),
             if (onAdd != null)
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                ),
-                child: IconButton(
-                  onPressed: onAdd,
-                  icon: const Icon(Icons.add_rounded,
-                      color: AppColors.primary, size: 20),
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  constraints: const BoxConstraints(
-                      minWidth: 36, minHeight: 36),
-                ),
+              DashboardIconButton(
+                icon: Icons.add_rounded,
+                onTap: onAdd!,
+                tooltip: 'Add Schedule',
               ),
           ],
         ),

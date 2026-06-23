@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/router/app_router.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
-import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../../../shared/widgets/app_ui.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
 import '../../../home/presentation/providers/plot_state.dart';
@@ -197,46 +196,10 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Icon badge
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            child: const Icon(Icons.timeline_rounded,
-                color: AppColors.primary, size: 20),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Activities',
-                    style: AppTypography.headlineSmall(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
-                Row(
-                  children: [
-                    const Icon(Icons.agriculture_rounded,
-                        size: 12, color: AppColors.onSurface),
-                    const SizedBox(width: 3),
-                    Text(plotName,
-                        style: AppTypography.bodySmall(context)
-                            .copyWith(color: AppColors.onSurface)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return DashboardSectionHeader(
+      icon: Icons.timeline_rounded,
+      title: 'Activities',
+      subtitle: plotName,
     );
   }
 }

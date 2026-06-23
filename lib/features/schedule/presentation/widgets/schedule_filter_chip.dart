@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../domain/entities/schedule_entity.dart';
@@ -6,7 +7,6 @@ import '../../domain/entities/schedule_entity.dart';
 /// Schedule Filter Chip Widget
 /// Displays filter options (Spray, Nutrition, Work, All)
 class ScheduleFilterChip extends StatelessWidget {
-
   const ScheduleFilterChip({
     Key? key,
     required this.filterType,
@@ -19,37 +19,42 @@ class ScheduleFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
+    final shadowColor = isSelected
+        ? AppColors.primary.withValues(alpha: 0.22)
+        : AppColors.shadow;
+
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, // make chips slightly narrower
-          vertical: 6, // reduced vertical padding for smaller height
-        ),
+        duration: const Duration(milliseconds: 180),
+        height: 38,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd),
         decoration: BoxDecoration(
-          color: isSelected
-              ? cs.primary
-              : cs.surfaceContainerHighest,
+          color: isSelected ? AppColors.primary : AppColors.background,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: isSelected
-              ? null
-              : Border.all(
-                  color: cs.outline,
-                ),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : AppColors.primary.withValues(alpha: 0.22),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: shadowColor,
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Text(
           filterType.displayName,
-          style: AppTypography.bodyMedium(context).copyWith(
-            color: isSelected
-                ? cs.onPrimary
-                : cs.onSurface,
-            fontWeight: isSelected
-                ? FontWeight.w600
-                : FontWeight.w500,
+          style: AppTypography.labelSmall(context).copyWith(
+            color: isSelected ? Colors.white : AppColors.onBackground,
+            fontWeight: FontWeight.w800,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );

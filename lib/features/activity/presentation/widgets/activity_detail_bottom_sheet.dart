@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../config/router/app_router.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../domain/entities/activity_entity.dart';
 
 /// Premium Activity Detail Bottom Sheet
@@ -53,8 +52,6 @@ class ActivityDetailBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     // Day calculations
     final startDay = activity.startedAt != null && pruningDate != null
         ? activity_date_utils.ActivityDateUtils.calculateDay(
@@ -76,8 +73,8 @@ class ActivityDetailBottomSheet extends StatelessWidget {
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
       ),
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -105,7 +102,9 @@ class ActivityDetailBottomSheet extends StatelessWidget {
             // ── Metrics strip ────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screenHorizontal, vertical: 12),
+                horizontal: AppSpacing.screenHorizontal,
+                vertical: AppSpacing.smMd,
+              ),
               child: Row(
                 children: [
                   if (duration > 0)
@@ -142,11 +141,8 @@ class ActivityDetailBottomSheet extends StatelessWidget {
             // ── Details list ─────────────────────────────────────────────
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    AppSpacing.md,
-                    AppSpacing.screenHorizontal,
-                    AppSpacing.md),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+                    AppSpacing.md, AppSpacing.screenHorizontal, AppSpacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -233,8 +229,11 @@ class _Header extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenHorizontal, 12,
-          AppSpacing.xs, 12),
+        AppSpacing.screenHorizontal,
+        AppSpacing.smMd,
+        AppSpacing.xs,
+        AppSpacing.smMd,
+      ),
       decoration: BoxDecoration(
         color: accentBg,
         borderRadius: const BorderRadius.only(
@@ -263,37 +262,16 @@ class _Header extends StatelessWidget {
               children: [
                 Text(
                   activity.type.displayName,
-                  style: AppTypography.headlineMedium(context).copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: AppTypography.headlineSmall(context).copyWith(
+                    fontWeight: FontWeight.w900,
                     color: accentColor,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 9, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusFull),
-                    border: Border.all(
-                        color: accentColor.withValues(alpha: 0.2), width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(statusIcon, size: 12, color: accentColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        statusLabel,
-                        style: AppTypography.bodySmall(context).copyWith(
-                          color: accentColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
+                DashboardPill(
+                  label: statusLabel,
+                  color: accentColor,
+                  icon: statusIcon,
                 ),
               ],
             ),
@@ -331,13 +309,13 @@ class _MetricTile extends StatelessWidget {
     final bg = highlight ? AppColors.primaryContainer : AppColors.background;
 
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.outline),
+      child: DashboardCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.smMd,
+          vertical: AppSpacing.sm,
         ),
+        color: bg,
+        showShadow: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -345,17 +323,17 @@ class _MetricTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               value,
-              style: AppTypography.headlineSmall(context).copyWith(
-                fontWeight: FontWeight.w800,
+              style: AppTypography.titleLarge(context).copyWith(
+                fontWeight: FontWeight.w900,
                 color: color,
-                fontSize: 15,
+                height: 1.0,
               ),
             ),
             Text(
               label,
-              style: AppTypography.bodySmall(context).copyWith(
-                color: AppColors.onSurface,
-                fontSize: 10,
+              style: AppTypography.labelSmall(context).copyWith(
+                color: AppColors.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -383,8 +361,7 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        highlight ? AppColors.primary : AppColors.onBackground;
+    final color = highlight ? AppColors.primary : AppColors.onBackground;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,9 +382,9 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppTypography.bodySmall(context).copyWith(
-                  color: AppColors.onSurface,
-                  fontSize: 11,
+                style: AppTypography.labelSmall(context).copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 2),
@@ -417,27 +394,14 @@ class _DetailRow extends StatelessWidget {
                     value,
                     style: AppTypography.titleSmall(context).copyWith(
                       color: color,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   if (sub != null) ...[
                     const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(
-                            AppSpacing.radiusFull),
-                      ),
-                      child: Text(
-                        sub!,
-                        style: AppTypography.bodySmall(context).copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
-                        ),
-                      ),
+                    DashboardPill(
+                      label: sub!,
+                      color: AppColors.primary,
                     ),
                   ],
                 ],

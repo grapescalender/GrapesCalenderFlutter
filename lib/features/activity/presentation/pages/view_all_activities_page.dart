@@ -8,10 +8,8 @@ import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
-import '../../../schedule/presentation/providers/schedule_notifier.dart';
 import '../../../schedule/presentation/providers/schedule_providers.dart';
 import '../../domain/entities/activity_entity.dart';
-import '../providers/activity_notifier.dart';
 import '../providers/activity_providers.dart';
 import '../providers/activity_state.dart';
 import '../widgets/activity_detail_bottom_sheet.dart';
@@ -57,12 +55,11 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
         plotId: plotState.selectedPlotId!,
         plotName: selectedPlot.name,
       );
-        }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final plotState = ref.watch(plotNotifierProvider);
     final activityState = ref.watch(activityNotifierProvider);
 
@@ -104,7 +101,6 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
     ActivityState activityState,
     PlotEntity? selectedPlot,
   ) {
-    final cs = Theme.of(context).colorScheme;
     if (activityState.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -130,7 +126,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
     // Sort activities by type order
     final orderedTypes = ActivityType.orderedTypes;
     final sortedActivities = <ActivityEntity>[];
-    
+
     for (final type in orderedTypes) {
       try {
         final activity = activityState.activities.firstWhere(
@@ -171,7 +167,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
       }
     }
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -197,7 +193,7 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
   ) {
     final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
     final plotState = ref.read(plotNotifierProvider);
-    
+
     PlotEntity? selectedPlot;
     try {
       selectedPlot = plotState.plots.firstWhere(
@@ -214,12 +210,14 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
     // Calculate day counts
     final startDate = activity.startedAt;
     final endDate = activity.isActive ? DateTime.now() : activity.completedAt;
-    
+
     final startDay = startDate != null && pruningDate != null
-        ? activity_date_utils.ActivityDateUtils.calculateDay(pruningDate, startDate)
+        ? activity_date_utils.ActivityDateUtils.calculateDay(
+            pruningDate, startDate)
         : null;
     final endDay = endDate != null && pruningDate != null
-        ? activity_date_utils.ActivityDateUtils.calculateDay(pruningDate, endDate)
+        ? activity_date_utils.ActivityDateUtils.calculateDay(
+            pruningDate, endDate)
         : null;
 
     // Load all schedules (will be filtered by date in ViewAllSchedulePage)
@@ -261,7 +259,6 @@ class _ModernAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -305,8 +302,10 @@ class _ModernAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: AppTypography.headlineSmall(context)
-                          .copyWith(fontWeight: FontWeight.w700)),
+                      style: AppTypography.headlineSmall(context).copyWith(
+                        color: AppColors.onBackground,
+                        fontWeight: FontWeight.w900,
+                      )),
                   if (subtitle != null)
                     Row(
                       children: [
@@ -315,7 +314,7 @@ class _ModernAppBar extends StatelessWidget {
                         const SizedBox(width: 3),
                         Text(subtitle!,
                             style: AppTypography.bodySmall(context)
-                                .copyWith(color: AppColors.onSurface)),
+                                .copyWith(color: AppColors.onSurfaceVariant)),
                       ],
                     ),
                 ],
