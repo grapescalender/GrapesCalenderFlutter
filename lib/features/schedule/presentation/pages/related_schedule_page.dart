@@ -234,6 +234,8 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
   }) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ScheduleDetailPopup(

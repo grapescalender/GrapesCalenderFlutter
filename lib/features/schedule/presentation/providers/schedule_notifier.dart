@@ -3,17 +3,19 @@ import '../../../../core/error/failures.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../domain/usecases/get_schedules_usecase.dart';
 import '../../domain/usecases/create_schedule_usecase.dart';
+import '../../domain/usecases/complete_schedule_usecase.dart';
 import 'schedule_state.dart';
 
 /// Schedule notifier that manages schedule state
 class ScheduleNotifier extends StateNotifier<ScheduleState> {
-
   ScheduleNotifier({
     required this.getGetSchedulesUseCase,
     required this.getCreateScheduleUseCase,
+    required this.getCompleteScheduleUseCase,
   }) : super(ScheduleState.initial());
   final Future<GetSchedulesUseCase> Function() getGetSchedulesUseCase;
   final Future<CreateScheduleUseCase> Function() getCreateScheduleUseCase;
+  final Future<CompleteScheduleUseCase> Function() getCompleteScheduleUseCase;
 
   /// Load schedules for selected plot
   Future<void> loadSchedules({
@@ -69,7 +71,7 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
 
     // Update filter in state
     state = state.copyWith(selectedFilter: filterType);
-    
+
     // Note: Actual reload will be handled by ref.listen in the widget
     // This ensures we load all schedules (no limit) to properly calculate "See More"
   }
@@ -140,13 +142,41 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
     );
   }
 
+  Future<String?> completeSchedule(ScheduleEntity schedule) async {
+    try {
+      final completeScheduleUseCase = await getCompleteScheduleUseCase();
+      final result = await completeScheduleUseCase(
+        CompleteScheduleParams(schedule: schedule),
+      );
+
+      return result.fold(
+        _mapFailureToMessage,
+        (completedSchedule) {
+          state = state.copyWith(
+            schedules: state.schedules
+                .map(
+                  (item) => item.id == completedSchedule.id
+                      ? completedSchedule
+                      : item,
+                )
+                .toList(),
+            errorMessage: null,
+          );
+          return null;
+        },
+      );
+    } catch (e) {
+      return 'Failed to complete schedule: ${e.toString()}';
+    }
+  }
+
   String _mapFailureToMessage(Failure failure) => failure.when(
-      network: (message, _) => message,
-      server: (message, _) => message,
-      cache: (message) => message,
-      authentication: (message) => message,
-      authorization: (message) => message,
-      validation: (message, _) => message,
-      unknown: (message, _) => message,
-    );
+        network: (message, _) => message,
+        server: (message, _) => message,
+        cache: (message) => message,
+        authentication: (message) => message,
+        authorization: (message) => message,
+        validation: (message, _) => message,
+        unknown: (message, _) => message,
+      );
 }

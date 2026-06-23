@@ -189,6 +189,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   }) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ScheduleDetailPopup(
