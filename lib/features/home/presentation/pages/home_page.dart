@@ -11,9 +11,11 @@ import '../../../activity/presentation/providers/activity_providers.dart';
 import '../../../schedule/presentation/widgets/schedule_section.dart';
 import '../../domain/entities/plot_entity.dart';
 import '../widgets/add_plot_form.dart';
-import '../widgets/plots_section.dart';
 import '../widgets/competition_section.dart';
+import '../widgets/dashboard_insights_section.dart';
+import '../widgets/plots_section.dart';
 import '../providers/plot_notifier.dart';
+import '../models/dashboard_preview_data.dart';
 import '../state/dashboard_view_state.dart';
 
 /// Home Page
@@ -115,6 +117,14 @@ class HomePage extends ConsumerWidget {
               SizedBox(height: sectionSpacing),
             ],
 
+            if (dashboardState.hasActiveCycle) ...[
+              DashboardInsightsSection(
+                marketInsights: DashboardPreviewData.marketInsights(),
+                recommendations: DashboardPreviewData.recommendations(),
+              ),
+              SizedBox(height: sectionSpacing),
+            ],
+
             // ── SECTION 4: Activities ────────────────────────────────
             if (dashboardState.hasActiveCycle) const ActivitySection(),
             SizedBox(height: bottomPadding),
@@ -180,15 +190,15 @@ class HomePage extends ConsumerWidget {
                         'Selected Plot Summary',
                         style: AppTypography.labelLarge(context).copyWith(
                           color: cs.primary,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         plot.name,
-                        style: AppTypography.headlineSmall(context).copyWith(
+                        style: AppTypography.titleLarge(context).copyWith(
                           color: cs.onSurface,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -233,9 +243,9 @@ class HomePage extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Text(
                     'Current Status:',
-                    style: AppTypography.labelMedium(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
@@ -244,7 +254,7 @@ class HomePage extends ConsumerWidget {
                       'No Active Season',
                       style: AppTypography.labelLarge(context).copyWith(
                         color: cs.onSurface,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -319,14 +329,14 @@ class HomePage extends ConsumerWidget {
               'Welcome Message',
               style: AppTypography.labelLarge(context).copyWith(
                 color: cs.primary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'No Plot Added Yet',
-              style: AppTypography.headlineLarge(context).copyWith(
-                fontWeight: FontWeight.w900,
+              style: AppTypography.headlineMedium(context).copyWith(
+                fontWeight: FontWeight.w600,
                 color: cs.onSurface,
               ),
             ),
@@ -406,13 +416,13 @@ class HomePage extends ConsumerWidget {
                   Text(
                     content.title,
                     style: AppTypography.titleLarge(context).copyWith(
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     content.message,
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: cs.onSurfaceVariant,
                       height: 1.4,
                     ),
@@ -603,13 +613,13 @@ class HomePage extends ConsumerWidget {
                       'Grapes',
                       style: AppTypography.titleLarge(context).copyWith(
                         color: cs.onPrimary,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Manage plots, schedules & insights',
-                      style: AppTypography.bodySmall(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: cs.onPrimary.withValues(alpha: 0.92),
                         fontWeight: FontWeight.w600,
                       ),
@@ -629,7 +639,7 @@ class HomePage extends ConsumerWidget {
                   'S',
                   style: AppTypography.bodyLarge(context).copyWith(
                     color: cs.onPrimary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -731,9 +741,9 @@ class _FeaturePill extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: AppTypography.labelMedium(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: cs.onSurface,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -762,7 +772,7 @@ class _PlotSummaryRow extends StatelessWidget {
           width: 96,
           child: Text(
             label,
-            style: AppTypography.bodySmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: cs.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
@@ -774,7 +784,7 @@ class _PlotSummaryRow extends StatelessWidget {
             value,
             style: AppTypography.bodyMedium(context).copyWith(
               color: cs.onSurface,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

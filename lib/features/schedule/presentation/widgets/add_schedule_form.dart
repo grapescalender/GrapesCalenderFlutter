@@ -7,6 +7,7 @@ import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
@@ -62,7 +63,9 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   bool _isSearching = false;
   String? _productError;
 
-  bool get _usesProducts => _selectedType != ScheduleType.work;
+  bool get _usesProducts =>
+      _selectedType == ScheduleType.spray ||
+      _selectedType == ScheduleType.nutrition;
   String get _combinationName =>
       _products.map((product) => product.productName).join(' + ');
 
@@ -92,6 +95,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   @override
   Widget build(BuildContext context) {
     final scheduleState = ref.watch(scheduleNotifierProvider);
+    final activityState = ref.watch(activityNotifierProvider);
     final plots = ref.watch(plotNotifierProvider).plots;
     final availablePlots = plots.isEmpty
         ? [
@@ -111,6 +115,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       orElse: () => availablePlots.first,
     );
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final colors = DashboardStyle.of(context);
 
     return FractionallySizedBox(
       heightFactor: 0.96,
@@ -118,9 +123,9 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
         duration: const Duration(milliseconds: 180),
         padding: EdgeInsets.only(bottom: bottomInset),
         child: DecoratedBox(
-          decoration: const BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: colors.background,
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppSpacing.radiusHuge),
             ),
           ),
@@ -129,7 +134,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
             child: Column(
               children: [
                 const SizedBox(height: AppSpacing.sm),
-                _DragHandle(),
+                const DashboardDragHandle(),
                 _AppBar(
                   onClose: () => Navigator.of(context).pop(),
                   onSave: scheduleState.isCreating ? null : _submit,
@@ -161,6 +166,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                           const SizedBox(height: AppSpacing.smMd),
                           ScheduleDetailsForm(
                             plots: availablePlots,
+                            activities: activityState.activities,
                             selectedPlotId: selectedPlot.id,
                             selectedType: _selectedType,
                             selectedActivityType: _selectedActivityType,
@@ -169,6 +175,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                             onPlotChanged: _changePlot,
                             onTypeChanged: _changeType,
                             onActivityChanged: _changeActivity,
+                            onScheduleDateChanged: _changeScheduleDate,
                             onScheduleDateTap: _selectScheduleDate,
                             onDueDateTap: _selectDueDate,
                             onTimeTap: _selectTime,
@@ -177,8 +184,11 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                           if (_usesProducts) ...[
                             _buildProductSection(),
                             const SizedBox(height: AppSpacing.smMd),
-                          ] else ...[
+                          ] else if (_selectedType == ScheduleType.work) ...[
                             _buildWorkSection(),
+                            const SizedBox(height: AppSpacing.smMd),
+                          ] else ...[
+                            _buildWaterSection(),
                             const SizedBox(height: AppSpacing.smMd),
                           ],
                           _buildInstructionsSection(),
@@ -202,6 +212,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   }
 
   Widget _buildProductSection() {
+    final colors = DashboardStyle.of(context);
     return ScheduleFormSectionCard(
       title: 'Products to Apply',
       icon: Icons.science_outlined,
@@ -216,9 +227,9 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
           if (_productError != null) ...[
             Text(
               _productError!,
-              style: AppTypography.errorText(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: AppColors.error,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -228,8 +239,8 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
           else ...[
             Text(
               'Selected Products',
-              style: AppTypography.cardTitle(context).copyWith(
-                color: AppColors.onBackground,
+              style: AppTypography.titleMedium(context).copyWith(
+                color: colors.onBackground,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -253,63 +264,20 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   }
 
   Widget _buildStatusSection() {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: AppColors.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow.withValues(alpha: 0.04),
-            blurRadius: AppSpacing.lg,
-            offset: const Offset(0, AppSpacing.xs),
-          ),
-        ],
-      ),
+    final colors = DashboardStyle.of(context);
+    return DashboardSectionCard(
+      title: 'Final status',
+      icon: Icons.fact_check_outlined,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Container(
-                width: AppSpacing.xl,
-                height: AppSpacing.xl,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                ),
-                child: const Icon(
-                  Icons.fact_check_outlined,
-                  color: AppColors.primary,
-                  size: AppSpacing.mdLg,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Final status',
-                      style: AppTypography.cardTitle(context).copyWith(
-                        color: AppColors.onBackground,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      'Choose how it should appear after saving.',
-                      style: AppTypography.caption(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          Text(
+            'Choose how it should appear after saving.',
+            style: AppTypography.labelLarge(context).copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: AppSpacing.smMd),
           _ScheduleStatusToggle(
@@ -395,6 +363,24 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     );
   }
 
+  Widget _buildWaterSection() {
+    return ScheduleFormSectionCard(
+      title: 'Water Details',
+      icon: Icons.water_outlined,
+      child: TextFormField(
+        controller: _instructionsController,
+        minLines: 2,
+        maxLines: 4,
+        decoration: DashboardField.decoration(
+          context: context,
+          label: 'Irrigation Notes',
+          hint: 'Water quantity, duration, drip line, or field instructions',
+          icon: Icons.water_drop_outlined,
+        ),
+      ),
+    );
+  }
+
   Widget _buildInstructionsSection() {
     return ScheduleFormSectionCard(
       title: _usesProducts ? 'Application Instructions' : 'Notes',
@@ -452,6 +438,21 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
 
   void _changeActivity(ActivityType type) {
     setState(() => _selectedActivityType = type);
+  }
+
+  void _changeScheduleDate(DateTime value) {
+    setState(() {
+      _scheduleDate = DateTime(
+        value.year,
+        value.month,
+        value.day,
+        _scheduleDate.hour,
+        _scheduleDate.minute,
+      );
+      if (_dueDate.isBefore(_scheduleDate)) {
+        _dueDate = _scheduleDate;
+      }
+    });
   }
 
   Future<void> _loadActivities() async {
@@ -566,60 +567,36 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: DashboardStyle.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
       ),
       builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => SafeArea(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.72,
-            ),
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.smMd,
-                AppSpacing.screenHorizontal,
-                AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
+        builder: (context, setSheetState) => DashboardBottomSheetFrame(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const DashboardSheetHeader(
+                title: 'Add Product',
+                subtitle: 'Search catalog, then set dose details.',
+                icon: Icons.science_outlined,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(child: _DragHandle()),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    'Add Product',
-                    style: AppTypography.sectionTitle(context).copyWith(
-                      color: AppColors.onBackground,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Search catalog, then set dose details.',
-                    style: AppTypography.caption(context).copyWith(
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  ProductSearchField(
-                    controller: _productSearchController,
-                    results: _searchResults,
-                    isLoading: _isSearching,
-                    onChanged: (query) =>
-                        _searchProducts(query, () => setSheetState(() {})),
-                    onSelected: _addProduct,
-                    addedProductIds:
-                        _products.map((product) => product.productId).toSet(),
-                    focusNode: _productSearchFocusNode,
-                  ),
-                ],
+              const SizedBox(height: AppSpacing.md),
+              ProductSearchField(
+                controller: _productSearchController,
+                results: _searchResults,
+                isLoading: _isSearching,
+                onChanged: (query) =>
+                    _searchProducts(query, () => setSheetState(() {})),
+                onSelected: _addProduct,
+                addedProductIds:
+                    _products.map((product) => product.productId).toSet(),
+                focusNode: _productSearchFocusNode,
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -640,7 +617,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: DashboardStyle.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
@@ -648,75 +625,47 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       ),
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, setSheetState) => SafeArea(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.72,
-              ),
-              child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.smMd,
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
+          builder: (context, setSheetState) => DashboardBottomSheetFrame(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DashboardSheetHeader(
+                  title: draft.productName,
+                  subtitle: '${draft.categoryLabel} • ${draft.manufacturer}',
+                  icon: Icons.tune_rounded,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(child: _DragHandle()),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      draft.productName,
-                      style: AppTypography.sectionTitle(context).copyWith(
-                        color: AppColors.onBackground,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      '${draft.categoryLabel} • ${draft.manufacturer}',
-                      style: AppTypography.caption(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    ProductDoseEditor(
-                      product: draft,
-                      showErrors: showErrors,
-                      onChanged: (ScheduleProductDraft value) =>
-                          setSheetState(() => draft = value),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    FilledButton.icon(
-                      onPressed: () {
-                        if (!_isProductComplete(draft)) {
-                          setSheetState(() => showErrors = true);
-                          return;
-                        }
-                        setState(() {
-                          if (index == null) {
-                            _products = [..._products, draft];
-                          } else {
-                            final updated = [..._products];
-                            updated[index] = draft;
-                            _products = updated;
-                          }
-                          _productError = null;
-                        });
-                        Navigator.of(context).pop();
-                      },
-                      icon: const Icon(Icons.check_rounded),
-                      label: const Text('Confirm Product'),
-                    ),
-                  ],
+                const SizedBox(height: AppSpacing.md),
+                ProductDoseEditor(
+                  product: draft,
+                  showErrors: showErrors,
+                  onChanged: (ScheduleProductDraft value) =>
+                      setSheetState(() => draft = value),
                 ),
-              ),
+                const SizedBox(height: AppSpacing.md),
+                AppButton.primary(
+                  label: 'Confirm Product',
+                  icon: Icons.check_rounded,
+                  onPressed: () {
+                    if (!_isProductComplete(draft)) {
+                      setSheetState(() => showErrors = true);
+                      return;
+                    }
+                    setState(() {
+                      if (index == null) {
+                        _products = [..._products, draft];
+                      } else {
+                        final updated = [..._products];
+                        updated[index] = draft;
+                        _products = updated;
+                      }
+                      _productError = null;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  isFullWidth: true,
+                ),
+              ],
             ),
           ),
         );
@@ -874,6 +823,9 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     if (request.scheduleType == ScheduleType.work) {
       return _workNameController.text.trim();
     }
+    if (request.scheduleType == ScheduleType.water) {
+      return 'Irrigation';
+    }
     return request.combinationName;
   }
 }
@@ -889,6 +841,7 @@ class _ScheduleStatusToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
     final pendingSegment = _StatusSegment(
       label: 'Need to Apply',
       icon: Icons.pending_actions_rounded,
@@ -910,11 +863,11 @@ class _ScheduleStatusToggle extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(AppSpacing.xs),
           decoration: BoxDecoration(
-            color: AppColors.background,
+            color: colors.background,
             borderRadius: BorderRadius.circular(
               compact ? AppSpacing.radiusLg : AppSpacing.radiusFull,
             ),
-            border: Border.all(color: AppColors.outlineVariant),
+            border: Border.all(color: colors.outline),
           ),
           child: compact
               ? Column(
@@ -954,7 +907,9 @@ class _StatusSegment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foregroundColor = selected ? Colors.white : AppColors.onSurface;
+    final colors = DashboardStyle.of(context);
+    final foregroundColor =
+        selected ? Theme.of(context).colorScheme.onPrimary : colors.onSurface;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -994,9 +949,9 @@ class _StatusSegment extends StatelessWidget {
               Flexible(
                 child: Text(
                   label,
-                  style: AppTypography.chipText(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: foregroundColor,
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1014,63 +969,10 @@ class _EmptyProductsPrompt extends StatelessWidget {
   const _EmptyProductsPrompt();
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.outlineVariant),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.smMd),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'No products added yet',
-                    style: AppTypography.cardTitle(context).copyWith(
-                      color: AppColors.onBackground,
-                    ),
-                  ),
-                  Text(
-                    'No products added yet. Use Add Product to search catalog and set dose details.',
-                    style: AppTypography.caption(context).copyWith(
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
-class _DragHandle extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 42,
-        height: 4,
-        decoration: BoxDecoration(
-          color: AppColors.outline,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        ),
+  Widget build(BuildContext context) => const DashboardListItem(
+        title: 'No products added yet',
+        subtitle: 'Use Add Product to search catalog and set dose details.',
+        icon: Icons.add_rounded,
       );
 }
 
@@ -1084,34 +986,37 @@ class _AppBar extends StatelessWidget {
   final VoidCallback? onSave;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xs,
-          AppSpacing.xs,
-          AppSpacing.sm,
-          AppSpacing.xs,
-        ),
-        child: Row(
-          children: [
-            IconButton(
-              tooltip: 'Close',
-              onPressed: onClose,
-              icon: const Icon(Icons.close_rounded),
-            ),
-            Expanded(
-              child: Text(
-                'Add Schedule',
-                style: AppTypography.sectionTitle(context).copyWith(
-                  color: AppColors.onBackground,
-                ),
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xs,
+        AppSpacing.xs,
+        AppSpacing.sm,
+        AppSpacing.xs,
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: 'Close',
+            onPressed: onClose,
+            icon: const Icon(Icons.close_rounded),
+          ),
+          Expanded(
+            child: Text(
+              'Add Schedule',
+              style: AppTypography.titleLarge(context).copyWith(
+                color: colors.onBackground,
               ),
             ),
-            IconButton.filledTonal(
-              tooltip: 'Save schedule',
-              onPressed: onSave,
-              icon: const Icon(Icons.check_rounded),
-            ),
-          ],
-        ),
-      );
+          ),
+          IconButton.filledTonal(
+            tooltip: 'Save schedule',
+            onPressed: onSave,
+            icon: const Icon(Icons.check_rounded),
+          ),
+        ],
+      ),
+    );
+  }
 }

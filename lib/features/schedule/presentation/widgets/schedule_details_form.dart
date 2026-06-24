@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
 import '../../domain/entities/schedule_entity.dart';
@@ -12,6 +13,7 @@ class ScheduleDetailsForm extends StatelessWidget {
   const ScheduleDetailsForm({
     super.key,
     required this.plots,
+    required this.activities,
     required this.selectedPlotId,
     required this.selectedType,
     required this.selectedActivityType,
@@ -20,12 +22,14 @@ class ScheduleDetailsForm extends StatelessWidget {
     required this.onPlotChanged,
     required this.onTypeChanged,
     required this.onActivityChanged,
+    required this.onScheduleDateChanged,
     required this.onScheduleDateTap,
     required this.onDueDateTap,
     required this.onTimeTap,
   });
 
   final List<PlotEntity> plots;
+  final List<ActivityEntity> activities;
   final String selectedPlotId;
   final ScheduleType selectedType;
   final ActivityType selectedActivityType;
@@ -34,6 +38,7 @@ class ScheduleDetailsForm extends StatelessWidget {
   final ValueChanged<String> onPlotChanged;
   final ValueChanged<ScheduleType> onTypeChanged;
   final ValueChanged<ActivityType> onActivityChanged;
+  final ValueChanged<DateTime> onScheduleDateChanged;
   final VoidCallback onScheduleDateTap;
   final VoidCallback onDueDateTap;
   final VoidCallback onTimeTap;
@@ -55,6 +60,7 @@ class ScheduleDetailsForm extends StatelessWidget {
             value: selectedPlot.name,
             meta: _plotMeta(selectedPlot),
             icon: Icons.agriculture_rounded,
+            dense: true,
             onTap: () => _openPlotSelector(context),
           ),
           const SizedBox(height: AppSpacing.smMd),
@@ -66,7 +72,7 @@ class ScheduleDetailsForm extends StatelessWidget {
           _PickerTile(
             label: 'Activity Stage',
             value: '${selectedActivityType.displayName} Stage',
-            meta: 'Tap to change growth stage',
+            meta: _stageMeta(selectedActivityType),
             icon: Icons.timeline_rounded,
             onTap: () => _openStageSelector(context),
           ),
@@ -132,10 +138,63 @@ class ScheduleDetailsForm extends StatelessWidget {
     return details.join('  ·  ');
   }
 
+  String _stageMeta(ActivityType type) {
+    final activity = _activityFor(type);
+    if (activity == null) return 'Tap to change growth stage';
+    if (activity.isActive) return 'Current stage';
+    if (activity.isCompleted) return _stageDateRange(activity);
+    return 'Upcoming stage';
+  }
+
+  ActivityEntity? _activityFor(ActivityType type) {
+    for (final activity in activities) {
+      if (activity.type == type) return activity;
+    }
+    return null;
+  }
+
+  int _currentStageIndex() {
+    final orderedTypes = ActivityType.orderedTypes;
+    for (final activity in activities) {
+      if (activity.isActive) return orderedTypes.indexOf(activity.type);
+    }
+    for (final activity in activities) {
+      if (activity.isPending) return orderedTypes.indexOf(activity.type);
+    }
+    return orderedTypes.indexOf(selectedActivityType);
+  }
+
+  bool _dateInsideActivity(ActivityEntity activity) {
+    final start = activity.startedAt;
+    if (start == null) return true;
+    final end = activity.completedAt ?? DateTime.now();
+    final selectedDate = DateUtils.dateOnly(scheduleDate);
+    return !selectedDate.isBefore(DateUtils.dateOnly(start)) &&
+        !selectedDate.isAfter(DateUtils.dateOnly(end));
+  }
+
+  DateTime _adjustedDateFor(ActivityEntity activity) {
+    final start = activity.startedAt;
+    if (start == null) return scheduleDate;
+    final end = activity.completedAt ?? DateTime.now();
+    final selectedDate = DateUtils.dateOnly(scheduleDate);
+    if (selectedDate.isBefore(DateUtils.dateOnly(start))) return start;
+    if (selectedDate.isAfter(DateUtils.dateOnly(end))) return end;
+    return scheduleDate;
+  }
+
+  String _stageDateRange(ActivityEntity activity) {
+    final start = activity.startedAt;
+    if (start == null) return 'Stage date not available';
+    final end = activity.completedAt ?? DateTime.now();
+    final formatter = DateFormat('d MMM');
+    return '${formatter.format(start)} - ${formatter.format(end)}';
+  }
+
   void _openPlotSelector(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: DashboardStyle.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
@@ -163,9 +222,10 @@ class ScheduleDetailsForm extends StatelessWidget {
   }
 
   void _openStageSelector(BuildContext context) {
+    final currentIndex = _currentStageIndex();
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: DashboardStyle.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
@@ -177,19 +237,110 @@ class ScheduleDetailsForm extends StatelessWidget {
           subtitle: 'Choose the current grape stage for this schedule',
           icon: Icons.timeline_rounded,
           children: [
-            for (final type in ActivityType.orderedTypes)
-              _StageOptionTile(
-                type: type,
-                selected: type == selectedActivityType,
-                onTap: () {
-                  onActivityChanged(type);
-                  Navigator.of(context).pop();
+            for (var index = 0;
+                index < ActivityType.orderedTypes.length;
+                index++)
+              Builder(
+                builder: (context) {
+                  final type = ActivityType.orderedTypes[index];
+                  final activity = _activityFor(type);
+                  final isPast = index < currentIndex;
+                  final hasWindow = activity?.startedAt != null;
+                  final isDateValid =
+                      activity == null || _dateInsideActivity(activity);
+                  final enabled = !isPast || hasWindow;
+                  return _StageOptionTile(
+                    type: type,
+                    stepNumber: index + 1,
+                    selected: type == selectedActivityType,
+                    statusLabel: _stageStatusLabel(index, currentIndex),
+                    dateLabel: activity == null
+                        ? 'Date range not set'
+                        : _stageMeta(type),
+                    enabled: enabled,
+                    warning: isPast && !isDateValid
+                        ? 'Selected date is outside this stage'
+                        : null,
+                    onTap: () async {
+                      await _handleStageTap(
+                        context: context,
+                        type: type,
+                        activity: activity,
+                        isPast: isPast,
+                      );
+                    },
+                  );
                 },
               ),
           ],
         ),
       ),
     );
+  }
+
+  String _stageStatusLabel(int index, int currentIndex) {
+    if (index < currentIndex) return 'Completed';
+    if (index == currentIndex) return 'Current';
+    return 'Upcoming';
+  }
+
+  Future<void> _handleStageTap({
+    required BuildContext context,
+    required ActivityType type,
+    required ActivityEntity? activity,
+    required bool isPast,
+  }) async {
+    if (!isPast || activity == null || _dateInsideActivity(activity)) {
+      onActivityChanged(type);
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final start = activity.startedAt;
+    if (start == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${type.displayName} stage date range is not set.'),
+        ),
+      );
+      return;
+    }
+
+    final adjustedDate = _adjustedDateFor(activity);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Use ${type.displayName} stage?',
+          style: AppTypography.titleLarge(dialogContext).copyWith(
+            color: DashboardStyle.of(dialogContext).onBackground,
+          ),
+        ),
+        content: Text(
+          'This schedule date is outside ${type.displayName} stage '
+          '(${_stageDateRange(activity)}). Do you want to continue and move '
+          'the schedule date inside this stage?',
+          style: AppTypography.bodyMedium(dialogContext).copyWith(
+            color: DashboardStyle.of(dialogContext).onSurface,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Use ${DateFormat('d MMM').format(adjustedDate)}'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+    onActivityChanged(type);
+    onScheduleDateChanged(adjustedDate);
+    Navigator.of(context).pop();
   }
 }
 
@@ -204,17 +355,19 @@ class _TypeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
     const options = [
       (ScheduleType.work, Icons.construction_outlined),
       (ScheduleType.spray, Icons.water_drop_outlined),
       (ScheduleType.nutrition, Icons.grass_outlined),
+      (ScheduleType.water, Icons.water_outlined),
     ];
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: colors.background,
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(color: AppColors.outlineVariant),
+        border: Border.all(color: colors.outline),
       ),
       child: Row(
         children: [
@@ -251,7 +404,8 @@ class _TypeSegment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.onSurfaceVariant;
+    final colors = DashboardStyle.of(context);
+    final color = selected ? colors.primary : colors.onSurfaceVariant;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -266,7 +420,7 @@ class _TypeSegment extends StatelessWidget {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryContainer : Colors.transparent,
+            color: selected ? colors.primaryContainer : Colors.transparent,
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
           child: Row(
@@ -277,9 +431,9 @@ class _TypeSegment extends StatelessWidget {
               Flexible(
                 child: Text(
                   type.displayName,
-                  style: AppTypography.chipText(context).copyWith(
-                    color: selected ? AppColors.primary : AppColors.onSurface,
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color: selected ? colors.primary : colors.onSurface,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -300,6 +454,7 @@ class _PickerTile extends StatelessWidget {
     required this.meta,
     required this.icon,
     required this.onTap,
+    this.dense = false,
   });
 
   final String label;
@@ -307,72 +462,82 @@ class _PickerTile extends StatelessWidget {
   final String meta;
   final IconData icon;
   final VoidCallback onTap;
+  final bool dense;
 
   @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.smMd),
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: AppColors.outlineVariant),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: AppSpacing.xl,
-                height: AppSpacing.xl,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                ),
-                child:
-                    Icon(icon, size: AppSpacing.md, color: AppColors.primary),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: AppTypography.caption(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      value,
-                      style: AppTypography.cardTitle(context).copyWith(
-                        color: AppColors.onBackground,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      meta,
-                      style: AppTypography.caption(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: AppColors.onSurfaceVariant,
-                size: AppSpacing.mdLg,
-              ),
-            ],
-          ),
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: Container(
+        padding: EdgeInsets.all(dense ? AppSpacing.sm : AppSpacing.smMd),
+        decoration: BoxDecoration(
+          color: colors.background,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: colors.outline),
         ),
-      );
+        child: Row(
+          children: [
+            Container(
+              width: dense ? AppSpacing.lg : AppSpacing.xl,
+              height: dense ? AppSpacing.lg : AppSpacing.xl,
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
+              child: Icon(
+                icon,
+                size: dense ? AppSpacing.smMd : AppSpacing.md,
+                color: colors.primary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: AppTypography.labelLarge(context).copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    value,
+                    style: (dense
+                            ? AppTypography.titleMedium(context)
+                            : AppTypography.titleMedium(context))
+                        .copyWith(
+                      color: colors.onBackground,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    meta,
+                    style: AppTypography.labelLarge(context).copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: colors.onSurfaceVariant,
+              size: AppSpacing.mdLg,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _DateActionChip extends StatelessWidget {
@@ -389,42 +554,45 @@ class _DateActionChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Material(
-        color: Colors.transparent,
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.smMd,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              border: Border.all(color: AppColors.outlineVariant),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: AppColors.primary, size: AppSpacing.md),
-                const SizedBox(width: AppSpacing.xs),
-                Flexible(
-                  child: Text(
-                    '$label · $value',
-                    style: AppTypography.chipText(context).copyWith(
-                      color: AppColors.onBackground,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.smMd,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: colors.background,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            border: Border.all(color: colors.outline),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: colors.primary, size: AppSpacing.md),
+              const SizedBox(width: AppSpacing.xs),
+              Flexible(
+                child: Text(
+                  '$label · $value',
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color: colors.onBackground,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _SelectorSheet extends StatelessWidget {
@@ -441,75 +609,22 @@ class _SelectorSheet extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.72,
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenHorizontal,
-            AppSpacing.smMd,
-            AppSpacing.screenHorizontal,
-            AppSpacing.md,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: AppSpacing.xl,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.outline,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  Container(
-                    width: AppSpacing.xl,
-                    height: AppSpacing.xl,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: AppColors.primary,
-                      size: AppSpacing.mdLg,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.smMd),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: AppTypography.headlineSmall(context).copyWith(
-                            color: AppColors.onBackground,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          subtitle,
-                          style: AppTypography.bodySmall(context).copyWith(
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              for (var index = 0; index < children.length; index++) ...[
-                children[index],
-                if (index != children.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
-              ],
+  Widget build(BuildContext context) => DashboardBottomSheetFrame(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DashboardSheetHeader(
+              title: title,
+              subtitle: subtitle,
+              icon: icon,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            for (var index = 0; index < children.length; index++) ...[
+              children[index],
+              if (index != children.length - 1)
+                const SizedBox(height: AppSpacing.sm),
             ],
-          ),
+          ],
         ),
       );
 }
@@ -542,21 +657,152 @@ class _PlotOptionTile extends StatelessWidget {
 class _StageOptionTile extends StatelessWidget {
   const _StageOptionTile({
     required this.type,
+    required this.stepNumber,
     required this.selected,
+    required this.statusLabel,
+    required this.dateLabel,
+    required this.enabled,
     required this.onTap,
+    this.warning,
   });
 
   final ActivityType type;
+  final int stepNumber;
   final bool selected;
+  final String statusLabel;
+  final String dateLabel;
+  final bool enabled;
   final VoidCallback onTap;
+  final String? warning;
 
   @override
-  Widget build(BuildContext context) => _OptionTile(
-        title: '${type.displayName} Stage',
-        subtitle: 'Use this stage for the schedule activity',
-        icon: Icons.timeline_rounded,
-        selected: selected,
-        onTap: onTap,
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    final statusColor = switch (statusLabel) {
+      'Completed' => AppColors.success,
+      'Current' => colors.primary,
+      _ => colors.onSurfaceVariant,
+    };
+    final effectiveColor = enabled ? statusColor : colors.onSurfaceDisabled;
+
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.all(AppSpacing.smMd),
+        decoration: BoxDecoration(
+          color: selected ? colors.primaryContainer : colors.background,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(
+            color: selected
+                ? colors.primary.withValues(alpha: 0.4)
+                : warning != null
+                    ? AppColors.warning.withValues(alpha: 0.35)
+                    : colors.outline,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Column(
+              children: [
+                Container(
+                  width: AppSpacing.xxl,
+                  height: AppSpacing.xxl,
+                  decoration: BoxDecoration(
+                    color: enabled
+                        ? effectiveColor.withValues(alpha: 0.12)
+                        : colors.surfaceVariant,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: enabled
+                          ? effectiveColor.withValues(alpha: 0.35)
+                          : colors.outline,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$stepNumber',
+                      style: AppTypography.labelLarge(context).copyWith(
+                        color: effectiveColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: AppSpacing.smMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          type.displayName,
+                          style: AppTypography.titleMedium(context).copyWith(
+                            color: enabled
+                                ? colors.onBackground
+                                : colors.onSurfaceDisabled,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      _StageStatusPill(
+                        label: statusLabel,
+                        color: effectiveColor,
+                        muted: !enabled,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    warning ?? dateLabel,
+                    style: AppTypography.labelLarge(context).copyWith(
+                      color: warning != null
+                          ? AppColors.warningDark
+                          : colors.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Icon(
+              selected ? Icons.check_circle_rounded : Icons.chevron_right,
+              color: selected ? colors.primary : colors.onSurfaceVariant,
+              size: AppSpacing.mdLg,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StageStatusPill extends StatelessWidget {
+  const _StageStatusPill({
+    required this.label,
+    required this.color,
+    required this.muted,
+  });
+
+  final String label;
+  final Color color;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) => DashboardStatusPill(
+        label: label,
+        color: color,
+        muted: muted,
       );
 }
 
@@ -576,103 +822,17 @@ class _OptionTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
+  Widget build(BuildContext context) => DashboardListItem(
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        selected: selected,
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.smMd,
-            vertical: AppSpacing.smMd,
-          ),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.primaryContainer : AppColors.background,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(
-              color: selected
-                  ? AppColors.primary.withValues(alpha: 0.4)
-                  : AppColors.outline,
-              width: selected ? 1.5 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: AppSpacing.xxl,
-                height: AppSpacing.xxl,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.primary.withValues(alpha: 0.12)
-                      : AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                  border: Border.all(
-                    color: selected
-                        ? AppColors.primary.withValues(alpha: 0.25)
-                        : AppColors.outline,
-                  ),
-                ),
-                child: Icon(
-                  icon,
-                  color:
-                      selected ? AppColors.primary : AppColors.onSurfaceVariant,
-                  size: AppSpacing.mdLg,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.smMd),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTypography.titleLarge(context).copyWith(
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.onBackground,
-                        fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      subtitle,
-                      style: AppTypography.bodySmall(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Container(
-                width: AppSpacing.mdLg,
-                height: AppSpacing.mdLg,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: selected ? AppColors.primary : Colors.transparent,
-                  border: Border.all(
-                    color: selected ? AppColors.primary : AppColors.outline,
-                    width: 1.5,
-                  ),
-                ),
-                child: selected
-                    ? const Icon(
-                        Icons.check_rounded,
-                        size: AppSpacing.smMd,
-                        color: Colors.white,
-                      )
-                    : null,
-              ),
-            ],
-          ),
-        ),
+        trailing: _SelectionDot(selected: selected),
       );
 }
 
-class ScheduleFormSectionCard extends _SectionCard {
+class ScheduleFormSectionCard extends DashboardSectionCard {
   const ScheduleFormSectionCard({
     super.key,
     required super.title,
@@ -682,50 +842,40 @@ class ScheduleFormSectionCard extends _SectionCard {
   });
 }
 
-class _SectionCard extends StatelessWidget {
+class _SectionCard extends DashboardSectionCard {
   const _SectionCard({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.child,
-    this.action,
+    required super.title,
+    required super.icon,
+    required super.child,
   });
+}
 
-  final String title;
-  final IconData icon;
-  final Widget child;
-  final Widget? action;
+class _SelectionDot extends StatelessWidget {
+  const _SelectionDot({required this.selected});
+
+  final bool selected;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          border: Border.all(color: AppColors.outlineVariant),
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Container(
+      width: AppSpacing.mdLg,
+      height: AppSpacing.mdLg,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: selected ? colors.primary : Colors.transparent,
+        border: Border.all(
+          color: selected ? colors.primary : colors.outlineStrong,
+          width: 1.5,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: AppSpacing.mdLg, color: AppColors.primary),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: AppTypography.titleMedium(context).copyWith(
-                      color: AppColors.onBackground,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                if (action != null) action!,
-              ],
-            ),
-            const SizedBox(height: AppSpacing.smMd),
-            child,
-          ],
-        ),
-      );
+      ),
+      child: selected
+          ? Icon(
+              Icons.check_rounded,
+              size: AppSpacing.smMd,
+              color: Theme.of(context).colorScheme.onPrimary,
+            )
+          : null,
+    );
+  }
 }

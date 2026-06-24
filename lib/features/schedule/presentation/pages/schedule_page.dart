@@ -114,14 +114,14 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Upcoming',
-                        style: AppTypography.headlineSmall(context)
-                            .copyWith(fontWeight: FontWeight.w700)),
+                        style: AppTypography.titleLarge(context)
+                            .copyWith(fontWeight: FontWeight.w600)),
                     GestureDetector(
                       onTap: () => context.push(AppRoutes.viewAllSchedules),
                       child: Row(
                         children: [
                           Text('See all',
-                              style: AppTypography.bodySmall(context).copyWith(
+                              style: AppTypography.labelLarge(context).copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
                               )),
@@ -241,14 +241,14 @@ class _CalendarHeader extends StatelessWidget {
               children: [
                 Text('Calendar',
                     style: AppTypography.headlineMedium(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w600)),
                 Row(
                   children: [
                     const Icon(Icons.today_rounded,
                         size: 12, color: AppColors.onSurface),
                     const SizedBox(width: 3),
                     Text(DateFormat('EEE, d MMM yyyy').format(now),
-                        style: AppTypography.bodySmall(context)
+                        style: AppTypography.labelLarge(context)
                             .copyWith(color: AppColors.onSurface)),
                   ],
                 ),
@@ -270,7 +270,7 @@ class _CalendarHeader extends StatelessWidget {
                       size: 14, color: AppColors.primary),
                   const SizedBox(width: 4),
                   Text('All',
-                      style: AppTypography.bodySmall(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       )),
@@ -293,6 +293,7 @@ class _TodaySummary extends StatelessWidget {
   IconData _typeIcon(ScheduleType t) {
     if (t == ScheduleType.spray) return Icons.water_drop_outlined;
     if (t == ScheduleType.nutrition) return Icons.grass_outlined;
+    if (t == ScheduleType.water) return Icons.water_outlined;
     return Icons.construction_outlined;
   }
 
@@ -315,9 +316,9 @@ class _TodaySummary extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Today's Schedules",
-                  style: AppTypography.headlineSmall(context).copyWith(
+                  style: AppTypography.titleLarge(context).copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   )),
               Container(
                 padding:
@@ -328,9 +329,9 @@ class _TodaySummary extends StatelessWidget {
                 ),
                 child: Text(
                   isLoading ? '—' : '${schedules.length}',
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -347,7 +348,7 @@ class _TodaySummary extends StatelessWidget {
             )
           else if (schedules.isEmpty)
             Text('No schedules for today — enjoy your day!',
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: Colors.white70,
                 ))
           else
@@ -371,7 +372,7 @@ class _TodaySummary extends StatelessWidget {
                         s.title.length > 18
                             ? '${s.title.substring(0, 18)}…'
                             : s.title,
-                        style: AppTypography.bodySmall(context).copyWith(
+                        style: AppTypography.labelLarge(context).copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
                         ),
@@ -396,12 +397,14 @@ class _UpcomingCard extends StatelessWidget {
   Color _typeColor(BuildContext ctx) {
     if (schedule.type == ScheduleType.spray) return AppColors.info;
     if (schedule.type == ScheduleType.nutrition) return const Color(0xFFF59E0B);
+    if (schedule.type == ScheduleType.water) return AppColors.primary;
     return AppColors.primary;
   }
 
   IconData get _typeIcon {
     if (schedule.type == ScheduleType.spray) return Icons.water_drop_outlined;
     if (schedule.type == ScheduleType.nutrition) return Icons.grass_outlined;
+    if (schedule.type == ScheduleType.water) return Icons.water_outlined;
     return Icons.construction_outlined;
   }
 
@@ -452,7 +455,7 @@ class _UpcomingCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(schedule.title,
-                      style: AppTypography.titleSmall(context)
+                      style: AppTypography.labelLarge(context)
                           .copyWith(fontWeight: FontWeight.w600),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
@@ -462,7 +465,7 @@ class _UpcomingCard extends StatelessWidget {
                           size: 6, color: AppColors.onSurface),
                       const SizedBox(width: 4),
                       Text(schedule.type.displayName,
-                          style: AppTypography.caption(context).copyWith(
+                          style: AppTypography.labelLarge(context).copyWith(
                             color: tc,
                             fontWeight: FontWeight.w500,
                           )),
@@ -479,7 +482,7 @@ class _UpcomingCard extends StatelessWidget {
                 border: Border.all(color: AppColors.outline),
               ),
               child: Text(_relDate(),
-                  style: AppTypography.caption(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: AppColors.onBackground,
                     fontWeight: FontWeight.w600,
                   )),

@@ -102,8 +102,8 @@ class ActivityPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Quick Actions',
-                        style: AppTypography.headlineSmall(context)
-                            .copyWith(fontWeight: FontWeight.w700)),
+                        style: AppTypography.titleLarge(context)
+                            .copyWith(fontWeight: FontWeight.w600)),
                     const SizedBox(height: AppSpacing.smMd),
                     Row(
                       children: [
@@ -180,9 +180,9 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Reports',
-                    style: AppTypography.headlineSmall(context).copyWith(
+                    style: AppTypography.titleLarge(context).copyWith(
                       color: AppColors.onBackground,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w600,
                     )),
                 if (plotName != null)
                   Row(
@@ -191,7 +191,7 @@ class _Header extends StatelessWidget {
                           size: 12, color: AppColors.onSurface),
                       const SizedBox(width: 3),
                       Text(plotName!,
-                          style: AppTypography.bodySmall(context)
+                          style: AppTypography.labelLarge(context)
                               .copyWith(color: AppColors.onSurface)),
                     ],
                   ),
@@ -241,13 +241,13 @@ class _MetricCard extends StatelessWidget {
             Text(value,
                 style: AppTypography.titleLarge(context).copyWith(
                   color: AppColors.onBackground,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   height: 1.0,
                 )),
             Text(label,
-                style: AppTypography.labelSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 )),
           ],
         ),
@@ -287,21 +287,21 @@ class _ActiveActivityCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Current Activity',
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                     )),
                 Text(activity.type.displayName,
-                    style: AppTypography.headlineSmall(context).copyWith(
-                      fontWeight: FontWeight.w700,
+                    style: AppTypography.titleLarge(context).copyWith(
+                      fontWeight: FontWeight.w600,
                       color: AppColors.primaryDark,
                     )),
                 if (activity.startedAt != null)
                   Text(
                     'Started ${_daysAgo(activity.startedAt!)}',
-                    style: AppTypography.labelSmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
               ],
@@ -359,14 +359,14 @@ class _ActionCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(label,
-                style: AppTypography.titleSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: AppColors.onBackground,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                 )),
             Text(subtitle,
-                style: AppTypography.labelSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 )),
           ],
         ),
@@ -395,14 +395,14 @@ class _CycleProgress extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Cycle Progress',
-                  style: AppTypography.headlineSmall(context).copyWith(
+                  style: AppTypography.titleLarge(context).copyWith(
                     color: AppColors.onBackground,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w600,
                   )),
               Text('$completed / $total',
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   )),
             ],
           ),
@@ -420,7 +420,7 @@ class _CycleProgress extends StatelessWidget {
           const SizedBox(height: AppSpacing.smMd),
           Text(
             '${(pct * 100).toStringAsFixed(0)}% of the cycle complete',
-            style: AppTypography.bodySmall(context)
+            style: AppTypography.labelLarge(context)
                 .copyWith(color: AppColors.onSurface),
           ),
         ],

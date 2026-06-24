@@ -200,13 +200,19 @@ class AppButton extends StatelessWidget {
   }
 
   TextStyle _getTextStyle(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final color = switch (variant) {
+      AppButtonVariant.primary => foregroundColor ?? cs.onPrimary,
+      AppButtonVariant.secondary => foregroundColor ?? cs.primary,
+      AppButtonVariant.text => foregroundColor ?? cs.primary,
+    };
     switch (size) {
       case AppButtonSize.small:
-        return AppTypography.chipText(context);
+        return AppTypography.bodyLarge(context).copyWith(color: color);
       case AppButtonSize.medium:
-        return AppTypography.buttonText(context);
+        return AppTypography.bodyLarge(context).copyWith(color: color);
       case AppButtonSize.large:
-        return AppTypography.buttonText(context);
+        return AppTypography.bodyLarge(context).copyWith(color: color);
     }
   }
 

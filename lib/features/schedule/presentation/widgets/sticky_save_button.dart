@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 
 class StickySaveButton extends StatelessWidget {
   const StickySaveButton({
@@ -15,23 +15,26 @@ class StickySaveButton extends StatelessWidget {
   final VoidCallback? onSave;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenHorizontal,
-          AppSpacing.smMd,
-          AppSpacing.screenHorizontal,
-          AppSpacing.sm,
-        ),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.outlineVariant)),
-        ),
-        child: AppButton.primary(
-          label: isSaving ? 'Saving Schedule...' : 'Save Schedule',
-          icon: Icons.check_rounded,
-          onPressed: isSaving ? null : onSave,
-          isLoading: isSaving,
-          isFullWidth: true,
-        ),
-      );
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.smMd,
+        AppSpacing.screenHorizontal,
+        AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(top: BorderSide(color: colors.outline)),
+      ),
+      child: AppButton.primary(
+        label: isSaving ? 'Saving Schedule...' : 'Save Schedule',
+        icon: Icons.check_rounded,
+        onPressed: isSaving ? null : onSave,
+        isLoading: isSaving,
+        isFullWidth: true,
+      ),
+    );
+  }
 }

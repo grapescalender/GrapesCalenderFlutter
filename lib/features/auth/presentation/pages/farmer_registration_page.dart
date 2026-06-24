@@ -132,7 +132,7 @@ class _FarmerRegistrationPageState
           Text(
             step.title,
             style: AppTypography.headlineMedium(context).copyWith(
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -270,13 +270,13 @@ class _FarmerRegistrationPageState
             Text(
               'Add your grape plots',
               style: AppTypography.titleLarge(context).copyWith(
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'You can add one or more plots now. More plots can be added later.',
-              style: AppTypography.bodySmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -346,7 +346,7 @@ class _FarmerRegistrationPageState
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'Location helps with market and distance-based analysis.',
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -495,8 +495,8 @@ class _FarmerRegistrationPageState
         const SizedBox(height: AppSpacing.md),
         Text(
           'Ready to manage your farm',
-          style: AppTypography.headlineSmall(context).copyWith(
-            fontWeight: FontWeight.w800,
+          style: AppTypography.titleLarge(context).copyWith(
+            fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
         ),
@@ -530,7 +530,7 @@ class _FarmerRegistrationPageState
           'Added Plots: ${_addedPlots.length}',
           style: AppTypography.labelLarge(context).copyWith(
             color: cs.primary,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -553,12 +553,12 @@ class _FarmerRegistrationPageState
                             Text(
                               entry.value.plotName ?? 'Grape Plot',
                               style: AppTypography.labelLarge(context)
-                                  .copyWith(fontWeight: FontWeight.w800),
+                                  .copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: AppSpacing.xs),
                             Text(
                               '${entry.value.variety ?? 'Variety'} • ${entry.value.area ?? 0} acres',
-                              style: AppTypography.bodySmall(context).copyWith(
+                              style: AppTypography.labelLarge(context).copyWith(
                                 color: cs.onSurfaceVariant,
                               ),
                             ),
@@ -601,7 +601,7 @@ class _FarmerRegistrationPageState
               'Plot added successfully',
               style: AppTypography.bodyMedium(context).copyWith(
                 color: cs.onPrimaryContainer,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -630,7 +630,7 @@ class _FarmerRegistrationPageState
             'Season Started: ${startedPlots.length}',
             style: AppTypography.labelLarge(context).copyWith(
               color: cs.primary,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -1204,7 +1204,7 @@ class _StepProgress extends StatelessWidget {
           currentStep == 1 ? 'Mobile verification' : labels.join(' → '),
           style: AppTypography.labelLarge(context).copyWith(
             color: cs.primary,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),

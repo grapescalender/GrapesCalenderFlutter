@@ -7,7 +7,6 @@ import '../app_card.dart';
 
 /// Production empty state — icon, title, optional subtitle and CTA.
 class AppEmptyState extends StatelessWidget {
-
   const AppEmptyState({
     super.key,
     required this.icon,
@@ -53,7 +52,7 @@ class AppEmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: cs.onSurfaceVariant,
                 ),
               ),

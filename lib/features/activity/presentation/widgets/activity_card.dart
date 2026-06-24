@@ -125,7 +125,7 @@ class ActivityCard extends StatelessWidget {
                       children: [
                         Text(
                           activity.type.displayName,
-                          style: AppTypography.cardTitle(context).copyWith(
+                          style: AppTypography.titleMedium(context).copyWith(
                             color: _statusColor(s),
                           ),
                           maxLines: 1,
@@ -134,7 +134,7 @@ class ActivityCard extends StatelessWidget {
                         if (activity.plotName.isNotEmpty)
                           Text(
                             activity.plotName,
-                            style: AppTypography.cardSubtitle(context).copyWith(
+                            style: AppTypography.bodyMedium(context).copyWith(
                               color: AppColors.onSurfaceVariant,
                             ),
                             maxLines: 1,
@@ -173,7 +173,7 @@ class ActivityCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           _dateRange(),
-                          style: AppTypography.caption(context).copyWith(
+                          style: AppTypography.labelLarge(context).copyWith(
                             color: AppColors.onSurface,
                           ),
                           maxLines: 1,

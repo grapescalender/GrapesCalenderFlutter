@@ -178,7 +178,7 @@ class ActivityStepper extends StatelessWidget {
             children: [
               Text(
                 'View All Activities',
-                style: AppTypography.body(context).copyWith(
+                style: AppTypography.bodyMedium(context).copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),

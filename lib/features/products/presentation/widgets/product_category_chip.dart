@@ -71,7 +71,9 @@ class ProductCategoryChip extends StatelessWidget {
           color: isSelected ? _accent : _accent.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           border: Border.all(
-            color: isSelected ? Colors.transparent : _accent.withValues(alpha: 0.3),
+            color: isSelected
+                ? Colors.transparent
+                : _accent.withValues(alpha: 0.3),
             width: 1.2,
           ),
           boxShadow: isSelected
@@ -95,7 +97,7 @@ class ProductCategoryChip extends StatelessWidget {
             const SizedBox(width: 5),
             Text(
               category.displayName,
-              style: AppTypography.labelMedium(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: isSelected ? Colors.white : _accent,
                 fontWeight: FontWeight.w600,
               ),

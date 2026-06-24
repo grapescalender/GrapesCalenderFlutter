@@ -55,7 +55,7 @@ class ActivityItem extends StatelessWidget {
                   // Activity Name
                   Text(
                     activity.type.displayName,
-                    style: AppTypography.cardTitle(context).copyWith(
+                    style: AppTypography.titleMedium(context).copyWith(
                       color: isUpcoming
                           ? cs.onSurface.withOpacity(0.38)
                           : cs.onSurface,
@@ -164,21 +164,21 @@ class ActivityItem extends StatelessWidget {
     if (isCompleted) {
       return Text(
         'Completed',
-        style: AppTypography.caption(context).copyWith(
+        style: AppTypography.labelLarge(context).copyWith(
           color: semantic.success,
         ),
       );
     } else if (isCurrent) {
       return Text(
         'In Progress',
-        style: AppTypography.caption(context).copyWith(
+        style: AppTypography.labelLarge(context).copyWith(
           color: cs.primary,
         ),
       );
     } else {
       return Text(
         'Upcoming',
-        style: AppTypography.caption(context).copyWith(
+        style: AppTypography.labelLarge(context).copyWith(
           color: cs.onSurface.withOpacity(0.38),
         ),
       );

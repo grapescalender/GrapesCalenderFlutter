@@ -1,6 +1,5 @@
 /// Schedule entity - Domain layer representation
 class ScheduleEntity {
-
   const ScheduleEntity({
     required this.id,
     required this.plotId,
@@ -31,6 +30,7 @@ class ScheduleEntity {
 enum ScheduleType {
   spray,
   nutrition,
+  water,
   work,
   all; // For filtering
 
@@ -40,6 +40,8 @@ enum ScheduleType {
         return 'Spray';
       case ScheduleType.nutrition:
         return 'Nutrition';
+      case ScheduleType.water:
+        return 'Water';
       case ScheduleType.work:
         return 'Work';
       case ScheduleType.all:
@@ -53,6 +55,8 @@ enum ScheduleType {
         return 'spray';
       case ScheduleType.nutrition:
         return 'nutrition';
+      case ScheduleType.water:
+        return 'water';
       case ScheduleType.work:
         return 'work';
       case ScheduleType.all:
@@ -66,6 +70,8 @@ enum ScheduleType {
         return ScheduleType.spray;
       case 'nutrition':
         return ScheduleType.nutrition;
+      case 'water':
+        return ScheduleType.water;
       case 'work':
         return ScheduleType.work;
       default:

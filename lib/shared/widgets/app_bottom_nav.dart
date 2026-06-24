@@ -110,7 +110,7 @@ class AppBottomNav extends StatelessWidget {
                         ),
                         child: Text(
                           item.badge! > 9 ? '9+' : '${item.badge}',
-                          style: AppTypography.caption(context).copyWith(
+                          style: AppTypography.labelLarge(context).copyWith(
                             color: Colors.white,
                           ),
                           textAlign: TextAlign.center,
@@ -122,7 +122,7 @@ class AppBottomNav extends StatelessWidget {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 item.label,
-                style: AppTypography.labelSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: isSelected ? selectedColorValue : unselectedColorValue,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),

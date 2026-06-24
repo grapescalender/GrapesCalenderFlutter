@@ -10,7 +10,10 @@ import 'package:smart_farm_pruning_manager/core/design_system/colors/app_colors.
 
 Container(
   color: AppColors.primary,
-  child: Text('Hello', style: TextStyle(color: AppColors.onBackground)),
+  child: Text(
+    'Hello',
+    style: AppTypography.bodyLarge(context).copyWith(color: AppColors.onBackground),
+  ),
 )
 ```
 
@@ -30,7 +33,7 @@ import 'package:smart_farm_pruning_manager/core/design_system/typography/app_typ
 
 Text(
   'Hello',
-  style: AppTypography.headlineLarge(context),
+  style: AppTypography.headlineMedium(context),
 )
 ```
 

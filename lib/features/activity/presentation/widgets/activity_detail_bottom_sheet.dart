@@ -262,8 +262,8 @@ class _Header extends StatelessWidget {
               children: [
                 Text(
                   activity.type.displayName,
-                  style: AppTypography.headlineSmall(context).copyWith(
-                    fontWeight: FontWeight.w900,
+                  style: AppTypography.titleLarge(context).copyWith(
+                    fontWeight: FontWeight.w600,
                     color: accentColor,
                   ),
                 ),
@@ -324,16 +324,16 @@ class _MetricTile extends StatelessWidget {
             Text(
               value,
               style: AppTypography.titleLarge(context).copyWith(
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w600,
                 color: color,
                 height: 1.0,
               ),
             ),
             Text(
               label,
-              style: AppTypography.labelSmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: AppColors.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -382,9 +382,9 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppTypography.labelSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 2),
@@ -392,9 +392,9 @@ class _DetailRow extends StatelessWidget {
                 children: [
                   Text(
                     value,
-                    style: AppTypography.titleSmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: color,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   if (sub != null) ...[

@@ -108,7 +108,7 @@ class _HorizontalActivityStepperState extends State<HorizontalActivityStepper> {
                   children: [
                     Text(
                       'View All Activities',
-                      style: AppTypography.bodySmall(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -250,8 +250,8 @@ class _StepWithLabel extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               activity.type.displayName,
-              style: AppTypography.caption(context).copyWith(
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+              style: AppTypography.labelLarge(context).copyWith(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected ? AppColors.primary : AppColors.onSurface,
               ),
               maxLines: 1,

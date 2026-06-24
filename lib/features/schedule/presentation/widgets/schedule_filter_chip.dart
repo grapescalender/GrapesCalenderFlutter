@@ -68,7 +68,7 @@ class ScheduleFilterChip extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
             Text(
               filterType.displayName,
-              style: AppTypography.chipText(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: foreground,
               ),
               maxLines: 1,
@@ -84,6 +84,7 @@ class ScheduleFilterChip extends StatelessWidget {
     return switch (type) {
       ScheduleType.spray => AppColors.info,
       ScheduleType.nutrition => AppColors.warning,
+      ScheduleType.water => AppColors.primary,
       ScheduleType.work => AppColors.success,
       _ => AppColors.primary,
     };
@@ -93,6 +94,7 @@ class ScheduleFilterChip extends StatelessWidget {
     return switch (type) {
       ScheduleType.spray => Icons.water_drop_outlined,
       ScheduleType.nutrition => Icons.grass_outlined,
+      ScheduleType.water => Icons.water_outlined,
       ScheduleType.work => Icons.construction_outlined,
       _ => Icons.tune_rounded,
     };

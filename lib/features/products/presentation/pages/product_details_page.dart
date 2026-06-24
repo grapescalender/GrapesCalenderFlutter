@@ -76,8 +76,10 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal, AppSpacing.md,
-                    AppSpacing.screenHorizontal, 0,
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.md,
+                    AppSpacing.screenHorizontal,
+                    0,
                   ),
                   child: _StatBar(product: product, catColor: catColor),
                 ),
@@ -85,7 +87,8 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
               // Overview
               _sectionPad(_OverviewSection(product: product)),
               // Benefits
-              _sectionPad(_BenefitsSection(product: product, catColor: catColor)),
+              _sectionPad(
+                  _BenefitsSection(product: product, catColor: catColor)),
               // Recommended Stages
               _sectionPad(_StagesSection(product: product)),
               // Dosage & Application
@@ -108,8 +111,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                     ),
                   ),
                 ),
-              const SliverToBoxAdapter(
-                  child: SizedBox(height: AppSpacing.xxl)),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
             ],
           ),
 
@@ -124,8 +126,10 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
   SliverToBoxAdapter _sectionPad(Widget child) => SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenHorizontal, AppSpacing.md,
-            AppSpacing.screenHorizontal, 0,
+            AppSpacing.screenHorizontal,
+            AppSpacing.md,
+            AppSpacing.screenHorizontal,
+            0,
           ),
           child: child,
         ),
@@ -149,8 +153,8 @@ class _StickyHeader extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          border: Border(
-              bottom: BorderSide(color: AppColors.outline, width: 1)),
+          border:
+              Border(bottom: BorderSide(color: AppColors.outline, width: 1)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -163,8 +167,7 @@ class _StickyHeader extends StatelessWidget {
           bottom: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xs, AppSpacing.xs,
-                AppSpacing.md, AppSpacing.xs),
+                AppSpacing.xs, AppSpacing.xs, AppSpacing.md, AppSpacing.xs),
             child: Row(
               children: [
                 IconButton(
@@ -174,7 +177,8 @@ class _StickyHeader extends StatelessWidget {
                   padding: EdgeInsets.zero,
                 ),
                 Container(
-                  width: 32, height: 32,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: catColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -190,11 +194,11 @@ class _StickyHeader extends StatelessWidget {
                     children: [
                       Text(product.name,
                           style: AppTypography.titleLarge(context)
-                              .copyWith(fontWeight: FontWeight.w700),
+                              .copyWith(fontWeight: FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                       Text(product.company,
-                          style: AppTypography.bodySmall(context)
+                          style: AppTypography.labelLarge(context)
                               .copyWith(color: AppColors.onSurfaceVariant),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
@@ -240,12 +244,13 @@ class _HeroSection extends StatelessWidget {
             child: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: Container(
-                width: 40, height: 40,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.30),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.30)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.30)),
                 ),
                 child: const Icon(Icons.arrow_back_ios_new_rounded,
                     size: 17, color: Colors.white),
@@ -263,8 +268,8 @@ class _HeroSection extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (product.isFeatured)
-                  _HeroBadge('★ Featured',
-                      AppColors.warningLight, AppColors.warning),
+                  _HeroBadge(
+                      '★ Featured', AppColors.warningLight, AppColors.warning),
                 if (product.isFeatured && product.isNew)
                   const SizedBox(width: AppSpacing.sm),
                 if (product.isNew)
@@ -298,8 +303,8 @@ class _HeroBadge extends StatelessWidget {
           ],
         ),
         child: Text(label,
-            style: AppTypography.labelSmall(context)
-                .copyWith(color: color, fontWeight: FontWeight.w800)),
+            style: AppTypography.labelLarge(context)
+                .copyWith(color: color, fontWeight: FontWeight.w600)),
       );
 }
 
@@ -307,17 +312,15 @@ class _HeroBadge extends StatelessWidget {
 // IDENTITY CARD — name / category / company right below the hero
 // ─────────────────────────────────────────────────────────────────────────────
 class _IdentityCard extends StatelessWidget {
-  const _IdentityCard(
-      {required this.product, required this.catColor});
+  const _IdentityCard({required this.product, required this.catColor});
   final ProductEntity product;
   final Color catColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-          AppSpacing.screenHorizontal, AppSpacing.md,
-          AppSpacing.screenHorizontal, 0),
+      margin: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+          AppSpacing.md, AppSpacing.screenHorizontal, 0),
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -338,7 +341,7 @@ class _IdentityCard extends StatelessWidget {
           Text(
             product.name,
             style: AppTypography.headlineMedium(context).copyWith(
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: AppColors.onBackground,
               height: 1.2,
             ),
@@ -349,9 +352,7 @@ class _IdentityCard extends StatelessWidget {
           Row(
             children: [
               ProductCategoryChip(
-                  category: product.category,
-                  isSelected: true,
-                  onTap: () {}),
+                  category: product.category, isSelected: true, onTap: () {}),
               const SizedBox(width: AppSpacing.smMd),
               const Icon(Icons.domain_rounded,
                   size: 12, color: AppColors.onSurfaceVariant),
@@ -359,7 +360,7 @@ class _IdentityCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   product.company,
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: AppColors.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
@@ -460,7 +461,8 @@ class _StatTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 32, height: 32,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.10),
               shape: BoxShape.circle,
@@ -470,7 +472,7 @@ class _StatTile extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             label,
-            style: AppTypography.labelSmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: AppColors.onSurfaceVariant,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.2,
@@ -479,9 +481,9 @@ class _StatTile extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             value,
-            style: AppTypography.labelMedium(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: AppColors.onBackground,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -494,7 +496,8 @@ class _StatTile extends StatelessWidget {
 class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
-        width: 1, height: 44,
+        width: 1,
+        height: 44,
         color: AppColors.outlineVariant,
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       );
@@ -535,23 +538,23 @@ class _SectionWrapper extends StatelessWidget {
         children: [
           // Section header with left accent bar
           Container(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.cardPadding, AppSpacing.smMd,
-                AppSpacing.cardPadding, AppSpacing.smMd),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.cardPadding,
+                AppSpacing.smMd, AppSpacing.cardPadding, AppSpacing.smMd),
             decoration: BoxDecoration(
               color: accentColor.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(AppSpacing.radiusLg),
                 topRight: Radius.circular(AppSpacing.radiusLg),
               ),
-              border: Border(
-                  bottom: BorderSide(color: AppColors.outlineVariant)),
+              border:
+                  Border(bottom: BorderSide(color: AppColors.outlineVariant)),
             ),
             child: Row(
               children: [
                 // Left accent bar
                 Container(
-                  width: 4, height: 20,
+                  width: 4,
+                  height: 20,
                   decoration: BoxDecoration(
                     color: accentColor,
                     borderRadius: BorderRadius.circular(2),
@@ -559,7 +562,8 @@ class _SectionWrapper extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.smMd),
                 Container(
-                  width: 32, height: 32,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: accentColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -570,7 +574,7 @@ class _SectionWrapper extends StatelessWidget {
                 Text(
                   title,
                   style: AppTypography.titleLarge(context).copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.onBackground,
                   ),
                 ),
@@ -603,11 +607,10 @@ class _OverviewSection extends StatelessWidget {
       accentColor: AppColors.info,
       child: Column(
         children: [
-          _OverviewRow(
-              Icons.science_outlined, 'Dosage', product.dosage),
+          _OverviewRow(Icons.science_outlined, 'Dosage', product.dosage),
           const SizedBox(height: AppSpacing.smMd),
-          _OverviewRow(
-              Icons.water_drop_outlined, 'Application', product.applicationMethod),
+          _OverviewRow(Icons.water_drop_outlined, 'Application',
+              product.applicationMethod),
           const SizedBox(height: AppSpacing.smMd),
           _OverviewRow(
               Icons.eco_outlined, 'Primary Stage', product.primaryStage),
@@ -629,7 +632,8 @@ class _OverviewRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 34, height: 34,
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(
             color: AppColors.info.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -642,7 +646,7 @@ class _OverviewRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: AppTypography.labelSmall(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: AppColors.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.2,
@@ -665,8 +669,7 @@ class _OverviewRow extends StatelessWidget {
 // BENEFITS SECTION — icon+text cards in a grid-like column
 // ─────────────────────────────────────────────────────────────────────────────
 class _BenefitsSection extends StatelessWidget {
-  const _BenefitsSection(
-      {required this.product, required this.catColor});
+  const _BenefitsSection({required this.product, required this.catColor});
   final ProductEntity product;
   final Color catColor;
 
@@ -680,14 +683,14 @@ class _BenefitsSection extends StatelessWidget {
         children: product.benefits.asMap().entries.map((e) {
           return Padding(
             padding: EdgeInsets.only(
-                bottom: e.key < product.benefits.length - 1
-                    ? AppSpacing.sm
-                    : 0),
+                bottom:
+                    e.key < product.benefits.length - 1 ? AppSpacing.sm : 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 26, height: 26,
+                  width: 26,
+                  height: 26,
                   margin: const EdgeInsets.only(top: 1),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.12),
@@ -737,9 +740,7 @@ class _StagesSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.smMd, vertical: 7),
             decoration: BoxDecoration(
-              color: isFirst
-                  ? AppColors.primary
-                  : AppColors.primaryContainer,
+              color: isFirst ? AppColors.primary : AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
               boxShadow: isFirst
                   ? [
@@ -755,21 +756,16 @@ class _StagesSection extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  isFirst
-                      ? Icons.star_rounded
-                      : Icons.eco_outlined,
+                  isFirst ? Icons.star_rounded : Icons.eco_outlined,
                   size: 12,
-                  color: isFirst
-                      ? Colors.white
-                      : AppColors.onPrimaryContainer,
+                  color: isFirst ? Colors.white : AppColors.onPrimaryContainer,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   e.value,
-                  style: AppTypography.labelMedium(context).copyWith(
-                    color: isFirst
-                        ? Colors.white
-                        : AppColors.onPrimaryContainer,
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color:
+                        isFirst ? Colors.white : AppColors.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -786,8 +782,7 @@ class _StagesSection extends StatelessWidget {
 // DOSAGE & APPLICATION SECTION
 // ─────────────────────────────────────────────────────────────────────────────
 class _DosageSection extends StatelessWidget {
-  const _DosageSection(
-      {required this.product, required this.catColor});
+  const _DosageSection({required this.product, required this.catColor});
   final ProductEntity product;
   final Color catColor;
 
@@ -850,7 +845,8 @@ class _DosageCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 34, height: 34,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -863,7 +859,7 @@ class _DosageCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: AppTypography.labelSmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: AppColors.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.2,
@@ -915,7 +911,8 @@ class _UsageSection extends StatelessWidget {
               children: [
                 // Step number circle
                 Container(
-                  width: 26, height: 26,
+                  width: 26,
+                  height: 26,
                   margin: const EdgeInsets.only(top: 1),
                   decoration: BoxDecoration(
                     color: AppColors.tertiary.withValues(alpha: 0.12),
@@ -924,9 +921,9 @@ class _UsageSection extends StatelessWidget {
                   child: Center(
                     child: Text(
                       '$stepNum',
-                      style: AppTypography.labelSmall(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: AppColors.tertiary,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -969,8 +966,7 @@ class _PrecautionsSection extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.warningLight.withValues(alpha: 0.55),
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(
-              color: AppColors.warning.withValues(alpha: 0.25)),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
         ),
         child: Column(
           children: product.precautions.asMap().entries.map((e) {
@@ -1000,7 +996,8 @@ class _PrecautionsSection extends StatelessWidget {
                 ),
                 if (!isLast) ...[
                   const SizedBox(height: 4),
-                  Divider(height: 1,
+                  Divider(
+                      height: 1,
                       color: AppColors.warning.withValues(alpha: 0.2)),
                   const SizedBox(height: 4),
                 ],
@@ -1046,17 +1043,16 @@ class _UsedInSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: item.$3.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(
-                  color: item.$3.withValues(alpha: 0.20)),
+              border: Border.all(color: item.$3.withValues(alpha: 0.20)),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 28, height: 28,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: item.$3.withValues(alpha: 0.14),
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusSm),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   ),
                   child: Icon(item.$1, size: 14, color: item.$3),
                 ),
@@ -1064,7 +1060,7 @@ class _UsedInSection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     item.$2,
-                    style: AppTypography.labelSmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: AppColors.onBackground,
                       fontWeight: FontWeight.w600,
                       height: 1.3,
@@ -1086,8 +1082,7 @@ class _UsedInSection extends StatelessWidget {
 // RELATED PRODUCTS — horizontal scroll so page doesn't grow too long
 // ─────────────────────────────────────────────────────────────────────────────
 class _RelatedSection extends StatelessWidget {
-  const _RelatedSection(
-      {required this.products, required this.onTap});
+  const _RelatedSection({required this.products, required this.onTap});
   final List<ProductEntity> products;
   final void Function(ProductEntity) onTap;
 
@@ -1097,13 +1092,13 @@ class _RelatedSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screenHorizontal, AppSpacing.md,
-              AppSpacing.screenHorizontal, AppSpacing.smMd),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+              AppSpacing.md, AppSpacing.screenHorizontal, AppSpacing.smMd),
           child: Row(
             children: [
               Container(
-                width: 4, height: 18,
+                width: 4,
+                height: 18,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(2),
@@ -1115,8 +1110,8 @@ class _RelatedSection extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Related Products',
-                style: AppTypography.headlineSmall(context)
-                    .copyWith(fontWeight: FontWeight.w700),
+                style: AppTypography.titleLarge(context)
+                    .copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -1128,8 +1123,7 @@ class _RelatedSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenHorizontal),
             itemCount: products.length,
-            separatorBuilder: (_, __) =>
-                const SizedBox(width: AppSpacing.smMd),
+            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.smMd),
             itemBuilder: (_, i) {
               final p = products[i];
               final color = productCategoryColor(p.category);
@@ -1139,8 +1133,7 @@ class _RelatedSection extends StatelessWidget {
                   width: 160,
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusLg),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                     border: Border.all(color: AppColors.outline),
                     boxShadow: [
                       BoxShadow(
@@ -1174,9 +1167,8 @@ class _RelatedSection extends StatelessWidget {
                           children: [
                             Text(
                               p.name,
-                              style: AppTypography.titleSmall(context)
-                                  .copyWith(
-                                fontWeight: FontWeight.w700,
+                              style: AppTypography.labelLarge(context).copyWith(
+                                fontWeight: FontWeight.w600,
                                 color: AppColors.onBackground,
                               ),
                               maxLines: 2,
@@ -1193,10 +1185,10 @@ class _RelatedSection extends StatelessWidget {
                               ),
                               child: Text(
                                 p.category.displayName,
-                                style: AppTypography.labelSmall(context)
-                                    .copyWith(
+                                style:
+                                    AppTypography.labelLarge(context).copyWith(
                                   color: color,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),

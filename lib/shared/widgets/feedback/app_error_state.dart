@@ -7,7 +7,6 @@ import '../app_card.dart';
 
 /// Production error state — supports inline (row) and full (column) layouts.
 class AppErrorState extends StatelessWidget {
-
   const AppErrorState({
     super.key,
     this.title = 'Something went wrong',
@@ -55,7 +54,7 @@ class AppErrorState extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         message!,
-                        style: AppTypography.bodySmall(context).copyWith(
+                        style: AppTypography.labelLarge(context).copyWith(
                           color: cs.onErrorContainer,
                         ),
                       ),
@@ -102,7 +101,7 @@ class AppErrorState extends StatelessWidget {
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: cs.onErrorContainer,
                 ),
               ),

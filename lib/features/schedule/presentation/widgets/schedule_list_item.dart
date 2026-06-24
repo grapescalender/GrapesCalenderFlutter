@@ -43,6 +43,8 @@ class ScheduleListItem extends StatelessWidget {
         return AppColors.info;
       case ScheduleType.nutrition:
         return AppColors.warning;
+      case ScheduleType.water:
+        return AppColors.primary;
       case ScheduleType.work:
         return AppColors.success;
       default:
@@ -56,6 +58,8 @@ class ScheduleListItem extends StatelessWidget {
         return Icons.water_drop_outlined;
       case ScheduleType.nutrition:
         return Icons.grass_outlined;
+      case ScheduleType.water:
+        return Icons.water_outlined;
       case ScheduleType.work:
         return Icons.construction_outlined;
       default:
@@ -155,7 +159,7 @@ class ScheduleListItem extends StatelessWidget {
                 children: [
                   Text(
                     schedule.title,
-                    style: AppTypography.listItemTitle(context).copyWith(
+                    style: AppTypography.titleMedium(context).copyWith(
                       color: AppColors.onBackground,
                       fontWeight: FontWeight.w600,
                     ),
@@ -174,7 +178,7 @@ class ScheduleListItem extends StatelessWidget {
                             Text(
                               _scheduleDateLabel(),
                               style:
-                                  AppTypography.listItemBody(context).copyWith(
+                                  AppTypography.bodyMedium(context).copyWith(
                                 color: AppColors.onSurfaceVariant,
                                 height: 1.15,
                               ),
@@ -185,7 +189,7 @@ class ScheduleListItem extends StatelessWidget {
                             Text(
                               activityLabel,
                               style:
-                                  AppTypography.listItemBody(context).copyWith(
+                                  AppTypography.bodyMedium(context).copyWith(
                                 color: AppColors.onBackground,
                                 height: 1.15,
                               ),
@@ -276,7 +280,7 @@ class _ScheduleTypeTag extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: AppTypography.listItemMeta(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: AppColors.onSurface,
               fontWeight: FontWeight.w600,
             ),

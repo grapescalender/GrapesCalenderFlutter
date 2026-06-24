@@ -31,7 +31,7 @@ class SeeMoreRow extends StatelessWidget {
             children: [
               Text(
                 'See More',
-                style: AppTypography.body(context).copyWith(
+                style: AppTypography.bodyMedium(context).copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),

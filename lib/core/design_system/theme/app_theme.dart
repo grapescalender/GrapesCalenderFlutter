@@ -45,7 +45,7 @@ class AppTheme {
           statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
         ),
-        titleTextStyle: AppTypography.titleLarge(null).copyWith(
+        titleTextStyle: AppTypography.headlineMedium(null).copyWith(
           color: colorScheme.onSurface,
           fontWeight: FontWeight.w600,
         ),
@@ -93,7 +93,7 @@ class AppTheme {
         hintStyle: AppTypography.bodyMedium(null).copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
-        errorStyle: AppTypography.bodySmall(null).copyWith(
+        errorStyle: AppTypography.labelLarge(null).copyWith(
           color: colorScheme.error,
         ),
       ),
@@ -111,7 +111,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
-          textStyle: AppTypography.labelLarge(null),
+          textStyle: AppTypography.bodyLarge(null),
         ),
       ),
 
@@ -127,7 +127,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
           side: BorderSide(color: colorScheme.primary),
-          textStyle: AppTypography.labelLarge(null).copyWith(
+          textStyle: AppTypography.bodyLarge(null).copyWith(
             color: colorScheme.primary,
           ),
         ),
@@ -144,7 +144,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
-          textStyle: AppTypography.labelLarge(null).copyWith(
+          textStyle: AppTypography.bodyLarge(null).copyWith(
             color: colorScheme.primary,
           ),
         ),
@@ -172,8 +172,8 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         selectedItemColor: colorScheme.primary,
         unselectedItemColor: colorScheme.onSurfaceVariant,
-        selectedLabelStyle: AppTypography.labelSmall(null),
-        unselectedLabelStyle: AppTypography.labelSmall(null),
+        selectedLabelStyle: AppTypography.labelLarge(null),
+        unselectedLabelStyle: AppTypography.labelLarge(null),
         type: BottomNavigationBarType.fixed,
         elevation: 2,
       ),
@@ -221,7 +221,7 @@ class AppTheme {
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
-        titleTextStyle: AppTypography.titleLarge(null).copyWith(
+        titleTextStyle: AppTypography.headlineMedium(null).copyWith(
           color: colorScheme.onSurface,
           fontWeight: FontWeight.w600,
         ),
@@ -269,7 +269,7 @@ class AppTheme {
         hintStyle: AppTypography.bodyMedium(null).copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
-        errorStyle: AppTypography.bodySmall(null).copyWith(
+        errorStyle: AppTypography.labelLarge(null).copyWith(
           color: colorScheme.error,
         ),
       ),
@@ -287,7 +287,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
-          textStyle: AppTypography.labelLarge(null),
+          textStyle: AppTypography.bodyLarge(null),
         ),
       ),
 
@@ -303,7 +303,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
           side: BorderSide(color: colorScheme.primary),
-          textStyle: AppTypography.labelLarge(null).copyWith(
+          textStyle: AppTypography.bodyLarge(null).copyWith(
             color: colorScheme.primary,
           ),
         ),
@@ -320,7 +320,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
-          textStyle: AppTypography.labelLarge(null).copyWith(
+          textStyle: AppTypography.bodyLarge(null).copyWith(
             color: colorScheme.primary,
           ),
         ),
@@ -348,8 +348,8 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         selectedItemColor: colorScheme.primary,
         unselectedItemColor: colorScheme.onSurfaceVariant,
-        selectedLabelStyle: AppTypography.labelSmall(null),
-        unselectedLabelStyle: AppTypography.labelSmall(null),
+        selectedLabelStyle: AppTypography.labelLarge(null),
+        unselectedLabelStyle: AppTypography.labelLarge(null),
         type: BottomNavigationBarType.fixed,
         elevation: 2,
       ),
@@ -386,8 +386,9 @@ class AppTheme {
       );
 
   /// Dark Color Scheme (Material 3, from seed)
-  static ColorScheme get _darkColorScheme =>
-      ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark).copyWith(
+  static ColorScheme get _darkColorScheme => ColorScheme.fromSeed(
+              seedColor: AppColors.primary, brightness: Brightness.dark)
+          .copyWith(
         primary: AppColors.primaryLight,
         onPrimary: AppColors.primaryDark,
         primaryContainer: AppColors.primaryDark,
@@ -403,67 +404,67 @@ class AppTheme {
 
   /// Build Text Theme for Light Mode
   static TextTheme _buildTextTheme() => TextTheme(
-      displayLarge: AppTypography.displayLarge(null),
-      displayMedium: AppTypography.displayMedium(null),
-      displaySmall: AppTypography.displaySmall(null),
-      headlineLarge: AppTypography.headlineLarge(null),
-      headlineMedium: AppTypography.headlineMedium(null),
-      headlineSmall: AppTypography.headlineSmall(null),
-      titleLarge: AppTypography.titleLarge(null),
-      titleMedium: AppTypography.titleMedium(null),
-      titleSmall: AppTypography.titleSmall(null),
-      bodyLarge: AppTypography.bodyLarge(null),
-      bodyMedium: AppTypography.bodyMedium(null),
-      bodySmall: AppTypography.bodySmall(null),
-      labelLarge: AppTypography.labelLarge(null),
-      labelMedium: AppTypography.labelMedium(null),
-      labelSmall: AppTypography.labelSmall(null),
-    );
+        displayLarge: AppTypography.displayLarge(null),
+        displayMedium: AppTypography.displayLarge(null),
+        displaySmall: AppTypography.titleLarge(null),
+        headlineLarge: AppTypography.headlineMedium(null),
+        headlineMedium: AppTypography.headlineMedium(null),
+        headlineSmall: AppTypography.titleLarge(null),
+        titleLarge: AppTypography.titleLarge(null),
+        titleMedium: AppTypography.titleMedium(null),
+        titleSmall: AppTypography.labelLarge(null),
+        bodyLarge: AppTypography.bodyLarge(null),
+        bodyMedium: AppTypography.bodyMedium(null),
+        bodySmall: AppTypography.labelLarge(null),
+        labelLarge: AppTypography.labelLarge(null),
+        labelMedium: AppTypography.labelLarge(null),
+        labelSmall: AppTypography.labelLarge(null),
+      );
 
   /// Build Text Theme for Dark Mode
   static TextTheme _buildDarkTextTheme() => TextTheme(
-      displayLarge: AppTypography.displayLarge(null).copyWith(
-        color: AppColors.darkOnBackground,
-      ),
-      displayMedium: AppTypography.displayMedium(null).copyWith(
-        color: AppColors.darkOnBackground,
-      ),
-      displaySmall: AppTypography.displaySmall(null).copyWith(
-        color: AppColors.darkOnBackground,
-      ),
-      headlineLarge: AppTypography.headlineLarge(null).copyWith(
-        color: AppColors.darkOnBackground,
-      ),
-      headlineMedium: AppTypography.headlineMedium(null).copyWith(
-        color: AppColors.darkOnBackground,
-      ),
-      headlineSmall: AppTypography.headlineSmall(null).copyWith(
-        color: AppColors.darkOnBackground,
-      ),
-      titleLarge: AppTypography.titleLarge(null).copyWith(
-        color: AppColors.darkOnSurface,
-      ),
-      titleMedium: AppTypography.titleMedium(null).copyWith(
-        color: AppColors.darkOnSurface,
-      ),
-      titleSmall: AppTypography.titleSmall(null).copyWith(
-        color: AppColors.darkOnSurfaceVariant,
-      ),
-      bodyLarge: AppTypography.bodyLarge(null).copyWith(
-        color: AppColors.darkOnSurface,
-      ),
-      bodyMedium: AppTypography.bodyMedium(null).copyWith(
-        color: AppColors.darkOnSurface,
-      ),
-      bodySmall: AppTypography.bodySmall(null).copyWith(
-        color: AppColors.darkOnSurfaceVariant,
-      ),
-      labelLarge: AppTypography.labelLarge(null),
-      labelMedium: AppTypography.labelMedium(null).copyWith(
-        color: AppColors.darkOnSurface,
-      ),
-      labelSmall: AppTypography.labelSmall(null).copyWith(
-        color: AppColors.darkOnSurfaceVariant,
-      ),
-    );
+        displayLarge: AppTypography.displayLarge(null).copyWith(
+          color: AppColors.darkOnBackground,
+        ),
+        displayMedium: AppTypography.displayLarge(null).copyWith(
+          color: AppColors.darkOnBackground,
+        ),
+        displaySmall: AppTypography.titleLarge(null).copyWith(
+          color: AppColors.darkOnBackground,
+        ),
+        headlineLarge: AppTypography.headlineMedium(null).copyWith(
+          color: AppColors.darkOnBackground,
+        ),
+        headlineMedium: AppTypography.headlineMedium(null).copyWith(
+          color: AppColors.darkOnBackground,
+        ),
+        headlineSmall: AppTypography.titleLarge(null).copyWith(
+          color: AppColors.darkOnBackground,
+        ),
+        titleLarge: AppTypography.titleLarge(null).copyWith(
+          color: AppColors.darkOnSurface,
+        ),
+        titleMedium: AppTypography.titleMedium(null).copyWith(
+          color: AppColors.darkOnSurface,
+        ),
+        titleSmall: AppTypography.labelLarge(null).copyWith(
+          color: AppColors.darkOnSurfaceVariant,
+        ),
+        bodyLarge: AppTypography.bodyLarge(null).copyWith(
+          color: AppColors.darkOnSurface,
+        ),
+        bodyMedium: AppTypography.bodyMedium(null).copyWith(
+          color: AppColors.darkOnSurface,
+        ),
+        bodySmall: AppTypography.labelLarge(null).copyWith(
+          color: AppColors.darkOnSurfaceVariant,
+        ),
+        labelLarge: AppTypography.labelLarge(null),
+        labelMedium: AppTypography.labelLarge(null).copyWith(
+          color: AppColors.darkOnSurface,
+        ),
+        labelSmall: AppTypography.labelLarge(null).copyWith(
+          color: AppColors.darkOnSurfaceVariant,
+        ),
+      );
 }

@@ -71,7 +71,7 @@ class _AddPlotFormState extends ConsumerState<AddPlotForm> {
                 children: [
                   Text(
                     'Add Plot',
-                    style: AppTypography.headlineLarge(context),
+                    style: AppTypography.headlineMedium(context),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -236,7 +236,7 @@ class _AddPlotFormState extends ConsumerState<AddPlotForm> {
         ),
         subtitle: Text(
           'Enable this if pruning has started',
-          style: AppTypography.bodySmall(context).copyWith(
+          style: AppTypography.labelLarge(context).copyWith(
             color: cs.onSurfaceVariant,
           ),
         ),
@@ -266,7 +266,7 @@ class _AddPlotFormState extends ConsumerState<AddPlotForm> {
                 children: [
                   Text(
                     'Pruning Date',
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: cs.onSurfaceVariant,
                     ),
                   ),

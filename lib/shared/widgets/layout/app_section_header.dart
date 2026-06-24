@@ -6,7 +6,6 @@ import '../app_button.dart';
 
 /// Standard section header with optional trailing action.
 class AppSectionHeader extends StatelessWidget {
-
   const AppSectionHeader({
     super.key,
     required this.title,
@@ -62,7 +61,7 @@ class AppSectionHeader extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       subtitle!,
-                      style: AppTypography.bodySmall(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: cs.onSurfaceVariant,
                       ),
                     ),

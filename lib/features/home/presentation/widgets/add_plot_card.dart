@@ -64,7 +64,7 @@ class AddPlotCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               Text(
                 showStartPlot ? 'Start Plot' : 'Add Plot',
-                style: AppTypography.cardTitle(context).copyWith(
+                style: AppTypography.titleMedium(context).copyWith(
                   color:
                       isEnabled ? cs.onSurface : cs.onSurface.withOpacity(0.38),
                 ),
@@ -76,7 +76,7 @@ class AddPlotCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'All running',
-                  style: AppTypography.caption(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: cs.onSurface.withOpacity(0.38),
                   ),
                   textAlign: TextAlign.center,

@@ -45,8 +45,8 @@ class ProfilePage extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
                     AppSpacing.md, AppSpacing.screenHorizontal, 0),
                 child: Text('Account',
-                    style: AppTypography.headlineSmall(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
+                    style: AppTypography.titleLarge(context)
+                        .copyWith(fontWeight: FontWeight.w600)),
               ),
             ),
             SliverToBoxAdapter(
@@ -81,8 +81,8 @@ class ProfilePage extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
                     AppSpacing.md, AppSpacing.screenHorizontal, 0),
                 child: Text('Preferences',
-                    style: AppTypography.headlineSmall(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
+                    style: AppTypography.titleLarge(context)
+                        .copyWith(fontWeight: FontWeight.w600)),
               ),
             ),
             SliverToBoxAdapter(
@@ -121,8 +121,8 @@ class ProfilePage extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
                     AppSpacing.md, AppSpacing.screenHorizontal, 0),
                 child: Text('Support',
-                    style: AppTypography.headlineSmall(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
+                    style: AppTypography.titleLarge(context)
+                        .copyWith(fontWeight: FontWeight.w600)),
               ),
             ),
             SliverToBoxAdapter(
@@ -211,9 +211,9 @@ class _ProfileHeader extends StatelessWidget {
             ),
             child: Center(
               child: Text('S',
-                  style: AppTypography.headlineLarge(context).copyWith(
+                  style: AppTypography.headlineMedium(context).copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   )),
             ),
           ),
@@ -225,10 +225,10 @@ class _ProfileHeader extends StatelessWidget {
               children: [
                 Text('Farmer Name',
                     style: AppTypography.headlineMedium(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
                 Text('farmer@example.com',
-                    style: AppTypography.bodySmall(context)
+                    style: AppTypography.labelLarge(context)
                         .copyWith(color: AppColors.onSurface)),
                 const SizedBox(height: AppSpacing.sm),
                 Container(
@@ -245,10 +245,8 @@ class _ProfileHeader extends StatelessWidget {
                           size: 12, color: AppColors.success),
                       const SizedBox(width: 4),
                       Text('Farm Owner',
-                          style: AppTypography.bodySmall(context).copyWith(
+                          style: AppTypography.labelLarge(context).copyWith(
                             color: AppColors.success,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
                           )),
                     ],
                   ),
@@ -308,19 +306,18 @@ class _FarmInfoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('My Farm',
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                     )),
                 Text('Table Grapes Farm',
-                    style: AppTypography.headlineSmall(context).copyWith(
-                      fontWeight: FontWeight.w700,
+                    style: AppTypography.titleLarge(context).copyWith(
+                      fontWeight: FontWeight.w600,
                       color: AppColors.primaryDark,
                     )),
                 Text('Maharashtra, India',
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.labelLarge(context).copyWith(
                       color: AppColors.primary,
-                      fontSize: 11,
                     )),
               ],
             ),
@@ -448,7 +445,7 @@ class _LogoutButton extends StatelessWidget {
             Text('Log Out',
                 style: AppTypography.bodyMedium(context).copyWith(
                   color: AppColors.error,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 )),
           ],
         ),

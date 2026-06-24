@@ -124,13 +124,13 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
                       'Product Knowledge Center',
                       style: AppTypography.headlineMedium(context).copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Explore products used in grape cultivation',
-                      style: AppTypography.bodySmall(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: cs.onPrimary.withValues(alpha: 0.85),
                         fontWeight: FontWeight.w500,
                       ),
@@ -143,10 +143,9 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
                     horizontal: AppSpacing.smMd, vertical: 6),
                 decoration: BoxDecoration(
                   color: cs.onPrimary.withValues(alpha: 0.15),
-                  borderRadius:
-                      BorderRadius.circular(AppSpacing.radiusFull),
-                  border: Border.all(
-                      color: cs.onPrimary.withValues(alpha: 0.25)),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                  border:
+                      Border.all(color: cs.onPrimary.withValues(alpha: 0.25)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -156,7 +155,7 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
                     const SizedBox(width: 4),
                     Text(
                       'Library',
-                      style: AppTypography.labelMedium(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
@@ -181,23 +180,18 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
         children: [
           // Search bar
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.smMd,
-                AppSpacing.screenHorizontal,
-                AppSpacing.sm),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+                AppSpacing.smMd, AppSpacing.screenHorizontal, AppSpacing.sm),
             child: Focus(
               onFocusChange: (f) => setState(() => _searchFocused = f),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   color: AppColors.background,
-                  borderRadius:
-                      BorderRadius.circular(AppSpacing.radiusMd),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   border: Border.all(
-                    color: _searchFocused
-                        ? AppColors.primary
-                        : AppColors.outline,
+                    color:
+                        _searchFocused ? AppColors.primary : AppColors.outline,
                     width: _searchFocused ? 1.5 : 1.0,
                   ),
                   boxShadow: _searchFocused
@@ -260,8 +254,7 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenHorizontal),
               itemCount: _categories.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(width: AppSpacing.sm),
+              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
               itemBuilder: (_, i) {
                 final cat = _categories[i];
                 return ProductCategoryChip(
@@ -277,8 +270,7 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
           // Result count bar
           if (!state.isLoading)
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenHorizontal, 0,
+              padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal, 0,
                   AppSpacing.screenHorizontal, AppSpacing.sm),
               child: Row(
                 children: [
@@ -292,9 +284,9 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
                     ),
                     child: Text(
                       '${state.products.length} Products',
-                      style: AppTypography.labelMedium(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: AppColors.onPrimaryContainer,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -302,7 +294,7 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'for "${state.searchQuery}"',
-                      style: AppTypography.bodySmall(context)
+                      style: AppTypography.labelLarge(context)
                           .copyWith(color: AppColors.onSurfaceVariant),
                     ),
                   ],
@@ -322,7 +314,8 @@ class _ProductKnowledgePageState extends ConsumerState<ProductKnowledgePage> {
     if (state.errorMessage != null) {
       return _ErrorState(
         message: state.errorMessage!,
-        onRetry: () => ref.read(productNotifierProvider.notifier).loadProducts(),
+        onRetry: () =>
+            ref.read(productNotifierProvider.notifier).loadProducts(),
       );
     }
 
@@ -395,7 +388,8 @@ class _ErrorState extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 64, height: 64,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   color: AppColors.errorLight,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -431,7 +425,8 @@ class _EmptyState extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 72, height: 72,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -444,8 +439,8 @@ class _EmptyState extends StatelessWidget {
                 query.isNotEmpty
                     ? 'No results for "$query"'
                     : 'No products found',
-                style: AppTypography.headlineSmall(context)
-                    .copyWith(fontWeight: FontWeight.w700),
+                style: AppTypography.titleLarge(context)
+                    .copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(

@@ -53,8 +53,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final authNotifier = ref.read(authNotifierProvider.notifier);
 
     // Initialize form state with pre-filled values on first build
-    if (_usernameController.text.isNotEmpty && 
-        (loginFormState.username.isEmpty || loginFormState.username != _usernameController.text)) {
+    if (_usernameController.text.isNotEmpty &&
+        (loginFormState.username.isEmpty ||
+            loginFormState.username != _usernameController.text)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           loginController.updateUsername(_usernameController.text);
@@ -67,10 +68,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     // Use WidgetsBinding to ensure we're in a valid frame
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (!mounted) return;
-      
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !context.mounted) return;
-        
+
         next.maybeWhen(
           authenticated: (user) {
             // Navigate to home on successful login
@@ -131,29 +132,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     AuthState authState,
     LoginController loginController,
     AuthNotifier authNotifier,
-  ) => SingleChildScrollView(
-      padding: EdgeInsets.all(AppSpacing.screenHorizontal),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: AppSpacing.xxl),
-            _buildHeader(context),
-            SizedBox(height: AppSpacing.xxl),
-            _buildLoginForm(
-              context,
-              formState,
-              authState,
-              loginController,
-              authNotifier,
-            ),
-            SizedBox(height: AppSpacing.lg),
-            _buildFooter(context),
-          ],
+  ) =>
+      SingleChildScrollView(
+        padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: AppSpacing.xxl),
+              _buildHeader(context),
+              SizedBox(height: AppSpacing.xxl),
+              _buildLoginForm(
+                context,
+                formState,
+                authState,
+                loginController,
+                authNotifier,
+              ),
+              SizedBox(height: AppSpacing.lg),
+              _buildFooter(context),
+            ],
+          ),
         ),
-      ),
-    );
+      );
 
   /// Tablet layout
   Widget _buildTabletLayout(
@@ -162,34 +164,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     AuthState authState,
     LoginController loginController,
     AuthNotifier authNotifier,
-  ) => Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(AppSpacing.xl),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: AppSpacing.xxl),
-                _buildHeader(context),
-                SizedBox(height: AppSpacing.xxl),
-                _buildLoginForm(
-                  context,
-                  formState,
-                  authState,
-                  loginController,
-                  authNotifier,
-                ),
-                SizedBox(height: AppSpacing.lg),
-                _buildFooter(context),
-              ],
+  ) =>
+      Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(AppSpacing.xl),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: AppSpacing.xxl),
+                  _buildHeader(context),
+                  SizedBox(height: AppSpacing.xxl),
+                  _buildLoginForm(
+                    context,
+                    formState,
+                    authState,
+                    loginController,
+                    authNotifier,
+                  ),
+                  SizedBox(height: AppSpacing.lg),
+                  _buildFooter(context),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
   /// Desktop layout
   Widget _buildDesktopLayout(
@@ -198,34 +201,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     AuthState authState,
     LoginController loginController,
     AuthNotifier authNotifier,
-  ) => Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 450),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(AppSpacing.xl),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: AppSpacing.xxl),
-                _buildHeader(context),
-                SizedBox(height: AppSpacing.xxl),
-                _buildLoginForm(
-                  context,
-                  formState,
-                  authState,
-                  loginController,
-                  authNotifier,
-                ),
-                SizedBox(height: AppSpacing.lg),
-                _buildFooter(context),
-              ],
+  ) =>
+      Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(AppSpacing.xl),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: AppSpacing.xxl),
+                  _buildHeader(context),
+                  SizedBox(height: AppSpacing.xxl),
+                  _buildLoginForm(
+                    context,
+                    formState,
+                    authState,
+                    loginController,
+                    authNotifier,
+                  ),
+                  SizedBox(height: AppSpacing.lg),
+                  _buildFooter(context),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
   /// Header section
   Widget _buildHeader(BuildContext context) {
@@ -250,7 +254,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         // Title
         Text(
           'Welcome Back',
-          style: AppTypography.displaySmall(context),
+          style: AppTypography.titleLarge(context),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -292,7 +296,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             decoration: InputDecoration(
               labelText: 'Username',
               hintText: 'Enter your username',
-              prefixIcon: Icon(Icons.person_outline, color: cs.onSurfaceVariant),
+              prefixIcon:
+                  Icon(Icons.person_outline, color: cs.onSurfaceVariant),
               errorText: formState.usernameError,
               errorMaxLines: 2,
             ),
@@ -340,12 +345,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: isLoading ? null : () {
-                // TODO: Navigate to forgot password
-              },
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      // TODO: Navigate to forgot password
+                    },
               child: Text(
                 'Forgot Password?',
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: cs.primary,
                 ),
               ),

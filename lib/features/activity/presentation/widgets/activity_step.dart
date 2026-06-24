@@ -8,7 +8,6 @@ import '../../domain/entities/activity_entity.dart';
 /// Activity Step Widget
 /// Individual step in the activity timeline
 class ActivityStep extends StatelessWidget {
-
   const ActivityStep({
     Key? key,
     required this.activity,
@@ -25,20 +24,20 @@ class ActivityStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Timeline indicator
-          _buildTimelineIndicator(context),
-          SizedBox(width: AppSpacing.md),
-          // Content card
-          Expanded(
-            child: _buildContentCard(context),
-          ),
-        ],
-      ),
-    );
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Timeline indicator
+            _buildTimelineIndicator(context),
+            SizedBox(width: AppSpacing.md),
+            // Content card
+            Expanded(
+              child: _buildContentCard(context),
+            ),
+          ],
+        ),
+      );
 
   /// Timeline indicator (vertical line + icon)
   Widget _buildTimelineIndicator(BuildContext context) {
@@ -84,9 +83,8 @@ class ActivityStep extends StatelessWidget {
             height: 60,
             margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
             decoration: BoxDecoration(
-              color: isCompleted
-                  ? semantic.success
-                  : cs.outline.withOpacity(0.3),
+              color:
+                  isCompleted ? semantic.success : cs.outline.withOpacity(0.3),
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -102,9 +100,7 @@ class ActivityStep extends StatelessWidget {
       curve: Curves.easeInOut,
       child: AppCard.defaultStyle(
         onTap: onTap,
-        color: isActive
-            ? cs.primary.withOpacity(0.06)
-            : null,
+        color: isActive ? cs.primary.withOpacity(0.06) : null,
         border: isActive
             ? Border.all(
                 color: cs.primary,
@@ -120,10 +116,8 @@ class ActivityStep extends StatelessWidget {
                 Expanded(
                   child: Text(
                     activity.type.displayName,
-                    style: AppTypography.headlineSmall(context).copyWith(
-                      color: isActive
-                          ? cs.primary
-                          : cs.onSurface,
+                    style: AppTypography.titleLarge(context).copyWith(
+                      color: isActive ? cs.primary : cs.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -166,7 +160,7 @@ class ActivityStep extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
             Text(
               'Done',
-              style: AppTypography.labelSmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: semantic.success,
                 fontWeight: FontWeight.w600,
               ),
@@ -198,7 +192,7 @@ class ActivityStep extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
             Text(
               'Active',
-              style: AppTypography.labelSmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: cs.primary,
                 fontWeight: FontWeight.w600,
               ),
@@ -224,7 +218,7 @@ class ActivityStep extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             'Completed ${_formatDate(activity.completedAt!)}',
-            style: AppTypography.bodySmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: cs.onSurfaceVariant,
             ),
           ),
@@ -241,7 +235,7 @@ class ActivityStep extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             'Started ${_formatDate(activity.startedAt!)}',
-            style: AppTypography.bodySmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: cs.primary,
             ),
           ),
@@ -258,7 +252,7 @@ class ActivityStep extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             'Pending',
-            style: AppTypography.bodySmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: cs.onSurfaceVariant,
             ),
           ),

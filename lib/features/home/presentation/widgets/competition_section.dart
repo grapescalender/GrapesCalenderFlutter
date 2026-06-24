@@ -1,9 +1,9 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
@@ -122,17 +122,17 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
                     children: [
                       Text(
                         _fixedWindowLabel(myPlot.pruningDate),
-                        style: AppTypography.labelSmall(context).copyWith(
+                        style: AppTypography.labelLarge(context).copyWith(
                           color: AppColors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 3),
                       Text(
                         '${_radiusKm.round()} KM radius from ${myPlot.name}',
-                        style: AppTypography.labelSmall(context).copyWith(
+                        style: AppTypography.labelLarge(context).copyWith(
                           color: AppColors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -342,14 +342,14 @@ class _SectionHeader extends StatelessWidget {
             children: [
               Text(
                 'Competition Analysis',
-                style: AppTypography.headlineSmall(context).copyWith(
+                style: AppTypography.titleLarge(context).copyWith(
                   color: AppColors.onBackground,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 'Nearby pruning activity around selected plot',
-                style: AppTypography.bodySmall(context)
+                style: AppTypography.labelLarge(context)
                     .copyWith(color: AppColors.onSurfaceVariant),
               ),
             ],
@@ -425,9 +425,9 @@ class _RadiusRangeSelector extends StatelessWidget {
             ),
             child: Text(
               '$selectedKm KM',
-              style: AppTypography.labelSmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: Colors.white,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
             ),
@@ -447,8 +447,8 @@ class _RadiusRangeSelector extends StatelessWidget {
                   overlayRadius: 15,
                 ),
                 valueIndicatorColor: AppColors.primary,
-                valueIndicatorTextStyle: AppTypography.labelSmall(context)
-                    .copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+                valueIndicatorTextStyle: AppTypography.labelLarge(context)
+                    .copyWith(color: Colors.white, fontWeight: FontWeight.w600),
               ),
               child: Slider(
                 value: value,
@@ -519,9 +519,9 @@ class _CompactVarietyButton extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: AppTypography.labelSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: AppColors.onBackground,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -578,8 +578,8 @@ class _CompactVarietyButton extends StatelessWidget {
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       'Select Varieties',
-                      style: AppTypography.headlineSmall(context)
-                          .copyWith(fontWeight: FontWeight.w800),
+                      style: AppTypography.titleLarge(context)
+                          .copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Wrap(
@@ -671,9 +671,9 @@ class _SummaryText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = AppTypography.sectionTitle(context).copyWith(
+    final baseStyle = AppTypography.titleLarge(context).copyWith(
       color: AppColors.onBackground,
-      fontWeight: FontWeight.w900,
+      fontWeight: FontWeight.w600,
       height: 1.22,
     );
     final numberStyle = baseStyle.copyWith(
@@ -746,7 +746,7 @@ class _CompetitionEmptyState extends StatelessWidget {
               'Try widening the radius or selecting more varieties.',
               style: AppTypography.bodyMedium(context).copyWith(
                 color: AppColors.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -758,44 +758,15 @@ class _CompetitionEmptyState extends StatelessWidget {
 }
 
 // ── Dropdown filter ───────────────────────────────────────────────────────────
-// ── Donut chart ───────────────────────────────────────────────────────────────
-class _DonutChart extends StatefulWidget {
+// ── Exploded pie chart ────────────────────────────────────────────────────────
+class _DonutChart extends StatelessWidget {
   const _DonutChart({required this.totalAcres, required this.segments});
 
   final double totalAcres;
   final List<_Seg> segments;
 
   @override
-  State<_DonutChart> createState() => _DonutChartState();
-}
-
-class _DonutChartState extends State<_DonutChart> {
-  late final TooltipBehavior _tooltip;
-
-  @override
-  void initState() {
-    super.initState();
-    _tooltip = TooltipBehavior(
-      enable: true,
-      format: 'point.x\npoint.y Acres',
-      color: AppColors.onBackground,
-      textStyle: AppTypography.caption(null).copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.w600,
-      ),
-      borderWidth: 0,
-      elevation: 4,
-      duration: 3000,
-      animationDuration: 150,
-      tooltipPosition: TooltipPosition.auto,
-      decimalPlaces: 0,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    const chartSize = 118.0;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.smMd,
@@ -805,31 +776,20 @@ class _DonutChartState extends State<_DonutChart> {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final compact = constraints.maxWidth < 320;
+          final width = constraints.maxWidth;
+          final chartWidth = (width * 0.82).clamp(228.0, 292.0);
           final chart = _DonutVisual(
-            totalAcres: widget.totalAcres,
-            segments: widget.segments,
-            tooltip: _tooltip,
-            size: chartSize,
+            totalAcres: totalAcres,
+            segments: segments,
+            width: chartWidth,
           );
-          final breakdown = _VarietyBreakdown(segments: widget.segments);
+          final breakdown = _VarietyBreakdown(segments: segments);
 
-          if (compact) {
-            return Column(
-              children: [
-                Align(alignment: Alignment.centerLeft, child: chart),
-                const SizedBox(height: AppSpacing.sm),
-                breakdown,
-              ],
-            );
-          }
-
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          return Column(
             children: [
-              chart,
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: breakdown),
+              Center(child: chart),
+              const SizedBox(height: AppSpacing.smMd),
+              breakdown,
             ],
           );
         },
@@ -842,80 +802,207 @@ class _DonutVisual extends StatelessWidget {
   const _DonutVisual({
     required this.totalAcres,
     required this.segments,
-    required this.tooltip,
-    required this.size,
+    required this.width,
   });
 
   final double totalAcres;
   final List<_Seg> segments;
-  final TooltipBehavior tooltip;
-  final double size;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
+    final height = width * 0.66;
+
     return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SfCircularChart(
-            margin: EdgeInsets.zero,
-            tooltipBehavior: tooltip,
-            series: <DoughnutSeries<_Seg, String>>[
-              DoughnutSeries<_Seg, String>(
-                dataSource: segments,
-                xValueMapper: (_Seg d, _) => d.label,
-                yValueMapper: (_Seg d, _) => d.value,
-                pointColorMapper: (_Seg d, _) => d.color,
-                innerRadius: '60%',
-                radius: '100%',
-                startAngle: 270,
-                endAngle: 270 + 360,
-                cornerStyle: CornerStyle.bothCurve,
-                animationDuration: 700,
-                selectionBehavior: SelectionBehavior(
-                  enable: true,
-                  selectedOpacity: 1.0,
-                  unselectedOpacity: 0.6,
-                  toggleSelection: true,
-                ),
-              ),
-            ],
+      width: width,
+      height: height,
+      child: CustomPaint(
+        painter: _ExplodedPiePainter(
+          segments: segments,
+          totalAcres: totalAcres,
+          labelStyle: AppTypography.labelLarge(context).copyWith(
+            color: AppColors.onBackground,
+            fontWeight: FontWeight.w600,
           ),
-          IgnorePointer(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${totalAcres.round()}',
-                  style: AppTypography.titleLarge(context).copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.onBackground,
-                    height: 1.0,
-                  ),
-                ),
-                Text(
-                  'Total',
-                  style: AppTypography.labelSmall(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  'Acres',
-                  style: AppTypography.labelSmall(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
+}
+
+class _ExplodedPiePainter extends CustomPainter {
+  const _ExplodedPiePainter({
+    required this.segments,
+    required this.totalAcres,
+    required this.labelStyle,
+  });
+
+  final List<_Seg> segments;
+  final double totalAcres;
+  final TextStyle labelStyle;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final total =
+        segments.fold<double>(0, (sum, segment) => sum + segment.value);
+    if (total <= 0) return;
+
+    final center = Offset(size.width * 0.52, size.height * 0.42);
+    final radiusX = size.width * 0.31;
+    final radiusY = size.height * 0.24;
+    final depth = size.height * 0.12;
+    final explode = size.width * 0.045;
+    var startAngle = -math.pi * 0.10;
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.16)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(size.width * 0.54, size.height * 0.64),
+        width: size.width * 0.62,
+        height: size.height * 0.18,
+      ),
+      shadowPaint,
+    );
+
+    for (final segment in segments) {
+      final sweep = (segment.value / total) * math.pi * 2;
+      final midAngle = startAngle + sweep / 2;
+      final offset = Offset(math.cos(midAngle), math.sin(midAngle)) * explode;
+      final depthPaint = Paint()..color = _darken(segment.color, 0.32);
+
+      for (var y = depth; y > 0; y -= 2) {
+        canvas.drawPath(
+          _sectorPath(center, radiusX, radiusY, startAngle, sweep,
+              offset + Offset(0, y)),
+          depthPaint,
+        );
+      }
+      startAngle += sweep;
+    }
+
+    startAngle = -math.pi * 0.10;
+    for (final segment in segments) {
+      final sweep = (segment.value / total) * math.pi * 2;
+      final midAngle = startAngle + sweep / 2;
+      final offset = Offset(math.cos(midAngle), math.sin(midAngle)) * explode;
+      final bounds = Rect.fromCenter(
+        center: center + offset,
+        width: radiusX * 2,
+        height: radiusY * 2,
+      );
+      final topPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            _lighten(segment.color, 0.18),
+            segment.color,
+            _darken(segment.color, 0.10),
+          ],
+        ).createShader(bounds);
+      final path =
+          _sectorPath(center, radiusX, radiusY, startAngle, sweep, offset);
+
+      canvas.drawPath(path, topPaint);
+      canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1
+          ..color = Colors.white.withValues(alpha: 0.50),
+      );
+
+      if (sweep > 0.35) {
+        _paintSliceLabel(
+          canvas,
+          center +
+              offset +
+              Offset(
+                math.cos(midAngle) * radiusX * 0.48,
+                math.sin(midAngle) * radiusY * 0.48,
+              ),
+          '${segment.totalAcres.round()} ac',
+        );
+      }
+
+      startAngle += sweep;
+    }
+
+    _paintTotalLabel(
+      canvas,
+      Offset(size.width * 0.52, size.height * 0.88),
+      '${totalAcres.round()} Total Acres',
+    );
+  }
+
+  Path _sectorPath(
+    Offset center,
+    double radiusX,
+    double radiusY,
+    double startAngle,
+    double sweep,
+    Offset offset,
+  ) {
+    final shiftedCenter = center + offset;
+    final rect = Rect.fromCenter(
+      center: shiftedCenter,
+      width: radiusX * 2,
+      height: radiusY * 2,
+    );
+    return Path()
+      ..moveTo(shiftedCenter.dx, shiftedCenter.dy)
+      ..arcTo(rect, startAngle, sweep, false)
+      ..close();
+  }
+
+  void _paintSliceLabel(Canvas canvas, Offset center, String text) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: labelStyle),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    painter.paint(
+      canvas,
+      center - Offset(painter.width / 2, painter.height / 2),
+    );
+  }
+
+  void _paintTotalLabel(Canvas canvas, Offset center, String text) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: labelStyle.copyWith(color: AppColors.onSurfaceVariant),
+      ),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    painter.paint(
+      canvas,
+      center - Offset(painter.width / 2, painter.height / 2),
+    );
+  }
+
+  static Color _darken(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl
+        .withLightness((hsl.lightness - amount).clamp(0.0, 1.0))
+        .toColor();
+  }
+
+  static Color _lighten(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl
+        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
+        .toColor();
+  }
+
+  @override
+  bool shouldRepaint(covariant _ExplodedPiePainter oldDelegate) =>
+      oldDelegate.segments != segments ||
+      oldDelegate.totalAcres != totalAcres ||
+      oldDelegate.labelStyle != labelStyle;
 }
 
 class _VarietyBreakdown extends StatelessWidget {
@@ -932,9 +1019,9 @@ class _VarietyBreakdown extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: AppSpacing.xs),
           child: Text(
             'Variety',
-            style: AppTypography.labelSmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: AppColors.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -942,15 +1029,15 @@ class _VarietyBreakdown extends StatelessWidget {
         if (segments.isEmpty)
           Text(
             'No plots found',
-            style: AppTypography.labelSmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: AppColors.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Acres split by Local and Export.',
-          style: AppTypography.labelSmall(context).copyWith(
+          style: AppTypography.labelLarge(context).copyWith(
             color: AppColors.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
@@ -969,6 +1056,9 @@ class _VarietyBreakdownRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localAcres = segment.localAcres.round();
+    final exportAcres = segment.exportAcres.round();
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Container(
@@ -981,75 +1071,86 @@ class _VarietyBreakdownRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           border: Border.all(color: AppColors.outlineVariant),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 8,
-              height: 32,
-              decoration: BoxDecoration(
-                color: segment.color,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    segment.label,
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: AppColors.onBackground,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final tight = constraints.maxWidth < 190;
+            final indicatorWidth = tight ? 6.0 : 8.0;
+            final gap = tight ? AppSpacing.xs : AppSpacing.sm;
+            final valueWidth = tight ? 42.0 : 50.0;
+
+            return Row(
+              children: [
+                Container(
+                  width: indicatorWidth,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: segment.color,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                   ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'Local ${segment.localAcres.round()} Acres  •  Export ${segment.exportAcres.round()} Acres',
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: AppColors.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                      height: 1.15,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(width: gap),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        segment.label,
+                        style: AppTypography.labelLarge(context).copyWith(
+                          color: AppColors.onBackground,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        tight
+                            ? 'L $localAcres ac  •  E $exportAcres ac'
+                            : 'Local $localAcres Acres  •  Export $exportAcres Acres',
+                        style: AppTypography.labelLarge(context).copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          height: 1.15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 58),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${segment.totalAcres.round()}',
-                    style: AppTypography.titleLarge(context).copyWith(
-                      color: AppColors.onBackground,
-                      fontWeight: FontWeight.w900,
-                      height: 1.0,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
+                ),
+                SizedBox(width: gap),
+                SizedBox(
+                  width: valueWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${segment.totalAcres.round()}',
+                        style: AppTypography.titleLarge(context).copyWith(
+                          color: AppColors.onBackground,
+                          fontWeight: FontWeight.w600,
+                          height: 1.0,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                      ),
+                      Text(
+                        'Acres',
+                        style: AppTypography.labelLarge(context).copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                      ),
+                    ],
                   ),
-                  Text(
-                    'Acres',
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: AppColors.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                  ),
-                ],
-              ),
-            ),
-          ],
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

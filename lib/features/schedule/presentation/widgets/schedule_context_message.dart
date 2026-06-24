@@ -60,7 +60,7 @@ class ScheduleContextMessage extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: AppTypography.bodySmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: AppColors.onSurfaceVariant,
               ),
             ),

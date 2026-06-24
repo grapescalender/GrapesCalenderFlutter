@@ -74,7 +74,7 @@ class PlotCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       plot.name,
-                      style: AppTypography.cardTitle(context).copyWith(
+                      style: AppTypography.titleMedium(context).copyWith(
                         color: isSelected ? cs.primary : cs.onSurface,
                       ),
                       maxLines: 1,
@@ -95,7 +95,7 @@ class PlotCard extends StatelessWidget {
                     ),
                     child: Text(
                       plot.isRunning ? 'Active' : 'Inactive',
-                      style: AppTypography.chipText(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: plot.isRunning
                             ? status.completed
                             : cs.onSurfaceVariant,
@@ -110,7 +110,7 @@ class PlotCard extends StatelessWidget {
               // Crop / variety line (primary info for Groww-style cards)
               Text(
                 plot.cropType.isNotEmpty ? plot.cropType : 'Crop',
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
@@ -136,14 +136,14 @@ class PlotCard extends StatelessWidget {
                     children: [
                       Text(
                         '${plot.daysSincePruning}',
-                        style: AppTypography.metricValue(context).copyWith(
+                        style: AppTypography.bodyLarge(context).copyWith(
                           color: cs.primary,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'days',
-                        style: AppTypography.metricLabel(context).copyWith(
+                        style: AppTypography.labelLarge(context).copyWith(
                           color: cs.primary,
                         ),
                       ),
@@ -158,7 +158,7 @@ class PlotCard extends StatelessWidget {
                 plot.hasPruningDate
                     ? _formatDate(plot.pruningDate!)
                     : 'Not pruned',
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: cs.onSurfaceVariant,
                 ),
                 maxLines: 1,

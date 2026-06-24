@@ -52,7 +52,7 @@ class ScheduleCard extends StatelessWidget {
                   children: [
                     Text(
                       schedule.title,
-                      style: AppTypography.cardTitle(context).copyWith(
+                      style: AppTypography.titleMedium(context).copyWith(
                         color: cs.onSurface,
                       ),
                       maxLines: 1,
@@ -61,7 +61,7 @@ class ScheduleCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       schedule.type.displayName,
-                      style: AppTypography.chipText(context).copyWith(
+                      style: AppTypography.labelLarge(context).copyWith(
                         color: _getTypeColor(context, schedule.type),
                       ),
                     ),
@@ -82,7 +82,7 @@ class ScheduleCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Text(
               schedule.description!,
-              style: AppTypography.bodySmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: cs.onSurfaceVariant,
               ),
               maxLines: 2,
@@ -101,7 +101,7 @@ class ScheduleCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text(
                 _formatDate(schedule.scheduledDate),
-                style: AppTypography.body(context).copyWith(
+                style: AppTypography.bodyMedium(context).copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -114,7 +114,7 @@ class ScheduleCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text(
                 _formatTime(schedule.scheduledDate),
-                style: AppTypography.caption(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: cs.onSurfaceVariant,
                 ),
               ),
@@ -130,6 +130,7 @@ class ScheduleCard extends StatelessWidget {
     final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     if (type == ScheduleType.spray) return semantic.info;
     if (type == ScheduleType.nutrition) return semantic.warning;
+    if (type == ScheduleType.water) return cs.primary;
     if (type == ScheduleType.work) return cs.primary;
     return cs.onSurface;
   }
@@ -139,6 +140,8 @@ class ScheduleCard extends StatelessWidget {
       return Icons.water_drop_outlined;
     } else if (type == ScheduleType.nutrition) {
       return Icons.grass_outlined;
+    } else if (type == ScheduleType.water) {
+      return Icons.water_outlined;
     } else if (type == ScheduleType.work) {
       return Icons.construction_outlined;
     } else {

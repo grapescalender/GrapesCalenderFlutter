@@ -29,6 +29,7 @@ class ProductSearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final query = controller.text.trim();
+    final colors = DashboardStyle.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -58,9 +59,9 @@ class ProductSearchField extends StatelessWidget {
           Container(
             constraints: const BoxConstraints(maxHeight: 260),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-              border: Border.all(color: AppColors.outlineVariant),
+              border: Border.all(color: colors.outline),
             ),
             child: results.isEmpty
                 ? Padding(
@@ -68,7 +69,7 @@ class ProductSearchField extends StatelessWidget {
                     child: Text(
                       'No matching products found.',
                       style: AppTypography.bodyMedium(context).copyWith(
-                        color: AppColors.onSurfaceVariant,
+                        color: colors.onSurfaceVariant,
                       ),
                     ),
                   )
@@ -77,34 +78,33 @@ class ProductSearchField extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                     itemCount: results.take(8).length,
-                    separatorBuilder: (_, __) => const Divider(
+                    separatorBuilder: (_, __) => Divider(
                       height: 1,
-                      color: AppColors.outlineVariant,
+                      color: colors.outline,
                     ),
                     itemBuilder: (context, index) {
                       final product = results[index];
                       final isAdded = addedProductIds.contains(product.id);
-                      return ListTile(
-                        title: Text(
-                          product.name,
-                          style: AppTypography.bodyMedium(context).copyWith(
-                            fontWeight: FontWeight.w900,
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs,
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: DashboardListItem(
+                          title: product.name,
+                          subtitle: product.description,
+                          meta:
+                              '${product.category.displayName} • ${product.company}',
+                          icon: Icons.inventory_2_outlined,
+                          selected: isAdded,
+                          onTap: () => onSelected(product),
+                          trailing: Icon(
+                            isAdded
+                                ? Icons.check_circle_rounded
+                                : Icons.add_circle_outline_rounded,
+                            color: isAdded ? AppColors.success : colors.primary,
                           ),
                         ),
-                        subtitle: Text(
-                          '${product.description}\n'
-                          '${product.category.displayName} • ${product.company}',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: Icon(
-                          isAdded
-                              ? Icons.check_circle_rounded
-                              : Icons.add_circle_outline_rounded,
-                          color:
-                              isAdded ? AppColors.success : AppColors.primary,
-                        ),
-                        onTap: () => onSelected(product),
                       );
                     },
                   ),

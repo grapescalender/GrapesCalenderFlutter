@@ -224,6 +224,8 @@ class _ScheduleDetailPopupState extends ConsumerState<ScheduleDetailPopup> {
         return 'Application Instructions';
       case ScheduleType.nutrition:
         return 'Method / Notes';
+      case ScheduleType.water:
+        return 'Irrigation Notes';
       case ScheduleType.all:
         return 'Instructions / Notes';
     }
@@ -237,6 +239,8 @@ class _ScheduleDetailPopupState extends ConsumerState<ScheduleDetailPopup> {
         return Icons.water_drop_outlined;
       case ScheduleType.nutrition:
         return Icons.grass_outlined;
+      case ScheduleType.water:
+        return Icons.water_outlined;
       case ScheduleType.all:
         return Icons.notes_outlined;
     }
@@ -369,6 +373,8 @@ class _ScheduleDetailPopupState extends ConsumerState<ScheduleDetailPopup> {
         return AppColors.info;
       case ScheduleType.nutrition:
         return AppColors.warning;
+      case ScheduleType.water:
+        return AppColors.primary;
       case ScheduleType.all:
         return AppColors.onSurface;
     }
@@ -380,6 +386,8 @@ class _ScheduleDetailPopupState extends ConsumerState<ScheduleDetailPopup> {
         return Icons.water_drop_outlined;
       case ScheduleType.nutrition:
         return Icons.grass_outlined;
+      case ScheduleType.water:
+        return Icons.water_outlined;
       case ScheduleType.work:
         return Icons.construction_outlined;
       case ScheduleType.all:
@@ -444,9 +452,9 @@ class _Header extends StatelessWidget {
             children: [
               Text(
                 schedule.title,
-                style: AppTypography.headlineSmall(context).copyWith(
+                style: AppTypography.titleLarge(context).copyWith(
                   color: AppColors.onBackground,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -454,9 +462,9 @@ class _Header extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 schedule.type.displayName,
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: typeColor,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -484,7 +492,7 @@ class _SectionTitle extends StatelessWidget {
         title,
         style: AppTypography.titleLarge(context).copyWith(
           color: AppColors.onBackground,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w600,
         ),
       );
 }
@@ -578,9 +586,9 @@ class _InfoRow extends StatelessWidget {
             children: [
               Text(
                 item.label,
-                style: AppTypography.labelSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 2),
@@ -588,7 +596,7 @@ class _InfoRow extends StatelessWidget {
                 item.value,
                 style: AppTypography.bodyMedium(context).copyWith(
                   color: item.valueColor ?? AppColors.onBackground,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                   height: 1.25,
                 ),
               ),
@@ -615,7 +623,7 @@ class _MutedMessage extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: AppTypography.bodySmall(context).copyWith(
+          style: AppTypography.labelLarge(context).copyWith(
             color: AppColors.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),

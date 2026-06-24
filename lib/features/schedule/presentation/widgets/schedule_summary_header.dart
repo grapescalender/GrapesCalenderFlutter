@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 class ScheduleSummaryHeader extends StatelessWidget {
@@ -26,13 +27,16 @@ class ScheduleSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
     final typeColor = switch (scheduleType) {
       ScheduleType.spray => AppColors.info,
       ScheduleType.nutrition => AppColors.warning,
+      ScheduleType.water => AppColors.primary,
       ScheduleType.work => AppColors.success,
       ScheduleType.all => AppColors.primary,
     };
-    final hasProducts = scheduleType != ScheduleType.work;
+    final hasProducts = scheduleType == ScheduleType.spray ||
+        scheduleType == ScheduleType.nutrition;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -40,7 +44,7 @@ class ScheduleSummaryHeader extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             typeColor.withValues(alpha: 0.14),
-            AppColors.surface,
+            colors.surface,
           ],
         ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
@@ -54,8 +58,8 @@ class ScheduleSummaryHeader extends StatelessWidget {
               Expanded(
                 child: Text(
                   '$plotName • ${dayAfterPruning == null ? 'Pruning date not set' : 'Day $dayAfterPruning'}',
-                  style: AppTypography.cardTitle(context).copyWith(
-                    color: AppColors.onBackground,
+                  style: AppTypography.titleMedium(context).copyWith(
+                    color: colors.onBackground,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -72,7 +76,7 @@ class ScheduleSummaryHeader extends StatelessWidget {
                 ),
                 child: Text(
                   scheduleType.displayName,
-                  style: AppTypography.chipText(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: typeColor,
                   ),
                 ),
@@ -82,9 +86,9 @@ class ScheduleSummaryHeader extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '${scheduleType.displayName} Schedule • $stageName Stage',
-            style: AppTypography.body(context).copyWith(
-              color: AppColors.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
+            style: AppTypography.bodyMedium(context).copyWith(
+              color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -121,13 +125,13 @@ class _SummaryItem extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: AppColors.primary),
+          Icon(icon, size: 16, color: DashboardStyle.of(context).primary),
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: AppTypography.caption(context).copyWith(
-              color: AppColors.onSurface,
-              fontWeight: FontWeight.w700,
+            style: AppTypography.labelLarge(context).copyWith(
+              color: DashboardStyle.of(context).onSurface,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

@@ -179,6 +179,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       ScheduleType.all,
       ScheduleType.spray,
       ScheduleType.nutrition,
+      ScheduleType.water,
       ScheduleType.work,
     ];
 
@@ -355,7 +356,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Try selecting a different activity or date range',
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: cs.onSurfaceVariant,
                   ),
                   textAlign: TextAlign.center,
@@ -503,9 +504,9 @@ class _ModernAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: AppTypography.headlineSmall(context).copyWith(
+                      style: AppTypography.titleLarge(context).copyWith(
                         color: AppColors.onBackground,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w600,
                       )),
                   if (subtitle != null)
                     Row(
@@ -514,7 +515,7 @@ class _ModernAppBar extends StatelessWidget {
                             size: 12, color: AppColors.onSurface),
                         const SizedBox(width: 3),
                         Text(subtitle!,
-                            style: AppTypography.bodySmall(context)
+                            style: AppTypography.labelLarge(context)
                                 .copyWith(color: AppColors.onSurfaceVariant)),
                       ],
                     ),

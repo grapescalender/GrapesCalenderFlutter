@@ -229,9 +229,9 @@ class ProductCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 product.name,
-                                style: AppTypography.titleLarge(context)
-                                    .copyWith(
-                                  fontWeight: FontWeight.w800,
+                                style:
+                                    AppTypography.titleLarge(context).copyWith(
+                                  fontWeight: FontWeight.w600,
                                   color: AppColors.onBackground,
                                   height: 1.25,
                                 ),
@@ -280,7 +280,7 @@ class ProductCard extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       product.company,
-                                      style: AppTypography.bodySmall(context)
+                                      style: AppTypography.labelLarge(context)
                                           .copyWith(
                                         color: AppColors.onSurfaceVariant,
                                         fontWeight: FontWeight.w500,
@@ -298,7 +298,7 @@ class ProductCard extends StatelessWidget {
                         // Row 3: Short description
                         Text(
                           product.description,
-                          style: AppTypography.bodySmall(context).copyWith(
+                          style: AppTypography.labelLarge(context).copyWith(
                             color: AppColors.onSurface,
                             height: 1.5,
                           ),
@@ -342,10 +342,10 @@ class ProductCard extends StatelessWidget {
                           children: [
                             Text(
                               'View Details',
-                              style: AppTypography.labelMedium(context)
-                                  .copyWith(
+                              style:
+                                  AppTypography.labelLarge(context).copyWith(
                                 color: catColor,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(width: 3),
@@ -387,9 +387,9 @@ class _Pill extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppTypography.labelSmall(context).copyWith(
+          style: AppTypography.labelLarge(context).copyWith(
             color: color,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
       );
@@ -413,9 +413,9 @@ class _CategoryPill extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppTypography.labelSmall(context).copyWith(
+          style: AppTypography.labelLarge(context).copyWith(
             color: color,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
       );
@@ -450,7 +450,7 @@ class _InfoChip extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style: AppTypography.labelSmall(context).copyWith(
+                style: AppTypography.labelLarge(context).copyWith(
                   color: color,
                   fontWeight: FontWeight.w600,
                 ),

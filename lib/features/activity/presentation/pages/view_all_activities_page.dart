@@ -302,9 +302,9 @@ class _ModernAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: AppTypography.headlineSmall(context).copyWith(
+                      style: AppTypography.titleLarge(context).copyWith(
                         color: AppColors.onBackground,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w600,
                       )),
                   if (subtitle != null)
                     Row(
@@ -313,7 +313,7 @@ class _ModernAppBar extends StatelessWidget {
                             size: 12, color: AppColors.onSurface),
                         const SizedBox(width: 3),
                         Text(subtitle!,
-                            style: AppTypography.bodySmall(context)
+                            style: AppTypography.labelLarge(context)
                                 .copyWith(color: AppColors.onSurfaceVariant)),
                       ],
                     ),
@@ -360,13 +360,13 @@ class _CenteredMessage extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(title,
-                style: AppTypography.headlineSmall(context)
+                style: AppTypography.titleLarge(context)
                     .copyWith(fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center),
             if (subtitle != null) ...[
               const SizedBox(height: AppSpacing.xs),
               Text(subtitle!,
-                  style: AppTypography.bodySmall(context)
+                  style: AppTypography.labelLarge(context)
                       .copyWith(color: AppColors.onSurface),
                   textAlign: TextAlign.center),
             ],

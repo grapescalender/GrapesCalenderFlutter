@@ -50,6 +50,7 @@ class PlotsSection extends ConsumerWidget {
     final displayVariety = _displayVariety(plot.cropType);
     final selectedPlotLabel = '${plot.name} - $displayVariety';
     final showCompleteAprilCycle = _shouldShowCompleteAprilCycle(plot);
+    final todayLabel = DateFormat('dd MMM yyyy').format(DateTime.now());
 
     return Container(
       width: double.infinity,
@@ -163,9 +164,9 @@ class PlotsSection extends ConsumerWidget {
                         children: [
                           Text(
                             'Selected Plot',
-                            style: AppTypography.labelSmall(context).copyWith(
+                            style: AppTypography.labelLarge(context).copyWith(
                               color: Colors.white.withValues(alpha: 0.72),
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -177,7 +178,7 @@ class PlotsSection extends ConsumerWidget {
                                   style: AppTypography.titleLarge(context)
                                       .copyWith(
                                     color: Colors.white,
-                                    fontWeight: FontWeight.w900,
+                                    fontWeight: FontWeight.w600,
                                     height: 1.05,
                                   ),
                                   maxLines: 1,
@@ -203,9 +204,31 @@ class PlotsSection extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           'of $seasonName',
-                          style: AppTypography.labelMedium(context).copyWith(
+                          style: AppTypography.labelLarge(context).copyWith(
                             color: Colors.white.withValues(alpha: 0.78),
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.today_outlined,
+                        color: Colors.white.withValues(alpha: 0.76),
+                        size: 16,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          'Today $todayLabel',
+                          style: AppTypography.labelLarge(context).copyWith(
+                            color: Colors.white.withValues(alpha: 0.78),
+                            fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -317,10 +340,10 @@ class PlotsSection extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Select Plot',
-                          style: AppTypography.headlineSmall(context)
-                              .copyWith(fontWeight: FontWeight.w700)),
+                          style: AppTypography.titleLarge(context)
+                              .copyWith(fontWeight: FontWeight.w600)),
                       Text('Tap a plot to switch',
-                          style: AppTypography.bodySmall(context)
+                          style: AppTypography.labelLarge(context)
                               .copyWith(color: AppColors.onSurfaceVariant)),
                     ],
                   ),
@@ -398,7 +421,7 @@ class PlotsSection extends ConsumerWidget {
                                       ? AppColors.primary
                                       : AppColors.onBackground,
                                   fontWeight:
-                                      isSel ? FontWeight.w700 : FontWeight.w600,
+                                      isSel ? FontWeight.w600 : FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -406,14 +429,14 @@ class PlotsSection extends ConsumerWidget {
                                 children: [
                                   Text(
                                     '${p.cropType}  ·  ${p.area} ha',
-                                    style: AppTypography.bodySmall(context)
+                                    style: AppTypography.labelLarge(context)
                                         .copyWith(
                                             color: AppColors.onSurfaceVariant),
                                   ),
                                   if (p.hasPruningDate) ...[
                                     Text(
                                       '  ·  Day ${p.daysSincePruning}',
-                                      style: AppTypography.bodySmall(context)
+                                      style: AppTypography.labelLarge(context)
                                           .copyWith(
                                         color: isSel
                                             ? AppColors.primary
@@ -595,9 +618,9 @@ class _HeroActionButton extends StatelessWidget {
               Flexible(
                 child: Text(
                   label,
-                  style: AppTypography.labelMedium(context).copyWith(
+                  style: AppTypography.labelLarge(context).copyWith(
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -646,9 +669,9 @@ class _CycleChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTypography.labelMedium(context).copyWith(
+        style: AppTypography.labelLarge(context).copyWith(
           color: AppColors.primary,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -688,9 +711,9 @@ class _HeroStatusPill extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTypography.labelSmall(context).copyWith(
+        style: AppTypography.labelLarge(context).copyWith(
           color: AppColors.primary,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -746,7 +769,7 @@ class _HeroMetricBox extends StatelessWidget {
                 value ?? '—',
                 style: AppTypography.titleLarge(context).copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   height: 1.0,
                 ),
                 maxLines: 1,
@@ -756,9 +779,9 @@ class _HeroMetricBox extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: AppTypography.labelSmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: Colors.white.withValues(alpha: 0.74),
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               height: 1.1,
             ),
             maxLines: 2,
@@ -917,7 +940,7 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
                       children: [
                         Text('Plot Details',
                             style: AppTypography.headlineMedium(context)
-                                .copyWith(fontWeight: FontWeight.w700)),
+                                .copyWith(fontWeight: FontWeight.w600)),
                         Text(plot.name,
                             style: AppTypography.bodyMedium(context)
                                 .copyWith(color: AppColors.onSurface)),
@@ -978,7 +1001,7 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text('View All Schedules',
-                            style: AppTypography.labelMedium(context).copyWith(
+                            style: AppTypography.labelLarge(context).copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600)),
                         const SizedBox(width: 4),
@@ -1051,7 +1074,7 @@ class _SectionCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Text(title,
                     style: AppTypography.titleLarge(context)
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w600)),
                 if (trailing != null) ...[
                   const Spacer(),
                   trailing!,
@@ -1086,7 +1109,7 @@ class _InfoRow extends StatelessWidget {
           SizedBox(
             width: 110,
             child: Text(label,
-                style: AppTypography.bodySmall(context)
+                style: AppTypography.labelLarge(context)
                     .copyWith(color: AppColors.onSurfaceVariant)),
           ),
           Expanded(
@@ -1121,7 +1144,7 @@ class _SeasonDropdown extends StatelessWidget {
         child: DropdownButton<String>(
           value: selected,
           isDense: true,
-          style: AppTypography.labelMedium(context)
+          style: AppTypography.labelLarge(context)
               .copyWith(color: AppColors.onBackground),
           icon: const Icon(Icons.expand_more_rounded,
               size: 16, color: AppColors.onSurface),
@@ -1171,12 +1194,12 @@ class _ScheduleRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: AppTypography.titleSmall(context)
+                    style: AppTypography.labelLarge(context)
                         .copyWith(fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
                 Text('$type  ·  $date',
-                    style: AppTypography.bodySmall(context)),
+                    style: AppTypography.labelLarge(context)),
               ],
             ),
           ),

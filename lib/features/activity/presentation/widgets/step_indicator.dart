@@ -80,15 +80,15 @@ class StepIndicator extends StatelessWidget {
             ? Icon(icon, color: Colors.white, size: size * 0.48)
             : Text(
                 '$stepNumber',
-                style: AppTypography.caption(null).copyWith(
+                style: AppTypography.labelLarge(null).copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               );
       case ActivityStepState.upcoming:
         return Text(
           '$stepNumber',
-          style: AppTypography.caption(null).copyWith(
+          style: AppTypography.labelLarge(null).copyWith(
             color: AppColors.onSurface,
             fontWeight: FontWeight.w500,
           ),

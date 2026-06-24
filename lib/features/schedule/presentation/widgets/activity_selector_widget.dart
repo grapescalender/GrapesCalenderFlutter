@@ -32,17 +32,17 @@ class ActivitySelectorWidget extends StatelessWidget {
           children: [
             Text(
               'Linked Activities',
-              style: AppTypography.titleSmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: AppColors.onBackground,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
             Text(
               '(Select 1-2)',
-              style: AppTypography.labelSmall(context).copyWith(
+              style: AppTypography.labelLarge(context).copyWith(
                 color: AppColors.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -83,9 +83,9 @@ class ActivitySelectorWidget extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             errorText!,
-            style: AppTypography.labelSmall(context).copyWith(
+            style: AppTypography.labelLarge(context).copyWith(
               color: AppColors.error,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -95,9 +95,9 @@ class ActivitySelectorWidget extends StatelessWidget {
         Text(
           helperText ??
               'Select at least 1 activity. Maximum 2 activities allowed.',
-          style: AppTypography.labelSmall(context).copyWith(
+          style: AppTypography.labelLarge(context).copyWith(
             color: AppColors.onSurfaceVariant,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],

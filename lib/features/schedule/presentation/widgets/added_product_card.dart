@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../models/add_schedule_request.dart';
 
 class AddedProductCard extends StatelessWidget {
@@ -47,86 +48,90 @@ class _SelectedProductSummaryLine extends StatelessWidget {
   final VoidCallback onRemove;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.outlineVariant),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    product.productName,
-                    style: AppTypography.cardTitle(context).copyWith(
-                      color: AppColors.onBackground,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Edit product',
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined),
-                  color: AppColors.primary,
-                ),
-                IconButton(
-                  tooltip: 'Remove product',
-                  onPressed: onRemove,
-                  icon: const Icon(Icons.close_rounded),
-                  color: AppColors.error,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _ProductChip(label: product.categoryLabel),
-                Text(
-                  '${product.dose} ${product.doseUnit} / '
-                  '${product.perWaterQuantity} ${product.perWaterUnit}',
-                  style: AppTypography.caption(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.smMd),
+      decoration: colors.cardDecoration(radius: AppSpacing.radiusMd).copyWith(
+        boxShadow: const [],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  product.productName,
+                  style: AppTypography.titleMedium(context).copyWith(
+                    color: colors.onBackground,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          ],
-        ),
-      );
+              ),
+              IconButton(
+                tooltip: 'Edit product',
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined),
+                color: colors.primary,
+              ),
+              IconButton(
+                tooltip: 'Remove product',
+                onPressed: onRemove,
+                icon: const Icon(Icons.close_rounded),
+                color: AppColors.error,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _ProductChip(label: product.categoryLabel),
+              Text(
+                '${product.dose} ${product.doseUnit} / '
+                '${product.perWaterQuantity} ${product.perWaterUnit}',
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ProductChip extends StatelessWidget {
   const _ProductChip({required this.label});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.labelLarge(context).copyWith(
+          color: colors.primary,
         ),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.chipText(context).copyWith(
-            color: AppColors.primary,
-          ),
-        ),
-      );
+      ),
+    );
+  }
 
   final String label;
 }
