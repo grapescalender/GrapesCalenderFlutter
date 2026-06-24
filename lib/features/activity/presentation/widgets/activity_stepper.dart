@@ -11,7 +11,6 @@ import 'activity_item.dart';
 /// - 1 current activity
 /// - 1 next upcoming activity
 class ActivityStepper extends StatelessWidget {
-
   const ActivityStepper({
     Key? key,
     required this.activities,
@@ -19,7 +18,7 @@ class ActivityStepper extends StatelessWidget {
     this.onViewAll,
   }) : super(key: key);
   final List<ActivityEntity> activities;
-  final Function(ActivityEntity)? onActivityTap;
+  final ValueChanged<ActivityEntity>? onActivityTap;
   final VoidCallback? onViewAll;
 
   @override
@@ -77,10 +76,9 @@ class ActivityStepper extends StatelessWidget {
                   : null,
             );
           }),
-          
+
           // View All Activities Row
-          if (hasMore)
-            _buildViewAllRow(context),
+          if (hasMore) _buildViewAllRow(context),
         ],
       ),
     );
@@ -96,7 +94,7 @@ class ActivityStepper extends StatelessWidget {
     // Sort by order
     final orderedTypes = ActivityType.orderedTypes;
     final sorted = <ActivityEntity>[];
-    
+
     for (final type in orderedTypes) {
       try {
         final activity = all.firstWhere((a) => a.type == type);
@@ -140,7 +138,7 @@ class ActivityStepper extends StatelessWidget {
         // Next activity not found
       }
     }
-  
+
     // Combine: last 2 completed + current + next upcoming
     final visible = <ActivityEntity>[];
     visible.addAll(last2Completed);
@@ -180,10 +178,9 @@ class ActivityStepper extends StatelessWidget {
             children: [
               Text(
                 'View All Activities',
-                style: AppTypography.bodyMedium(context).copyWith(
+                style: AppTypography.body(context).copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
-                  fontSize: 13,
                 ),
               ),
               const SizedBox(width: 4),

@@ -215,6 +215,55 @@ class AppTypography {
       );
 
   // ═══════════════════════════════════════════════════════════════
+  // SEMANTIC APP ROLES
+  // ═══════════════════════════════════════════════════════════════
+
+  static TextStyle screenTitle(BuildContext? context) =>
+      headlineLarge(context).copyWith(fontWeight: FontWeight.w800);
+
+  static TextStyle sectionTitle(BuildContext? context) =>
+      headlineSmall(context).copyWith(fontWeight: FontWeight.w800);
+
+  static TextStyle cardTitle(BuildContext? context) =>
+      titleLarge(context).copyWith(fontWeight: FontWeight.w800);
+
+  static TextStyle cardSubtitle(BuildContext? context) => bodySmall(context);
+
+  static TextStyle listItemTitle(BuildContext? context) =>
+      titleSmall(context).copyWith(fontWeight: FontWeight.w500);
+
+  static TextStyle listItemBody(BuildContext? context) => bodySmall(context);
+
+  static TextStyle listItemMeta(BuildContext? context) => labelSmall(context);
+
+  static TextStyle listItemEmphasis(BuildContext? context) =>
+      bodySmall(context).copyWith(fontWeight: FontWeight.w500);
+
+  static TextStyle body(BuildContext? context) => bodyMedium(context);
+
+  static TextStyle caption(BuildContext? context) => labelSmall(context);
+
+  static TextStyle metricValue(BuildContext? context) =>
+      titleLarge(context).copyWith(fontWeight: FontWeight.w800);
+
+  static TextStyle metricLabel(BuildContext? context) =>
+      labelSmall(context).copyWith(fontWeight: FontWeight.w700);
+
+  static TextStyle chipText(BuildContext? context) =>
+      labelSmall(context).copyWith(fontWeight: FontWeight.w700);
+
+  static TextStyle buttonText(BuildContext? context) =>
+      labelLarge(context).copyWith(fontWeight: FontWeight.w700);
+
+  static TextStyle formLabel(BuildContext? context) =>
+      labelMedium(context).copyWith(fontWeight: FontWeight.w700);
+
+  static TextStyle formValue(BuildContext? context) => bodyMedium(context);
+
+  static TextStyle errorText(BuildContext? context) =>
+      bodySmall(context).copyWith(color: AppColors.error);
+
+  // ═══════════════════════════════════════════════════════════════
   // UTILITY HELPERS
   // ═══════════════════════════════════════════════════════════════
 

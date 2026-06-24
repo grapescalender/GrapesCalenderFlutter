@@ -27,16 +27,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     // Mock implementation for development
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
-    if (_isFirstTimeMockPlot(plotId)) {
-      return _filterAndLimit(
-        schedules: List<ScheduleModel>.from(
-          _createdSchedulesByPlot[plotId] ?? const [],
-        ),
-        type: type,
-        limit: limit,
-      );
-    }
-
     final now = DateTime.now();
     final mockSchedules = [
       // Spray Schedules (5 items)
@@ -277,7 +267,12 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     ];
 
     return _filterAndLimit(
-      schedules: mockSchedules,
+      schedules: [
+        ...mockSchedules,
+        ...List<ScheduleModel>.from(
+          _createdSchedulesByPlot[plotId] ?? const [],
+        ),
+      ],
       type: type,
       limit: limit,
     );
@@ -293,13 +288,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
       updatedAt: DateTime.now(),
     );
 
-    if (_isFirstTimeMockPlot(schedule.plotId)) {
-      final existing = _createdSchedulesByPlot[schedule.plotId] ?? [];
-      _createdSchedulesByPlot[schedule.plotId] = [
-        ...existing,
-        createdSchedule,
-      ];
-    }
+    final existing = _createdSchedulesByPlot[schedule.plotId] ?? [];
+    _createdSchedulesByPlot[schedule.plotId] = [
+      createdSchedule,
+      ...existing,
+    ];
 
     return createdSchedule;
   }
@@ -317,8 +310,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     await Future<void>.delayed(const Duration(milliseconds: 300));
   }
 
-  bool _isFirstTimeMockPlot(String plotId) => plotId == 'onboarding-first-plot';
-
   List<ScheduleModel> _filterAndLimit({
     required List<ScheduleModel> schedules,
     required String? type,
@@ -329,12 +320,20 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
       filtered = schedules.where((schedule) => schedule.type == type).toList();
     }
 
-    filtered.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+    filtered.sort(_compareLatestFirst);
 
     if (limit != null && limit > 0) {
       filtered = filtered.take(limit).toList();
     }
 
     return filtered;
+  }
+
+  int _compareLatestFirst(ScheduleModel a, ScheduleModel b) {
+    final createdCompare = b.createdAt.compareTo(a.createdAt);
+    if (createdCompare != 0) return createdCompare;
+    final scheduleCompare = b.scheduledDate.compareTo(a.scheduledDate);
+    if (scheduleCompare != 0) return scheduleCompare;
+    return b.id.compareTo(a.id);
   }
 }

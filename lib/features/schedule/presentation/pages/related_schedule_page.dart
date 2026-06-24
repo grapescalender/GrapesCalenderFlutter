@@ -205,6 +205,8 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
       if (plotState.plots.isNotEmpty) plot = plotState.plots.first;
     }
 
+    final sortedSchedules = ScheduleFilterUtils.sortLatestFirst(schedules);
+
     return RefreshIndicator(
       onRefresh: () async {
         _loadSchedules();
@@ -212,14 +214,14 @@ class _RelatedSchedulePageState extends ConsumerState<RelatedSchedulePage> {
       },
       child: ListView.separated(
         padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-        itemCount: schedules.length,
+        itemCount: sortedSchedules.length,
         separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.smMd),
         itemBuilder: (ctx, i) => _ScheduleCard(
-          schedule: schedules[i],
+          schedule: sortedSchedules[i],
           pruningDate: plot?.pruningDate,
           onTap: () => _showDetail(
             ctx,
-            schedules[i],
+            sortedSchedules[i],
             pruningDate: plot?.pruningDate,
           ),
         ),
@@ -356,9 +358,8 @@ class _DateRangeBanner extends StatelessWidget {
                 Text(
                   '${_fmt(startDate)} → ${_fmt(endDate)}'
                   '${startDay != null && endDay != null ? '  ·  Day $startDay – Day $endDay' : ''}',
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.caption(context).copyWith(
                     color: AppColors.primaryDark,
-                    fontSize: 11,
                   ),
                 ),
               ],
@@ -450,12 +451,11 @@ class _FilterTabs extends StatelessWidget {
                             ),
                             child: Text(
                               '$count',
-                              style: AppTypography.bodySmall(context).copyWith(
+                              style: AppTypography.caption(context).copyWith(
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.onBackground,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 10,
                               ),
                             ),
                           ),
@@ -574,10 +574,9 @@ class _ScheduleCard extends StatelessWidget {
                     ),
                     child: Text(
                       schedule.type.displayName,
-                      style: AppTypography.bodySmall(context).copyWith(
+                      style: AppTypography.caption(context).copyWith(
                         color: tc,
                         fontWeight: FontWeight.w600,
-                        fontSize: 11,
                       ),
                     ),
                   ),
@@ -632,10 +631,9 @@ class _ScheduleCard extends StatelessWidget {
                               size: 11, color: AppColors.success),
                           const SizedBox(width: 3),
                           Text('Done',
-                              style: AppTypography.bodySmall(context).copyWith(
+                              style: AppTypography.caption(context).copyWith(
                                 color: AppColors.success,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 10,
                               )),
                         ],
                       ),

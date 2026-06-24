@@ -4,12 +4,12 @@ import '../../domain/entities/schedule_entity.dart';
 /// Helper functions for filtering schedules by activity and date
 class ScheduleFilterUtils {
   /// Get schedules filtered by activity ID and date range
-  /// 
+  ///
   /// Filters schedules where:
   /// - schedule.activityIds contains activityId
   /// - schedule.scheduledDate >= startDate (inclusive)
   /// - schedule.scheduledDate <= endDate (inclusive)
-  /// 
+  ///
   /// Returns filtered list of schedules
   static List<ScheduleEntity> getSchedulesByActivityAndDate({
     required List<ScheduleEntity> allSchedules,
@@ -47,13 +47,24 @@ class ScheduleFilterUtils {
       // Use compareTo for accurate comparison
       final startComparison = scheduleDateOnly.compareTo(startDateOnly);
       final endComparison = scheduleDateOnly.compareTo(endDateOnly);
-      
+
       // startComparison >= 0 means scheduleDate >= startDate
       // endComparison <= 0 means scheduleDate <= endDate
       return startComparison >= 0 && endComparison <= 0;
     }).toList();
 
-    return filtered;
+    return sortLatestFirst(filtered);
+  }
+
+  static List<ScheduleEntity> sortLatestFirst(List<ScheduleEntity> schedules) =>
+      [...schedules]..sort(_latestFirst);
+
+  static int _latestFirst(ScheduleEntity a, ScheduleEntity b) {
+    final createdCompare = b.createdAt.compareTo(a.createdAt);
+    if (createdCompare != 0) return createdCompare;
+    final scheduleCompare = b.scheduledDate.compareTo(a.scheduledDate);
+    if (scheduleCompare != 0) return scheduleCompare;
+    return b.id.compareTo(a.id);
   }
 
   /// Debug print schedule filtering information
@@ -72,18 +83,20 @@ class ScheduleFilterUtils {
     print('End Date: ${endDate?.toString() ?? "null"}');
     print('Total Schedules: $totalSchedules');
     print('Filtered Schedules: $filteredCount');
-    
+
     if (allSchedules != null) {
       print('\nAll Schedule Activity IDs:');
       for (final schedule in allSchedules) {
-        print('  Schedule ${schedule.id}: activityIds=${schedule.activityIds}, date=${schedule.scheduledDate}');
+        print(
+            '  Schedule ${schedule.id}: activityIds=${schedule.activityIds}, date=${schedule.scheduledDate}');
       }
     }
-    
+
     if (filteredSchedules != null) {
       print('\nFiltered Schedule IDs:');
       for (final schedule in filteredSchedules) {
-        print('  Schedule ${schedule.id}: activityIds=${schedule.activityIds}, date=${schedule.scheduledDate}');
+        print(
+            '  Schedule ${schedule.id}: activityIds=${schedule.activityIds}, date=${schedule.scheduledDate}');
       }
     }
     print('=== End Debug ===');

@@ -6,7 +6,6 @@ import '../../core/design_system/typography/app_typography.dart';
 /// Minimal, clean button design with multiple variants
 /// Supports primary, secondary, and text button styles
 class AppButton extends StatelessWidget {
-
   const AppButton({
     Key? key,
     required this.label,
@@ -95,10 +94,8 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final cs = theme.colorScheme;
-    
+
     final buttonStyle = _getButtonStyle(context, isDark);
-    final buttonSize = _getButtonSize();
     final textStyle = _getTextStyle(context);
 
     Widget button;
@@ -146,7 +143,7 @@ class AppButton extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final bgColor = backgroundColor ?? cs.primary;
     final fgColor = foregroundColor ?? cs.onPrimary;
-    
+
     switch (variant) {
       case AppButtonVariant.primary:
         return ElevatedButton.styleFrom(
@@ -205,13 +202,11 @@ class AppButton extends StatelessWidget {
   TextStyle _getTextStyle(BuildContext context) {
     switch (size) {
       case AppButtonSize.small:
-        return AppTypography.labelMedium(context);
+        return AppTypography.chipText(context);
       case AppButtonSize.medium:
-        return AppTypography.labelLarge(context);
+        return AppTypography.buttonText(context);
       case AppButtonSize.large:
-        return AppTypography.labelLarge(context).copyWith(
-          fontSize: AppTypography.labelLarge(context).fontSize! + 2,
-        );
+        return AppTypography.buttonText(context);
     }
   }
 
@@ -224,9 +219,7 @@ class AppButton extends StatelessWidget {
         child: CircularProgressIndicator(
           strokeWidth: 2,
           valueColor: AlwaysStoppedAnimation<Color>(
-            variant == AppButtonVariant.primary
-                ? cs.onPrimary
-                : cs.primary,
+            variant == AppButtonVariant.primary ? cs.onPrimary : cs.primary,
           ),
         ),
       );

@@ -19,9 +19,14 @@ class ScheduleFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shadowColor = isSelected
-        ? AppColors.primary.withValues(alpha: 0.22)
-        : AppColors.shadow;
+    final color = _filterColor(filterType);
+    final foreground = isSelected ? Colors.white : AppColors.onBackground;
+    final background = isSelected ? color : color.withValues(alpha: 0.07);
+    final border = isSelected ? color : color.withValues(alpha: 0.22);
+    final iconBackground = isSelected
+        ? Colors.white.withValues(alpha: 0.18)
+        : color.withValues(alpha: 0.10);
+    final iconColor = isSelected ? Colors.white : color;
 
     return InkWell(
       onTap: onTap,
@@ -30,33 +35,66 @@ class ScheduleFilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         height: 38,
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smMd),
+        padding: const EdgeInsets.only(
+          left: AppSpacing.xs,
+          right: AppSpacing.smMd,
+        ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.background,
+          color: background,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.primary.withValues(alpha: 0.22),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: shadowColor,
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+          border: Border.all(color: border),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.18),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: iconBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(_filterIcon(filterType), size: 14, color: iconColor),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              filterType.displayName,
+              style: AppTypography.chipText(context).copyWith(
+                color: foreground,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
-        child: Text(
-          filterType.displayName,
-          style: AppTypography.labelSmall(context).copyWith(
-            color: isSelected ? Colors.white : AppColors.onBackground,
-            fontWeight: FontWeight.w800,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
       ),
     );
+  }
+
+  Color _filterColor(ScheduleType type) {
+    return switch (type) {
+      ScheduleType.spray => AppColors.info,
+      ScheduleType.nutrition => AppColors.warning,
+      ScheduleType.work => AppColors.success,
+      _ => AppColors.primary,
+    };
+  }
+
+  IconData _filterIcon(ScheduleType type) {
+    return switch (type) {
+      ScheduleType.spray => Icons.water_drop_outlined,
+      ScheduleType.nutrition => Icons.grass_outlined,
+      ScheduleType.work => Icons.construction_outlined,
+      _ => Icons.tune_rounded,
+    };
   }
 }

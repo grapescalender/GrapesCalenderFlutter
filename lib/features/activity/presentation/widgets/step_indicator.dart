@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
-import '../../../../core/design_system/spacing/app_spacing.dart';
+import '../../../../core/design_system/typography/app_typography.dart';
 
 /// Activity step state enum
 enum ActivityStepState { completed, current, upcoming }
@@ -73,24 +73,23 @@ class StepIndicator extends StatelessWidget {
   Widget get _buildIcon {
     switch (state) {
       case ActivityStepState.completed:
-        return Icon(Icons.check_rounded, color: Colors.white, size: size * 0.48);
+        return Icon(Icons.check_rounded,
+            color: Colors.white, size: size * 0.48);
       case ActivityStepState.current:
         return icon != null
             ? Icon(icon, color: Colors.white, size: size * 0.48)
             : Text(
                 '$stepNumber',
-                style: TextStyle(
+                style: AppTypography.caption(null).copyWith(
                   color: Colors.white,
-                  fontSize: size * 0.4,
                   fontWeight: FontWeight.w700,
                 ),
               );
       case ActivityStepState.upcoming:
         return Text(
           '$stepNumber',
-          style: TextStyle(
+          style: AppTypography.caption(null).copyWith(
             color: AppColors.onSurface,
-            fontSize: size * 0.38,
             fontWeight: FontWeight.w500,
           ),
         );

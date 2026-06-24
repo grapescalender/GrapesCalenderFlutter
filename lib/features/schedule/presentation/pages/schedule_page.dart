@@ -374,7 +374,6 @@ class _TodaySummary extends StatelessWidget {
                         style: AppTypography.bodySmall(context).copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
-                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -463,10 +462,9 @@ class _UpcomingCard extends StatelessWidget {
                           size: 6, color: AppColors.onSurface),
                       const SizedBox(width: 4),
                       Text(schedule.type.displayName,
-                          style: AppTypography.bodySmall(context).copyWith(
+                          style: AppTypography.caption(context).copyWith(
                             color: tc,
                             fontWeight: FontWeight.w500,
-                            fontSize: 11,
                           )),
                     ],
                   ),
@@ -481,10 +479,9 @@ class _UpcomingCard extends StatelessWidget {
                 border: Border.all(color: AppColors.outline),
               ),
               child: Text(_relDate(),
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.caption(context).copyWith(
                     color: AppColors.onBackground,
                     fontWeight: FontWeight.w600,
-                    fontSize: 11,
                   )),
             ),
           ],

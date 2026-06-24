@@ -10,7 +10,6 @@ import '../models/schedule_model.dart';
 
 /// Implementation of ScheduleRepository
 class ScheduleRepositoryImpl implements ScheduleRepository {
-
   ScheduleRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
@@ -36,9 +35,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         limit: limit,
       );
 
-      final scheduleEntities = scheduleModels
-          .map(ScheduleMapper.toEntity)
-          .toList();
+      final scheduleEntities =
+          scheduleModels.map(ScheduleMapper.toEntity).toList();
 
       return Right(scheduleEntities);
     } on NetworkException catch (e) {
@@ -67,6 +65,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required DateTime scheduledDate,
     String? description,
     List<String> activityIds = const [],
+    bool isCompleted = false,
   }) async {
     try {
       final isConnected = await networkInfo.isConnected;
@@ -84,6 +83,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
           description: description ?? '',
           scheduledDate: scheduledDate,
           activityIds: activityIds,
+          isCompleted: isCompleted,
           createdAt: now,
           updatedAt: now,
         ),
@@ -110,7 +110,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<Either<Failure, ScheduleEntity>> updateSchedule(ScheduleEntity schedule) async {
+  Future<Either<Failure, ScheduleEntity>> updateSchedule(
+      ScheduleEntity schedule) async {
     try {
       final isConnected = await networkInfo.isConnected;
       if (!isConnected) {

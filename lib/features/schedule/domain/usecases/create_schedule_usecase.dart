@@ -5,7 +5,8 @@ import '../entities/schedule_entity.dart';
 import '../repositories/schedule_repository.dart';
 
 /// Create schedule use case parameters
-class CreateScheduleParams { // 1-2 activity IDs
+class CreateScheduleParams {
+  // 1-2 activity IDs
 
   CreateScheduleParams({
     required this.plotId,
@@ -14,6 +15,7 @@ class CreateScheduleParams { // 1-2 activity IDs
     required this.scheduledDate,
     this.description,
     this.activityIds = const [],
+    this.isCompleted = false,
   });
   final String plotId;
   final ScheduleType type;
@@ -21,21 +23,25 @@ class CreateScheduleParams { // 1-2 activity IDs
   final DateTime scheduledDate;
   final String? description;
   final List<String> activityIds;
+  final bool isCompleted;
 }
 
 /// Create schedule use case
-class CreateScheduleUseCase implements UseCase<ScheduleEntity, CreateScheduleParams> {
-
+class CreateScheduleUseCase
+    implements UseCase<ScheduleEntity, CreateScheduleParams> {
   CreateScheduleUseCase(this.repository);
   final ScheduleRepository repository;
 
   @override
-  Future<Either<Failure, ScheduleEntity>> call(CreateScheduleParams params) async => await repository.createSchedule(
-      plotId: params.plotId,
-      type: params.type,
-      title: params.title,
-      scheduledDate: params.scheduledDate,
-      description: params.description,
-      activityIds: params.activityIds,
-    );
+  Future<Either<Failure, ScheduleEntity>> call(
+          CreateScheduleParams params) async =>
+      await repository.createSchedule(
+        plotId: params.plotId,
+        type: params.type,
+        title: params.title,
+        scheduledDate: params.scheduledDate,
+        description: params.description,
+        activityIds: params.activityIds,
+        isCompleted: params.isCompleted,
+      );
 }

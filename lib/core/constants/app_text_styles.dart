@@ -7,38 +7,38 @@ class AppTextStyles {
   AppTextStyles._(); // Private constructor
 
   // ===== HEADING STYLES =====
-  
+
   /// Page title - Large, bold, primary text
   /// Used for main page headers (Home, Schedule, etc.)
-  /// Size: 28, Weight: 700 (Bold)
+  /// Size: 18, Weight: 800 (ExtraBold)
   static const TextStyle heading1 = TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.5,
+    fontSize: 18,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0,
     color: AppColors.textPrimary,
-    height: 1.2,
+    height: 1.3,
   );
 
   /// Section title - Medium-large, bold, primary text
   /// Used for major sections within a page
-  /// Size: 20, Weight: 600 (SemiBold)
+  /// Size: 15, Weight: 800 (ExtraBold)
   static const TextStyle heading2 = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.3,
+    fontSize: 15,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
   /// Subsection title - Medium, semibold, primary text
   /// Used for smaller sections, card titles
-  /// Size: 16, Weight: 600 (SemiBold)
+  /// Size: 14, Weight: 800 (ExtraBold)
   static const TextStyle heading3 = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.15,
+    fontSize: 14,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0,
     color: AppColors.textPrimary,
-    height: 1.4,
+    height: 1.35,
   );
 
   // ===== BODY TEXT STYLES =====
@@ -80,22 +80,22 @@ class AppTextStyles {
 
   /// Label text - Bold small text
   /// Used for labels, badges, status indicators
-  /// Size: 12, Weight: 600 (SemiBold)
+  /// Size: 11, Weight: 700 (Bold)
   static const TextStyle labelMedium = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.4,
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.2,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
   /// Label text - Small and bold
   /// Used for minimal labels, tags
-  /// Size: 11, Weight: 600 (SemiBold)
+  /// Size: 10, Weight: 700 (Bold)
   static const TextStyle labelSmall = TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.3,
     color: AppColors.textSecondary,
     height: 1.2,
   );
@@ -103,10 +103,10 @@ class AppTextStyles {
   // ===== SPECIAL STYLES =====
 
   /// Call-to-action text - Button text
-  /// Size: 14, Weight: 600 (SemiBold)
+  /// Size: 13, Weight: 700 (Bold)
   static const TextStyle button = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
     letterSpacing: 0,
     color: Colors.white,
     height: 1.4,
@@ -114,10 +114,10 @@ class AppTextStyles {
 
   /// Highlighted/emphasized text
   /// For important numbers or data points
-  /// Size: 16, Weight: 700 (Bold)
+  /// Size: 14, Weight: 800 (ExtraBold)
   static const TextStyle highlight = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
+    fontSize: 14,
+    fontWeight: FontWeight.w800,
     letterSpacing: 0,
     color: AppColors.primaryGreen,
     height: 1.4,
@@ -125,21 +125,21 @@ class AppTextStyles {
 
   /// Large data point - For metrics, numbers
   /// E.g., plot area, days since pruning
-  /// Size: 24, Weight: 700 (Bold)
+  /// Size: 14, Weight: 800 (ExtraBold)
   static const TextStyle dataLarge = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -1,
+    fontSize: 14,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0,
     color: AppColors.textPrimary,
     height: 1.2,
   );
 
   /// Medium data point - Secondary metrics
-  /// Size: 18, Weight: 600 (SemiBold)
+  /// Size: 13, Weight: 700 (Bold)
   static const TextStyle dataMedium = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.5,
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0,
     color: AppColors.textPrimary,
     height: 1.3,
   );
@@ -147,11 +147,32 @@ class AppTextStyles {
   // ===== UTILITY METHODS =====
 
   /// Get text style with custom color override
-  static TextStyle withColor(TextStyle style, Color color) => style.copyWith(color: color);
+  static TextStyle withColor(TextStyle style, Color color) =>
+      style.copyWith(color: color);
 
   /// Get text style with custom size override
-  static TextStyle withSize(TextStyle style, double fontSize) => style.copyWith(fontSize: fontSize);
+  static TextStyle withSize(TextStyle style, double fontSize) =>
+      style.copyWith(fontSize: fontSize);
 
   /// Get text style with custom weight override
-  static TextStyle withWeight(TextStyle style, FontWeight fontWeight) => style.copyWith(fontWeight: fontWeight);
+  static TextStyle withWeight(TextStyle style, FontWeight fontWeight) =>
+      style.copyWith(fontWeight: fontWeight);
+
+  static const TextStyle screenTitle = heading1;
+  static const TextStyle sectionTitle = heading2;
+  static const TextStyle cardTitle = heading3;
+  static const TextStyle cardSubtitle = bodySmall;
+  static const TextStyle listItemTitle = bodyMedium;
+  static const TextStyle listItemBody = bodySmall;
+  static const TextStyle listItemMeta = labelSmall;
+  static const TextStyle listItemEmphasis = bodySmall;
+  static const TextStyle body = bodyMedium;
+  static const TextStyle caption = labelSmall;
+  static const TextStyle metricValue = dataLarge;
+  static const TextStyle metricLabel = labelSmall;
+  static const TextStyle chipText = labelSmall;
+  static const TextStyle buttonText = button;
+  static const TextStyle formLabel = labelMedium;
+  static const TextStyle formValue = bodyMedium;
+  static const TextStyle errorText = bodySmall;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
@@ -49,6 +50,19 @@ class ScheduleListItem extends StatelessWidget {
     }
   }
 
+  IconData get _typeIcon {
+    switch (schedule.type) {
+      case ScheduleType.spray:
+        return Icons.water_drop_outlined;
+      case ScheduleType.nutrition:
+        return Icons.grass_outlined;
+      case ScheduleType.work:
+        return Icons.construction_outlined;
+      default:
+        return Icons.list_outlined;
+    }
+  }
+
   // ── Status helpers ─────────────────────────────────────────────────────────
 
   bool get _isCompleted => schedule.isCompleted;
@@ -67,15 +81,6 @@ class ScheduleListItem extends StatelessWidget {
         .isBefore(DateTime(now.year, now.month, now.day));
   }
 
-  bool get _isTomorrow {
-    final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    final d = schedule.scheduledDate;
-    return d.year == tomorrow.year &&
-        d.month == tomorrow.month &&
-        d.day == tomorrow.day;
-  }
-
   String get _scheduleStatusLabel {
     if (_isCompleted) return 'Completed';
     if (_isOverdue || _isToday) return 'Pending';
@@ -87,14 +92,6 @@ class ScheduleListItem extends StatelessWidget {
     if (_isCompleted) return sc.completed;
     if (_isOverdue || _isToday) return AppColors.warning;
     return sc.upcoming;
-  }
-
-  String get _dueStatusLabel {
-    if (_isCompleted) return 'Completed';
-    if (_isToday) return 'Due Today';
-    if (_isTomorrow) return 'Due Tomorrow';
-    if (_isOverdue) return 'Overdue';
-    return 'Upcoming';
   }
 
   // ── Day count ──────────────────────────────────────────────────────────────
@@ -119,6 +116,9 @@ class ScheduleListItem extends StatelessWidget {
         .join(' ');
   }
 
+  String _scheduleDateLabel() =>
+      DateFormat('dd MMM yyyy').format(schedule.scheduledDate);
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -130,124 +130,161 @@ class ScheduleListItem extends StatelessWidget {
     final activityLabel = _activityLabel();
 
     return DashboardCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.smMd,
-        vertical: AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       radius: AppSpacing.radiusSm,
       borderColor: AppColors.outlineVariant,
       showShadow: false,
       color: AppColors.surface,
       onTap: onTap,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 8,
+              decoration: BoxDecoration(
+                color: tc,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    schedule.title,
+                    style: AppTypography.listItemTitle(context).copyWith(
+                      color: AppColors.onBackground,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _scheduleDateLabel(),
+                              style:
+                                  AppTypography.listItemBody(context).copyWith(
+                                color: AppColors.onSurfaceVariant,
+                                height: 1.15,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              activityLabel,
+                              style:
+                                  AppTypography.listItemBody(context).copyWith(
+                                color: AppColors.onBackground,
+                                height: 1.15,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: DashboardPill(
+                                label: _scheduleStatusLabel,
+                                color: sc,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Flexible(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Wrap(
+                            spacing: AppSpacing.xs,
+                            runSpacing: AppSpacing.xs,
+                            alignment: WrapAlignment.end,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              DashboardPill(
+                                label: dayAfterPruning,
+                                color: AppColors.primary,
+                              ),
+                              _ScheduleTypeTag(
+                                label: schedule.type.displayName,
+                                color: tc,
+                                icon: _typeIcon,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScheduleTypeTag extends StatelessWidget {
+  const _ScheduleTypeTag({
+    required this.label,
+    required this.color,
+    required this.icon,
+  });
+
+  final String label;
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 8,
-            height: 58,
+            width: 18,
+            height: 18,
             decoration: BoxDecoration(
-              color: tc,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
             ),
+            child: Icon(icon, size: 12, color: color),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        schedule.title,
-                        style: AppTypography.headlineSmall(context).copyWith(
-                          color: AppColors.onBackground,
-                          fontWeight: FontWeight.w900,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    DashboardPill(
-                      label: _scheduleStatusLabel,
-                      color: sc,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(text: schedule.plotName),
-                      const TextSpan(text: ' • '),
-                      TextSpan(
-                        text: dayAfterPruning,
-                        style: AppTypography.bodyMedium(context).copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w900,
-                          height: 1.15,
-                        ),
-                      ),
-                    ],
-                  ),
-                  style: AppTypography.bodyMedium(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                    height: 1.15,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$activityLabel Stage',
-                        style: AppTypography.bodyMedium(context).copyWith(
-                          color: AppColors.onBackground,
-                          fontWeight: FontWeight.w900,
-                          height: 1.15,
-                        ),
-                      ),
-                      const TextSpan(text: ' • '),
-                      TextSpan(text: schedule.type.displayName),
-                    ],
-                  ),
-                  style: AppTypography.bodySmall(context).copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                    height: 1.15,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  _dueStatusLabel,
-                  style: AppTypography.labelSmall(context).copyWith(
-                    color: _dueStatusColor(context),
-                    fontWeight: FontWeight.w800,
-                    height: 1,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            label,
+            style: AppTypography.listItemMeta(context).copyWith(
+              color: AppColors.onSurface,
+              fontWeight: FontWeight.w600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
-  }
-
-  Color _dueStatusColor(BuildContext context) {
-    if (_isCompleted) return _statusColor(context);
-    if (_isOverdue) return AppColors.error;
-    if (_isToday || _isTomorrow) return AppColors.primary;
-    return AppColors.onSurfaceVariant;
   }
 }

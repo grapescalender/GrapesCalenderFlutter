@@ -1,27 +1,37 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
-import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
-import '../../../../shared/widgets/app_button.dart';
+import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
+import '../../../home/domain/entities/plot_entity.dart';
+import '../../../home/presentation/providers/plot_notifier.dart';
+import '../../../products/domain/entities/product_entity.dart';
+import '../../../products/presentation/providers/product_providers.dart';
 import '../../domain/entities/schedule_entity.dart';
-import '../providers/schedule_notifier.dart';
+import '../models/add_schedule_request.dart';
 import '../providers/schedule_providers.dart';
-import 'activity_selector_widget.dart';
+import 'added_product_card.dart';
+import 'product_dose_editor.dart';
+import 'product_search_field.dart';
+import 'schedule_details_form.dart';
+import 'schedule_summary_header.dart';
+import 'sticky_save_button.dart';
 
-/// Add Schedule Form Widget
-/// Modal form for creating new schedules
+/// Full-height, keyboard-safe Add Schedule experience.
 class AddScheduleForm extends ConsumerStatefulWidget {
   const AddScheduleForm({
-    Key? key,
     required this.plotId,
     required this.plotName,
-  }) : super(key: key);
+    super.key,
+  });
+
   final String plotId;
   final String plotName;
 
@@ -31,584 +41,1077 @@ class AddScheduleForm extends ConsumerStatefulWidget {
 
 class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  final _productSearchController = TextEditingController();
+  final _productSearchFocusNode = FocusNode();
+  final _instructionsController = TextEditingController();
+  final _notesController = TextEditingController();
+  final _workNameController = TextEditingController();
+  final _labourController = TextEditingController();
+  final _durationController = TextEditingController();
 
+  Timer? _searchDebounce;
+  late String _selectedPlotId;
+  late String _selectedPlotName;
   ScheduleType _selectedType = ScheduleType.spray;
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-  ActivityType _selectedCurrentActivityType = ActivityType.cutting;
-  List<String> _selectedActivityIds = [];
-  String? _activitySelectionError;
+  ActivityType _selectedActivityType = ActivityType.cutting;
+  DateTime _scheduleDate = DateTime.now();
+  DateTime _dueDate = DateTime.now();
+  bool _isAlreadyApplied = false;
+  List<ScheduleProductDraft> _products = const [];
+  List<ProductEntity> _searchResults = const [];
+  bool _isSearching = false;
+  String? _productError;
+
+  bool get _usesProducts => _selectedType != ScheduleType.work;
+  String get _combinationName =>
+      _products.map((product) => product.productName).join(' + ');
 
   @override
   void initState() {
     super.initState();
+    _selectedPlotId = widget.plotId;
+    _selectedPlotName = widget.plotName;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref
-            .read(activityNotifierProvider.notifier)
-            .loadActivities(
-              plotId: widget.plotId,
-              plotName: widget.plotName,
-            )
-            .then((_) {
-          if (!mounted) {
-            return;
-          }
-          final activeActivity =
-              ref.read(activityNotifierProvider).activeActivity;
-          if (activeActivity != null) {
-            setState(() {
-              _selectedCurrentActivityType = activeActivity.type;
-              _selectedActivityIds = [
-                _activityIdForType(activeActivity.type),
-              ];
-            });
-          } else {
-            setState(() {
-              _selectedActivityIds = [
-                _activityIdForType(_selectedCurrentActivityType),
-              ];
-            });
-          }
-        });
-      }
+      _loadActivities();
     });
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
+    _searchDebounce?.cancel();
+    _productSearchController.dispose();
+    _productSearchFocusNode.dispose();
+    _instructionsController.dispose();
+    _notesController.dispose();
+    _workNameController.dispose();
+    _labourController.dispose();
+    _durationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final scheduleState = ref.watch(scheduleNotifierProvider);
-    final scheduleNotifier = ref.read(scheduleNotifierProvider.notifier);
+    final plots = ref.watch(plotNotifierProvider).plots;
+    final availablePlots = plots.isEmpty
+        ? [
+            PlotEntity(
+              id: _selectedPlotId,
+              name: _selectedPlotName,
+              area: 0,
+              location: '',
+              cropType: 'Grapes',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+          ]
+        : plots;
+    final selectedPlot = availablePlots.firstWhere(
+      (plot) => plot.id == _selectedPlotId,
+      orElse: () => availablePlots.first,
+    );
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+    return FractionallySizedBox(
+      heightFactor: 0.96,
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppSpacing.radiusHuge),
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                const SizedBox(height: AppSpacing.sm),
+                _DragHandle(),
+                _AppBar(
+                  onClose: () => Navigator.of(context).pop(),
+                  onSave: scheduleState.isCreating ? null : _submit,
+                ),
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenHorizontal,
+                        AppSpacing.sm,
+                        AppSpacing.screenHorizontal,
+                        AppSpacing.lg,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ScheduleSummaryHeader(
+                            plotName: selectedPlot.name,
+                            scheduleType: _selectedType,
+                            stageName: _selectedActivityType.displayName,
+                            scheduleDate: _scheduleDate,
+                            dayAfterPruning:
+                                _dayAfterPruning(selectedPlot.pruningDate),
+                            productCount: _products.length,
+                          ),
+                          const SizedBox(height: AppSpacing.smMd),
+                          ScheduleDetailsForm(
+                            plots: availablePlots,
+                            selectedPlotId: selectedPlot.id,
+                            selectedType: _selectedType,
+                            selectedActivityType: _selectedActivityType,
+                            scheduleDate: _scheduleDate,
+                            dueDate: _dueDate,
+                            onPlotChanged: _changePlot,
+                            onTypeChanged: _changeType,
+                            onActivityChanged: _changeActivity,
+                            onScheduleDateTap: _selectScheduleDate,
+                            onDueDateTap: _selectDueDate,
+                            onTimeTap: _selectTime,
+                          ),
+                          const SizedBox(height: AppSpacing.smMd),
+                          if (_usesProducts) ...[
+                            _buildProductSection(),
+                            const SizedBox(height: AppSpacing.smMd),
+                          ] else ...[
+                            _buildWorkSection(),
+                            const SizedBox(height: AppSpacing.smMd),
+                          ],
+                          _buildInstructionsSection(),
+                          const SizedBox(height: AppSpacing.smMd),
+                          _buildStatusSection(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                StickySaveButton(
+                  isSaving: scheduleState.isCreating,
+                  onSave: _submit,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildProductSection() {
+    return ScheduleFormSectionCard(
+      title: 'Products to Apply',
+      icon: Icons.science_outlined,
+      action: TextButton.icon(
+        onPressed: _openProductSearchSheet,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(_products.isEmpty ? 'Add Product' : 'Add another'),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_productError != null) ...[
+            Text(
+              _productError!,
+              style: AppTypography.errorText(context).copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          if (_products.isEmpty)
+            const _EmptyProductsPrompt()
+          else ...[
+            Text(
+              'Selected Products',
+              style: AppTypography.cardTitle(context).copyWith(
+                color: AppColors.onBackground,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            for (var index = 0; index < _products.length; index++) ...[
+              AddedProductCard(
+                product: _products[index],
+                isEditing: false,
+                showErrors: false,
+                onChanged: (product) => _updateProduct(index, product),
+                onRemove: () => _removeProduct(index),
+                onEdit: () => _editProduct(index),
+                onDone: () {},
+              ),
+              if (index != _products.length - 1)
+                const SizedBox(height: AppSpacing.sm),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusSection() {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(color: AppColors.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withValues(alpha: 0.04),
+            blurRadius: AppSpacing.lg,
+            offset: const Offset(0, AppSpacing.xs),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: AppSpacing.xl,
+                height: AppSpacing.xl,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: const Icon(
+                  Icons.fact_check_outlined,
+                  color: AppColors.primary,
+                  size: AppSpacing.mdLg,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Final status',
+                      style: AppTypography.cardTitle(context).copyWith(
+                        color: AppColors.onBackground,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Choose how it should appear after saving.',
+                      style: AppTypography.caption(context).copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.smMd),
+          _ScheduleStatusToggle(
+            isAlreadyApplied: _isAlreadyApplied,
+            onChanged: (value) => setState(() => _isAlreadyApplied = value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkSection() {
+    return ScheduleFormSectionCard(
+      title: 'Work Details',
+      icon: Icons.construction_outlined,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _workNameController,
+            decoration: DashboardField.decoration(
+              context: context,
+              label: 'Work Activity Name',
+              hint: 'e.g. Weeding, tying, pruning',
+              icon: Icons.task_alt_rounded,
+            ),
+            validator: (value) {
+              if (_selectedType != ScheduleType.work) return null;
+              if (value == null || value.trim().isEmpty) {
+                return 'Work activity is required';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: AppSpacing.smMd),
+          TextFormField(
+            controller: _instructionsController,
+            minLines: 2,
+            maxLines: 4,
+            decoration: DashboardField.decoration(
+              context: context,
+              label: 'Work Instructions',
+              hint: 'Explain what the team should do',
+              icon: Icons.assignment_outlined,
+            ),
+            validator: (value) {
+              if (_selectedType != ScheduleType.work) return null;
+              if (value == null || value.trim().isEmpty) {
+                return 'Work instructions are required';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: AppSpacing.smMd),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _labourController,
+                  decoration: DashboardField.decoration(
+                    context: context,
+                    label: 'Labour / Team',
+                    hint: 'e.g. 4 workers',
+                    icon: Icons.groups_outlined,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: TextFormField(
+                  controller: _durationController,
+                  decoration: DashboardField.decoration(
+                    context: context,
+                    label: 'Duration',
+                    hint: 'e.g. 3 hours',
+                    icon: Icons.timer_outlined,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstructionsSection() {
+    return ScheduleFormSectionCard(
+      title: _usesProducts ? 'Application Instructions' : 'Notes',
+      icon: Icons.notes_outlined,
+      child: Column(
+        children: [
+          if (_usesProducts) ...[
+            TextFormField(
+              controller: _instructionsController,
+              minLines: 2,
+              maxLines: 4,
+              decoration: DashboardField.decoration(
+                context: context,
+                label: 'Instructions',
+                hint: 'Mixing order, application method, safety guidance',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.smMd),
+          ],
+          TextFormField(
+            controller: _notesController,
+            minLines: 2,
+            maxLines: 4,
+            decoration: DashboardField.decoration(
+              context: context,
+              label: 'Notes (Optional)',
+              hint: 'Add any reminder or comment',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _changeType(ScheduleType type) {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _selectedType = type;
+      _productError = null;
+      _productSearchController.clear();
+      _searchResults = const [];
+    });
+  }
+
+  Future<void> _changePlot(String plotId) async {
+    final plots = ref.read(plotNotifierProvider).plots;
+    final plot = plots.firstWhere((item) => item.id == plotId);
+    setState(() {
+      _selectedPlotId = plot.id;
+      _selectedPlotName = plot.name;
+      _selectedActivityType = ActivityType.cutting;
+    });
+    await _loadActivities();
+  }
+
+  void _changeActivity(ActivityType type) {
+    setState(() => _selectedActivityType = type);
+  }
+
+  Future<void> _loadActivities() async {
+    await ref.read(activityNotifierProvider.notifier).loadActivities(
+          plotId: _selectedPlotId,
+          plotName: _selectedPlotName,
+        );
+    if (!mounted) return;
+    final active = ref.read(activityNotifierProvider).activeActivity;
+    if (active != null) {
+      setState(() => _selectedActivityType = active.type);
+    }
+  }
+
+  void _searchProducts(String query, [VoidCallback? refreshSheet]) {
+    _searchDebounce?.cancel();
+    if (query.trim().isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _searchResults = const [];
+      });
+      refreshSheet?.call();
+      return;
+    }
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
+      if (!mounted) return;
+      setState(() => _isSearching = true);
+      refreshSheet?.call();
+      final repository = ref.read(productRepositoryProvider);
+      final result = await repository.searchProducts(keyword: query.trim());
+      if (!mounted) return;
+      result.fold(
+        (_) => setState(() {
+          _isSearching = false;
+          _searchResults = const [];
+        }),
+        (products) => setState(() {
+          _isSearching = false;
+          _searchResults = products.where(_matchesSelectedType).toList();
+        }),
+      );
+      refreshSheet?.call();
+    });
+  }
+
+  bool _matchesSelectedType(ProductEntity product) {
+    if (_selectedType == ScheduleType.nutrition) {
+      return product.category == ProductCategory.fertilizers ||
+          product.category == ProductCategory.nutrition ||
+          product.category == ProductCategory.bioProducts;
+    }
+    return product.category != ProductCategory.fertilizers &&
+        product.category != ProductCategory.nutrition;
+  }
+
+  void _addProduct(ProductEntity product) {
+    if (_products.any((item) => item.productId == product.id)) {
+      setState(() => _productError = 'This product is already added.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This product is already added.')),
+      );
+      return;
+    }
+    final defaultUnit =
+        product.dosage.toLowerCase().contains('ml') ? 'ml' : 'gm';
+    FocusScope.of(context).unfocus();
+    Navigator.of(context).pop();
+    _openProductConfigSheet(
+      ScheduleProductDraft(
+        productId: product.id,
+        productName: product.name,
+        categoryId: product.category.value,
+        categoryLabel: product.category.displayName,
+        manufacturer: product.company,
+        doseUnit: defaultUnit,
+        sequenceNo: _products.length + 1,
+      ),
+    );
+  }
+
+  void _updateProduct(int index, ScheduleProductDraft product) {
+    setState(() {
+      final updated = [..._products];
+      updated[index] = product;
+      _products = updated;
+    });
+  }
+
+  void _removeProduct(int index) {
+    setState(() {
+      final updated = [..._products]..removeAt(index);
+      _products = [
+        for (var i = 0; i < updated.length; i++)
+          updated[i].copyWith(sequenceNo: i + 1),
+      ];
+    });
+  }
+
+  void _editProduct(int index) {
+    FocusScope.of(context).unfocus();
+    _openProductConfigSheet(_products[index], index: index);
+  }
+
+  void _openProductSearchSheet() {
+    setState(() {
+      _productError = null;
+      _productSearchController.clear();
+      _searchResults = const [];
+    });
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: cs.outline,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.72,
             ),
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screenHorizontal),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screenHorizontal,
+                AppSpacing.smMd,
+                AppSpacing.screenHorizontal,
+                AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Center(child: _DragHandle()),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Add Schedule',
-                    style: AppTypography.headlineLarge(context),
+                    'Add Product',
+                    style: AppTypography.sectionTitle(context).copyWith(
+                      color: AppColors.onBackground,
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Search catalog, then set dose details.',
+                    style: AppTypography.caption(context).copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  ProductSearchField(
+                    controller: _productSearchController,
+                    results: _searchResults,
+                    isLoading: _isSearching,
+                    onChanged: (query) =>
+                        _searchProducts(query, () => setSheetState(() {})),
+                    onSelected: _addProduct,
+                    addedProductIds:
+                        _products.map((product) => product.productId).toSet(),
+                    focusNode: _productSearchFocusNode,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            // Form
-            Flexible(
+          ),
+        ),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _productSearchFocusNode.requestFocus();
+    });
+  }
+
+  void _openProductConfigSheet(
+    ScheduleProductDraft initial, {
+    int? index,
+  }) {
+    var draft = initial;
+    var showErrors = false;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusHuge),
+        ),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) => SafeArea(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.72,
+              ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screenHorizontal),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Plot Name
-                      DashboardCard(
-                        showShadow: false,
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.agriculture,
-                              color: cs.primary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Text(
-                                widget.plotName,
-                                style:
-                                    AppTypography.bodyMedium(context).copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenHorizontal,
+                  AppSpacing.smMd,
+                  AppSpacing.screenHorizontal,
+                  AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(child: _DragHandle()),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      draft.productName,
+                      style: AppTypography.sectionTitle(context).copyWith(
+                        color: AppColors.onBackground,
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      // Schedule Type
-                      Text(
-                        'Type',
-                        style: AppTypography.titleMedium(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '${draft.categoryLabel} • ${draft.manufacturer}',
+                      style: AppTypography.caption(context).copyWith(
+                        color: AppColors.onSurfaceVariant,
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _buildTypeSelector(context),
-                      const SizedBox(height: AppSpacing.md),
-                      // Title
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: DashboardField.decoration(
-                          context: context,
-                          label: 'Title',
-                          hint: 'Enter schedule title',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Title is required';
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    ProductDoseEditor(
+                      product: draft,
+                      showErrors: showErrors,
+                      onChanged: (ScheduleProductDraft value) =>
+                          setSheetState(() => draft = value),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    FilledButton.icon(
+                      onPressed: () {
+                        if (!_isProductComplete(draft)) {
+                          setSheetState(() => showErrors = true);
+                          return;
+                        }
+                        setState(() {
+                          if (index == null) {
+                            _products = [..._products, draft];
+                          } else {
+                            final updated = [..._products];
+                            updated[index] = draft;
+                            _products = updated;
                           }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      // Date and Time
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDatePicker(context),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: _buildTimePicker(context),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      // Activity Selection
-                      _buildActivitySelector(context),
-                      const SizedBox(height: AppSpacing.md),
-                      // Description
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: DashboardField.decoration(
-                          context: context,
-                          label: 'Description (Optional)',
-                          hint: 'Enter description',
-                        ),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      // Submit Button
-                      AppButton.primary(
-                        label: scheduleState.isCreating
-                            ? 'Creating...'
-                            : 'Create Schedule',
-                        onPressed: scheduleState.isCreating
-                            ? null
-                            : () => _handleSubmit(context, scheduleNotifier),
-                        isLoading: scheduleState.isCreating,
-                        isFullWidth: true,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                    ],
-                  ),
+                          _productError = null;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                      icon: const Icon(Icons.check_rounded),
+                      label: const Text('Confirm Product'),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTypeSelector(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
-    return Row(
-      children: [
-        Expanded(
-          child: _buildTypeChip(
-            context,
-            ScheduleType.spray,
-            Icons.water_drop_outlined,
-            semantic.info,
           ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: _buildTypeChip(
-            context,
-            ScheduleType.nutrition,
-            Icons.grass_outlined,
-            semantic.warning,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: _buildTypeChip(
-            context,
-            ScheduleType.work,
-            Icons.construction_outlined,
-            cs.primary,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildTypeChip(
-    BuildContext context,
-    ScheduleType type,
-    IconData icon,
-    Color color,
-  ) {
-    final isSelected = _selectedType == type;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedType = type),
-      child: DashboardCard(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        color: isSelected ? color.withValues(alpha: 0.10) : AppColors.surface,
-        borderColor: isSelected ? color : AppColors.outline,
-        radius: AppSpacing.radiusMd,
-        showShadow: false,
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? color : AppColors.onSurfaceVariant,
-              size: 24,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              type.displayName,
-              style: AppTypography.labelSmall(context).copyWith(
-                color: isSelected ? color : AppColors.onSurface,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  bool _isProductComplete(ScheduleProductDraft product) =>
+      product.dose.trim().isNotEmpty &&
+      product.perWaterQuantity.trim().isNotEmpty &&
+      (double.tryParse(product.dose) ?? 0) > 0 &&
+      (double.tryParse(product.perWaterQuantity) ?? 0) > 0;
 
-  Widget _buildDatePicker(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () => _selectDate(context),
-      child: DashboardCard(
-        showShadow: false,
-        child: Row(
-          children: [
-            Icon(
-              Icons.calendar_today_outlined,
-              color: cs.primary,
-              size: 20,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Date',
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    DateFormat('MMM dd, yyyy').format(_selectedDate),
-                    style: AppTypography.titleSmall(context).copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: cs.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimePicker(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () => _selectTime(context),
-      child: DashboardCard(
-        showShadow: false,
-        child: Row(
-          children: [
-            Icon(
-              Icons.access_time_outlined,
-              color: cs.primary,
-              size: 20,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Time',
-                    style: AppTypography.labelSmall(context).copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    _selectedTime.format(context),
-                    style: AppTypography.titleSmall(context).copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: cs.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final picked = await showDatePicker(
+  Future<void> _selectScheduleDate() async {
+    final value = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
+      initialDate: _scheduleDate,
+      firstDate: DateUtils.dateOnly(DateTime.now()),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-
-    if (picked != null) {
-      setState(() => _selectedTime = picked);
-    }
-  }
-
-  Widget _buildActivitySelector(BuildContext context) {
-    final activities = _availableActivitiesForSchedule(watch: true);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        DropdownButtonFormField<ActivityType>(
-          initialValue: _selectedCurrentActivityType,
-          decoration: DashboardField.decoration(
-            context: context,
-            label: 'Current Activity',
-            icon: Icons.timeline_rounded,
-          ),
-          items: ActivityType.orderedTypes
-              .map(
-                (type) => DropdownMenuItem(
-                  value: type,
-                  child: Text(type.displayName),
-                ),
-              )
-              .toList(),
-          onChanged: (type) {
-            if (type == null) {
-              return;
-            }
-            setState(() {
-              _selectedCurrentActivityType = type;
-              _selectedActivityIds = [_activityIdForType(type)];
-              _activitySelectionError = null;
-            });
-          },
-        ),
-        const SizedBox(height: AppSpacing.md),
-        ActivitySelectorWidget(
-          activities: activities,
-          selectedActivityIds: _selectedActivityIds,
-          onSelectionChanged: (ids) {
-            setState(() {
-              final currentActivityId =
-                  _activityIdForType(_selectedCurrentActivityType);
-              _selectedActivityIds = ids.contains(currentActivityId)
-                  ? ids
-                  : [currentActivityId, ...ids].take(2).toList();
-              _activitySelectionError = null;
-            });
-          },
-          errorText: _activitySelectionError,
-          helperText: 'Bind this schedule with current or previous activity.',
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleSubmit(
-    BuildContext context,
-    ScheduleNotifier notifier,
-  ) async {
-    // Validate activity selection
-    if (_selectedActivityIds.isEmpty) {
-      setState(() {
-        _activitySelectionError = 'Please select at least one activity';
-      });
-      return;
-    }
-
-    if (_selectedActivityIds.length > 2) {
-      setState(() {
-        _activitySelectionError = 'Maximum 2 activities allowed';
-      });
-      return;
-    }
-
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    final scheduledDateTime = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
-    );
-
-    final success = await notifier.createSchedule(
-      plotId: widget.plotId,
-      plotName: widget.plotName,
-      type: _selectedType,
-      title: _titleController.text.trim(),
-      scheduledDate: scheduledDateTime,
-      description: _descriptionController.text.trim().isEmpty
-          ? null
-          : _descriptionController.text.trim(),
-      activityIds: _selectedActivityIds,
-    );
-
-    if (success && context.mounted) {
-      await _startSelectedCurrentActivity();
-
-      if (!context.mounted) {
-        return;
-      }
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Schedule created successfully'),
-          backgroundColor:
-              Theme.of(context).extension<AppSemanticColors>()!.success,
-        ),
+    if (value == null) return;
+    setState(() {
+      _scheduleDate = DateTime(
+        value.year,
+        value.month,
+        value.day,
+        _scheduleDate.hour,
+        _scheduleDate.minute,
       );
-    } else if (context.mounted) {
+      if (_dueDate.isBefore(_scheduleDate)) {
+        _dueDate = _scheduleDate;
+      }
+    });
+  }
+
+  Future<void> _selectDueDate() async {
+    final value = await showDatePicker(
+      context: context,
+      initialDate: _dueDate.isBefore(_scheduleDate) ? _scheduleDate : _dueDate,
+      firstDate: DateUtils.dateOnly(_scheduleDate),
+      lastDate: _scheduleDate.add(const Duration(days: 365)),
+    );
+    if (value != null) {
+      setState(() => _dueDate = value);
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final value = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_scheduleDate),
+    );
+    if (value != null) {
+      setState(() {
+        _scheduleDate = DateTime(
+          _scheduleDate.year,
+          _scheduleDate.month,
+          _scheduleDate.day,
+          value.hour,
+          value.minute,
+        );
+      });
+    }
+  }
+
+  int? _dayAfterPruning(DateTime? pruningDate) {
+    if (pruningDate == null) return null;
+    return DateUtils.dateOnly(_scheduleDate)
+        .difference(DateUtils.dateOnly(pruningDate))
+        .inDays;
+  }
+
+  Future<void> _submit() async {
+    if (ref.read(scheduleNotifierProvider).isCreating) return;
+    FocusScope.of(context).unfocus();
+    final formValid = _formKey.currentState?.validate() ?? false;
+    final productValid = !_usesProducts ||
+        (_products.isNotEmpty && _products.every(_isProductComplete));
+
+    if (_usesProducts && _products.isEmpty) {
+      setState(() => _productError = 'Add at least one product');
+    } else if (_usesProducts && !productValid) {
+      setState(() => _productError = 'Complete dose details for every product');
+    } else {
+      setState(() => _productError = null);
+    }
+
+    if (!formValid || !productValid) return;
+
+    final activityId =
+        'activity_${_selectedPlotId}_${_selectedActivityType.value}';
+    final request = AddScheduleRequest(
+      plotId: _selectedPlotId,
+      scheduleType: _selectedType,
+      activityId: activityId,
+      stageId: _selectedActivityType.value,
+      scheduleDate: _scheduleDate,
+      dueDate: _dueDate,
+      totalWaterQuantity: null,
+      totalWaterUnit: 'L',
+      tankCount: null,
+      instructions: _instructionsController.text.trim(),
+      notes: _notesController.text.trim(),
+      labourTeam: _labourController.text.trim(),
+      estimatedDuration: _durationController.text.trim(),
+      products: _usesProducts ? _products : const [],
+      combinationName: _usesProducts ? _combinationName : '',
+    );
+
+    final success =
+        await ref.read(scheduleNotifierProvider.notifier).createSchedule(
+              plotId: request.plotId,
+              plotName: _selectedPlotName,
+              type: request.scheduleType,
+              title: _scheduleTitle(request),
+              scheduledDate: request.scheduleDate,
+              description: request.legacyDescription.isEmpty
+                  ? null
+                  : request.legacyDescription,
+              activityIds: [request.activityId],
+              isCompleted: _isAlreadyApplied,
+            );
+
+    if (!mounted) return;
+    if (!success) {
+      final message = ref.read(scheduleNotifierProvider).errorMessage ??
+          'Failed to create schedule';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Failed to create schedule'),
+          content: Text(message),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
-    }
-  }
-
-  List<ActivityEntity> _availableActivitiesForSchedule({
-    required bool watch,
-  }) {
-    final activityState = watch
-        ? ref.watch(activityNotifierProvider)
-        : ref.read(activityNotifierProvider);
-    final existingActivities = activityState.activities;
-    final options = <ActivityEntity>[];
-    final previousType = _previousActivityType(_selectedCurrentActivityType);
-
-    if (previousType != null) {
-      options.add(_activityForType(
-        previousType,
-        existingActivities,
-        fallbackStatus: ActivityStatus.completed,
-      ));
+      return;
     }
 
-    options.add(_activityForType(
-      _selectedCurrentActivityType,
-      existingActivities,
-      fallbackStatus: ActivityStatus.active,
-    ));
-
-    return options;
-  }
-
-  Future<void> _startSelectedCurrentActivity() async {
-    await ref.read(activityNotifierProvider.notifier).startActivity(
-          plotId: widget.plotId,
-          type: _selectedCurrentActivityType,
-        );
-  }
-
-  ActivityEntity _activityForType(
-    ActivityType type,
-    List<ActivityEntity> existingActivities, {
-    required ActivityStatus fallbackStatus,
-  }) {
-    final now = DateTime.now();
-    return existingActivities.firstWhere(
-      (activity) => activity.type == type,
-      orElse: () => ActivityEntity(
-        id: _activityIdForType(type),
-        plotId: widget.plotId,
-        plotName: widget.plotName,
-        type: type,
-        status: fallbackStatus,
-        createdAt: now,
-        updatedAt: now,
+    if (_isAlreadyApplied) {
+      await ref.read(activityNotifierProvider.notifier).startActivity(
+            plotId: _selectedPlotId,
+            type: _selectedActivityType,
+          );
+    }
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Schedule created successfully'),
+        backgroundColor:
+            Theme.of(context).extension<AppSemanticColors>()!.success,
       ),
     );
   }
 
-  ActivityType? _previousActivityType(ActivityType currentType) {
-    final orderedTypes = ActivityType.orderedTypes;
-    final currentIndex = orderedTypes.indexOf(currentType);
-    if (currentIndex <= 0) {
-      return null;
+  String _scheduleTitle(AddScheduleRequest request) {
+    if (request.scheduleType == ScheduleType.work) {
+      return _workNameController.text.trim();
     }
-    return orderedTypes[currentIndex - 1];
+    return request.combinationName;
   }
+}
 
-  String _activityIdForType(ActivityType type) =>
-      'activity_${widget.plotId}_${type.value}';
+class _ScheduleStatusToggle extends StatelessWidget {
+  const _ScheduleStatusToggle({
+    required this.isAlreadyApplied,
+    required this.onChanged,
+  });
+
+  final bool isAlreadyApplied;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final pendingSegment = _StatusSegment(
+      label: 'Need to Apply',
+      icon: Icons.pending_actions_rounded,
+      color: AppColors.warning,
+      selected: !isAlreadyApplied,
+      onTap: () => onChanged(false),
+    );
+    final appliedSegment = _StatusSegment(
+      label: 'Already Applied',
+      icon: Icons.verified_rounded,
+      color: AppColors.success,
+      selected: isAlreadyApplied,
+      onTap: () => onChanged(true),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 360;
+        return Container(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(
+              compact ? AppSpacing.radiusLg : AppSpacing.radiusFull,
+            ),
+            border: Border.all(color: AppColors.outlineVariant),
+          ),
+          child: compact
+              ? Column(
+                  children: [
+                    pendingSegment,
+                    const SizedBox(height: AppSpacing.xs),
+                    appliedSegment,
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: pendingSegment),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(child: appliedSegment),
+                  ],
+                ),
+        );
+      },
+    );
+  }
+}
+
+class _StatusSegment extends StatelessWidget {
+  const _StatusSegment({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final foregroundColor = selected ? Colors.white : AppColors.onSurface;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.smMd,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? color : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.18),
+                      blurRadius: AppSpacing.md,
+                      offset: const Offset(0, AppSpacing.xs),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: foregroundColor,
+                size: AppSpacing.md,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Flexible(
+                child: Text(
+                  label,
+                  style: AppTypography.chipText(context).copyWith(
+                    color: foregroundColor,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyProductsPrompt extends StatelessWidget {
+  const _EmptyProductsPrompt();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: AppColors.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.smMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'No products added yet',
+                    style: AppTypography.cardTitle(context).copyWith(
+                      color: AppColors.onBackground,
+                    ),
+                  ),
+                  Text(
+                    'No products added yet. Use Add Product to search catalog and set dose details.',
+                    style: AppTypography.caption(context).copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _DragHandle extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 42,
+        height: 4,
+        decoration: BoxDecoration(
+          color: AppColors.outline,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        ),
+      );
+}
+
+class _AppBar extends StatelessWidget {
+  const _AppBar({
+    required this.onClose,
+    required this.onSave,
+  });
+
+  final VoidCallback onClose;
+  final VoidCallback? onSave;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xs,
+          AppSpacing.xs,
+          AppSpacing.sm,
+          AppSpacing.xs,
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              tooltip: 'Close',
+              onPressed: onClose,
+              icon: const Icon(Icons.close_rounded),
+            ),
+            Expanded(
+              child: Text(
+                'Add Schedule',
+                style: AppTypography.sectionTitle(context).copyWith(
+                  color: AppColors.onBackground,
+                ),
+              ),
+            ),
+            IconButton.filledTonal(
+              tooltip: 'Save schedule',
+              onPressed: onSave,
+              icon: const Icon(Icons.check_rounded),
+            ),
+          ],
+        ),
+      );
 }

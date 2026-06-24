@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
+import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../config/router/app_router.dart';
-import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../../shared/widgets/app_ui.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../../../home/domain/entities/plot_entity.dart';
@@ -182,11 +183,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
               : const SizedBox.shrink(),
         ),
         const SizedBox(width: AppSpacing.sm),
-        DashboardIconButton(
-          icon: Icons.add_rounded,
-          onTap: onAddTap,
-          tooltip: 'Add Schedule',
-        ),
+        _AddScheduleControl(onTap: onAddTap),
       ],
     );
   }
@@ -354,6 +351,67 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       builder: (context) => AddScheduleForm(
         plotId: plotId,
         plotName: plotName,
+      ),
+    );
+  }
+}
+
+class _AddScheduleControl extends StatelessWidget {
+  const _AddScheduleControl({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Add Schedule',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        child: Container(
+          height: 38,
+          padding: const EdgeInsets.only(
+            left: AppSpacing.xs,
+            right: AppSpacing.smMd,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            border: Border.all(color: AppColors.primary),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.20),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  size: 16,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                'Add',
+                style: AppTypography.chipText(context).copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

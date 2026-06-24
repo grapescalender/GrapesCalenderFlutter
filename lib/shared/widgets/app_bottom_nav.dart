@@ -6,7 +6,6 @@ import '../../core/design_system/typography/app_typography.dart';
 /// Minimal, clean design inspired by Groww
 /// Supports icons, labels, and badges
 class AppBottomNav extends StatelessWidget {
-
   const AppBottomNav({
     Key? key,
     required this.currentIndex,
@@ -31,8 +30,7 @@ class AppBottomNav extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor ??
-            cs.surface,
+        color: backgroundColor ?? cs.surface,
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withOpacity(0.08),
@@ -93,7 +91,8 @@ class AppBottomNav extends StatelessWidget {
                   Icon(
                     isSelected ? item.selectedIcon : item.icon,
                     size: 24,
-                    color: isSelected ? selectedColorValue : unselectedColorValue,
+                    color:
+                        isSelected ? selectedColorValue : unselectedColorValue,
                   ),
                   if (item.badge != null && item.badge! > 0)
                     Positioned(
@@ -111,9 +110,8 @@ class AppBottomNav extends StatelessWidget {
                         ),
                         child: Text(
                           item.badge! > 9 ? '9+' : '${item.badge}',
-                          style: AppTypography.labelSmall(context).copyWith(
+                          style: AppTypography.caption(context).copyWith(
                             color: Colors.white,
-                            fontSize: 10,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -139,7 +137,6 @@ class AppBottomNav extends StatelessWidget {
 
 /// Bottom Navigation Item
 class AppBottomNavItem {
-
   const AppBottomNavItem({
     required this.icon,
     required this.selectedIcon,

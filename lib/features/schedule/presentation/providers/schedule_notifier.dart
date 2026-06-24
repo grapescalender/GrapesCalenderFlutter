@@ -51,7 +51,7 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
         },
         (schedules) {
           state = state.copyWith(
-            schedules: schedules,
+            schedules: _sortLatestFirst(schedules),
             isLoading: false,
             errorMessage: null,
           );
@@ -85,6 +85,7 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
     required DateTime scheduledDate,
     String? description,
     List<String> activityIds = const [],
+    bool isCompleted = false,
   }) async {
     state = state.copyWith(isCreating: true, errorMessage: null);
 
@@ -98,6 +99,7 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
           scheduledDate: scheduledDate,
           description: description,
           activityIds: activityIds,
+          isCompleted: isCompleted,
         ),
       );
 
@@ -110,14 +112,22 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
           return false;
         },
         (schedule) {
-          // Reload schedules after creation
-          loadSchedules(
-            plotId: plotId,
-            plotName: plotName,
-            filterType: state.selectedFilter,
-            limit: 5,
+          final shouldShowInCurrentFilter =
+              state.selectedFilter == ScheduleType.all ||
+                  state.selectedFilter == schedule.type;
+          final nextSchedules = shouldShowInCurrentFilter
+              ? _sortLatestFirst([
+                  schedule,
+                  ...state.schedules.where((item) => item.id != schedule.id),
+                ])
+              : state.schedules;
+          state = state.copyWith(
+            schedules: nextSchedules,
+            selectedPlotId: plotId,
+            selectedPlotName: plotName,
+            isCreating: false,
+            errorMessage: null,
           );
-          state = state.copyWith(isCreating: false);
           return true;
         },
       );
@@ -159,7 +169,8 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
                       ? completedSchedule
                       : item,
                 )
-                .toList(),
+                .toList()
+              ..sort(_compareLatestFirst),
             errorMessage: null,
           );
           return null;
@@ -179,4 +190,15 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
         validation: (message, _) => message,
         unknown: (message, _) => message,
       );
+
+  List<ScheduleEntity> _sortLatestFirst(List<ScheduleEntity> schedules) =>
+      [...schedules]..sort(_compareLatestFirst);
+
+  int _compareLatestFirst(ScheduleEntity a, ScheduleEntity b) {
+    final createdCompare = b.createdAt.compareTo(a.createdAt);
+    if (createdCompare != 0) return createdCompare;
+    final scheduleCompare = b.scheduledDate.compareTo(a.scheduledDate);
+    if (scheduleCompare != 0) return scheduleCompare;
+    return b.id.compareTo(a.id);
+  }
 }

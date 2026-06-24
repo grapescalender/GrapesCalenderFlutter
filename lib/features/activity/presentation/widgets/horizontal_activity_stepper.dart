@@ -24,7 +24,7 @@ class HorizontalActivityStepper extends StatefulWidget {
   }) : super(key: key);
 
   final List<ActivityEntity> activities;
-  final Function(ActivityEntity) onStepTapped;
+  final ValueChanged<ActivityEntity> onStepTapped;
   final VoidCallback onViewAllActivities;
   final ActivityEntity? selectedActivity;
 
@@ -33,8 +33,7 @@ class HorizontalActivityStepper extends StatefulWidget {
       _HorizontalActivityStepperState();
 }
 
-class _HorizontalActivityStepperState
-    extends State<HorizontalActivityStepper> {
+class _HorizontalActivityStepperState extends State<HorizontalActivityStepper> {
   late ActivityEntity _selected;
 
   @override
@@ -251,10 +250,8 @@ class _StepWithLabel extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               activity.type.displayName,
-              style: AppTypography.bodySmall(context).copyWith(
-                fontSize: 10,
-                fontWeight:
-                    isSelected ? FontWeight.w700 : FontWeight.w400,
+              style: AppTypography.caption(context).copyWith(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                 color: isSelected ? AppColors.primary : AppColors.onSurface,
               ),
               maxLines: 1,

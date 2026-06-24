@@ -19,10 +19,12 @@ abstract class ScheduleRepository {
     required DateTime scheduledDate,
     String? description,
     List<String> activityIds = const [],
+    bool isCompleted = false,
   });
 
   /// Update schedule
-  Future<Either<Failure, ScheduleEntity>> updateSchedule(ScheduleEntity schedule);
+  Future<Either<Failure, ScheduleEntity>> updateSchedule(
+      ScheduleEntity schedule);
 
   /// Delete schedule
   Future<Either<Failure, void>> deleteSchedule(String scheduleId);

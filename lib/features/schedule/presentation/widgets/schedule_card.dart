@@ -52,9 +52,8 @@ class ScheduleCard extends StatelessWidget {
                   children: [
                     Text(
                       schedule.title,
-                      style: AppTypography.titleLarge(context).copyWith(
+                      style: AppTypography.cardTitle(context).copyWith(
                         color: cs.onSurface,
-                        fontWeight: FontWeight.w900,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -62,9 +61,8 @@ class ScheduleCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       schedule.type.displayName,
-                      style: AppTypography.labelSmall(context).copyWith(
+                      style: AppTypography.chipText(context).copyWith(
                         color: _getTypeColor(context, schedule.type),
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -103,7 +101,7 @@ class ScheduleCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text(
                 _formatDate(schedule.scheduledDate),
-                style: AppTypography.bodyMedium(context).copyWith(
+                style: AppTypography.body(context).copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -116,7 +114,7 @@ class ScheduleCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text(
                 _formatTime(schedule.scheduledDate),
-                style: AppTypography.bodySmall(context).copyWith(
+                style: AppTypography.caption(context).copyWith(
                   color: cs.onSurfaceVariant,
                 ),
               ),

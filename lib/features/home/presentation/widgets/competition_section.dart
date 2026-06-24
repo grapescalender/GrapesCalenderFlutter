@@ -60,12 +60,6 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
   double _matchingArea(List<_CompetitionPlot> plots) =>
       plots.fold(0, (total, plot) => total + plot.area);
 
-  String _competitionLevel(int matchingPlots) {
-    if (matchingPlots >= 12) return 'High';
-    if (matchingPlots >= 6) return 'Medium';
-    return 'Low';
-  }
-
   List<_Seg> _segments(List<_CompetitionPlot> plots) {
     final totals = <String, _VarietyCount>{};
     for (final plot in plots) {
@@ -102,20 +96,7 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
     final matchingCount = matchingPlots.length;
     final matchingArea = _matchingArea(matchingPlots);
     final matchingAcres = matchingArea * 2.47105;
-    final competitionLevel = _competitionLevel(matchingCount);
     final segments = _segments(matchingPlots);
-    final localCount =
-        matchingPlots.where((plot) => plot.harvestingType == 'Local').length;
-    final exportCount =
-        matchingPlots.where((plot) => plot.harvestingType == 'Export').length;
-    final localAcres = matchingPlots
-            .where((plot) => plot.harvestingType == 'Local')
-            .fold<double>(0, (total, plot) => total + plot.area) *
-        2.47105;
-    final exportAcres = matchingPlots
-            .where((plot) => plot.harvestingType == 'Export')
-            .fold<double>(0, (total, plot) => total + plot.area) *
-        2.47105;
 
     return Padding(
       padding:
@@ -194,18 +175,16 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
                   child: _CompetitionSummaryCard(
                     plots: matchingCount,
                     acres: matchingAcres,
-                    level: competitionLevel,
-                    localCount: localCount,
-                    exportCount: exportCount,
-                    localAcres: localAcres,
-                    exportAcres: exportAcres,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                _DonutChart(
-                  totalAcres: matchingAcres,
-                  segments: segments,
-                ),
+                if (matchingCount == 0)
+                  const _CompetitionEmptyState()
+                else
+                  _DonutChart(
+                    totalAcres: matchingAcres,
+                    segments: segments,
+                  ),
               ],
             ),
           ),
@@ -661,125 +640,121 @@ class _CompetitionSummaryCard extends StatelessWidget {
   const _CompetitionSummaryCard({
     required this.plots,
     required this.acres,
-    required this.level,
-    required this.localCount,
-    required this.exportCount,
-    required this.localAcres,
-    required this.exportAcres,
   });
 
   final int plots;
   final double acres;
-  final String level;
-  final int localCount;
-  final int exportCount;
-  final double localAcres;
-  final double exportAcres;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.smMd,
-        vertical: AppSpacing.xs,
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.outline),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < 300;
-          final summaryText =
-              '$plots nearby ${plots == 1 ? 'plot' : 'plots'} covering '
-              '${acres.round()} ${acres.round() == 1 ? 'Acre' : 'Acres'} '
-              'match your filters.';
-          final levelPill = _CompetitionLevelPill(level: level);
-
-          if (compact) {
-            return Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.xs,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _SummaryText(value: summaryText),
-                levelPill,
-              ],
-            );
-          }
-
-          return Row(
-            children: [
-              Expanded(child: _SummaryText(value: summaryText)),
-              const SizedBox(width: AppSpacing.sm),
-              levelPill,
-            ],
-          );
-        },
-      ),
+      child: _SummaryText(plots: plots, acres: acres.round()),
     );
   }
 }
 
 class _SummaryText extends StatelessWidget {
-  const _SummaryText({required this.value});
+  const _SummaryText({required this.plots, required this.acres});
 
-  final String value;
+  final int plots;
+  final int acres;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      value,
-      style: AppTypography.labelLarge(context).copyWith(
-        color: AppColors.onSurface,
-        fontWeight: FontWeight.w700,
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+    final baseStyle = AppTypography.sectionTitle(context).copyWith(
+      color: AppColors.onBackground,
+      fontWeight: FontWeight.w900,
+      height: 1.22,
     );
-  }
-}
+    final numberStyle = baseStyle.copyWith(
+      color: AppColors.primary,
+    );
 
-class _CompetitionLevelPill extends StatelessWidget {
-  const _CompetitionLevelPill({required this.level});
-
-  final String level;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _competitionLevelColor(level);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.smMd,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        level,
-        style: AppTypography.labelSmall(context).copyWith(
-          color: color,
-          fontWeight: FontWeight.w800,
+    if (plots == 0) {
+      return Text(
+        'No Plots Match Your Filters',
+        style: baseStyle.copyWith(
+          color: AppColors.primary,
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: baseStyle,
+        children: [
+          TextSpan(text: '$plots', style: numberStyle),
+          TextSpan(text: ' ${plots == 1 ? 'Plot' : 'Plots'} ('),
+          TextSpan(text: '$acres', style: numberStyle),
+          TextSpan(
+            text: ' Acres) ${plots == 1 ? 'Matches' : 'Match'} Your Filters',
+          ),
+        ],
       ),
+      softWrap: true,
     );
   }
 }
 
-Color _competitionLevelColor(String level) {
-  return switch (level) {
-    'High' => AppColors.error,
-    'Medium' => AppColors.warning,
-    _ => AppColors.success,
-  };
+class _CompetitionEmptyState extends StatelessWidget {
+  const _CompetitionEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.smMd,
+        AppSpacing.xs,
+        AppSpacing.smMd,
+        AppSpacing.sm,
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: AppColors.outlineVariant),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              ),
+              child: const Icon(
+                Icons.travel_explore_rounded,
+                color: AppColors.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Try widening the radius or selecting more varieties.',
+              style: AppTypography.bodyMedium(context).copyWith(
+                color: AppColors.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── Dropdown filter ───────────────────────────────────────────────────────────
@@ -804,9 +779,7 @@ class _DonutChartState extends State<_DonutChart> {
       enable: true,
       format: 'point.x\npoint.y Acres',
       color: AppColors.onBackground,
-      textStyle: const TextStyle(
-        fontFamily: 'Inter',
-        fontSize: 11,
+      textStyle: AppTypography.caption(null).copyWith(
         color: Colors.white,
         fontWeight: FontWeight.w600,
       ),

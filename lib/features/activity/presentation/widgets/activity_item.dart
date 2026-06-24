@@ -8,7 +8,6 @@ import '../../domain/entities/activity_entity.dart';
 /// Individual activity node in the vertical stepper
 /// Shows circular icon, activity name, and status
 class ActivityItem extends StatelessWidget {
-
   const ActivityItem({
     Key? key,
     required this.activity,
@@ -46,7 +45,7 @@ class ActivityItem extends StatelessWidget {
               ],
             ),
             const SizedBox(width: AppSpacing.md),
-            
+
             // Right: Activity Info
             Expanded(
               child: Column(
@@ -56,13 +55,13 @@ class ActivityItem extends StatelessWidget {
                   // Activity Name
                   Text(
                     activity.type.displayName,
-                    style: AppTypography.titleMedium(context).copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: AppTypography.cardTitle(context).copyWith(
                       color: isUpcoming
                           ? cs.onSurface.withOpacity(0.38)
                           : cs.onSurface,
-                      fontSize: 15,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   // Status Label
@@ -165,27 +164,22 @@ class ActivityItem extends StatelessWidget {
     if (isCompleted) {
       return Text(
         'Completed',
-        style: AppTypography.bodySmall(context).copyWith(
+        style: AppTypography.caption(context).copyWith(
           color: semantic.success,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
         ),
       );
     } else if (isCurrent) {
       return Text(
         'In Progress',
-        style: AppTypography.bodySmall(context).copyWith(
+        style: AppTypography.caption(context).copyWith(
           color: cs.primary,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
         ),
       );
     } else {
       return Text(
         'Upcoming',
-        style: AppTypography.bodySmall(context).copyWith(
+        style: AppTypography.caption(context).copyWith(
           color: cs.onSurface.withOpacity(0.38),
-          fontSize: 12,
         ),
       );
     }

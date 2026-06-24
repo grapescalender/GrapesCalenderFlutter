@@ -6,7 +6,6 @@ import '../../../../core/design_system/typography/app_typography.dart';
 /// Compact design matching PlotCard style
 /// Shows "Add Running Plot" or "Start Plot" based on state
 class AddPlotCard extends StatelessWidget {
-
   const AddPlotCard({
     Key? key,
     required this.isEnabled,
@@ -21,7 +20,7 @@ class AddPlotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
-    
+
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
       child: Container(
@@ -29,14 +28,14 @@ class AddPlotCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isEnabled
               ? cs.surfaceContainerHighest
-              : (isDark 
+              : (isDark
                   ? cs.surfaceContainerHighest.withOpacity(0.5)
                   : cs.surfaceContainerHighest.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
             color: isEnabled
                 ? cs.outline
-                : (isDark 
+                : (isDark
                     ? cs.outline.withOpacity(0.3)
                     : cs.outline.withOpacity(0.3)),
             width: isEnabled ? 1.5 : 1.0,
@@ -56,21 +55,18 @@ class AddPlotCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                showStartPlot ? Icons.play_circle_outline : Icons.add_circle_outline,
+                showStartPlot
+                    ? Icons.play_circle_outline
+                    : Icons.add_circle_outline,
                 size: 32,
-                color: isEnabled
-                    ? cs.primary
-                    : cs.onSurface.withOpacity(0.38),
+                color: isEnabled ? cs.primary : cs.onSurface.withOpacity(0.38),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 showStartPlot ? 'Start Plot' : 'Add Plot',
-                style: AppTypography.titleSmall(context).copyWith(
-                  color: isEnabled
-                      ? cs.onSurface
-                      : cs.onSurface.withOpacity(0.38),
-                  fontWeight: FontWeight.w600,
-                  fontSize: _responsiveFontSize(context, 13, 14, 15),
+                style: AppTypography.cardTitle(context).copyWith(
+                  color:
+                      isEnabled ? cs.onSurface : cs.onSurface.withOpacity(0.38),
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
@@ -80,9 +76,8 @@ class AddPlotCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'All running',
-                  style: AppTypography.bodySmall(context).copyWith(
+                  style: AppTypography.caption(context).copyWith(
                     color: cs.onSurface.withOpacity(0.38),
-                    fontSize: 10,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
@@ -93,18 +88,5 @@ class AddPlotCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// Responsive font size helper
-  double _responsiveFontSize(
-    BuildContext context,
-    double mobile,
-    double tablet,
-    double desktop,
-  ) {
-    final width = MediaQuery.of(context).size.width;
-    if (width >= 1200) return desktop;
-    if (width >= 600) return tablet;
-    return mobile;
   }
 }

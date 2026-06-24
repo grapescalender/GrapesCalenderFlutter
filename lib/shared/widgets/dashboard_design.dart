@@ -102,15 +102,14 @@ class DashboardSectionHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: AppTypography.headlineSmall(context).copyWith(
+                  style: AppTypography.sectionTitle(context).copyWith(
                     color: AppColors.onBackground,
-                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: AppTypography.bodySmall(context).copyWith(
+                    style: AppTypography.cardSubtitle(context).copyWith(
                       color: AppColors.onSurfaceVariant,
                     ),
                     maxLines: 1,
@@ -242,11 +241,10 @@ class DashboardField {
       labelText: label,
       hintText: hint,
       prefixIcon: icon == null ? null : Icon(icon, size: 18),
-      labelStyle: AppTypography.labelMedium(context).copyWith(
+      labelStyle: AppTypography.formLabel(context).copyWith(
         color: AppColors.onSurfaceVariant,
-        fontWeight: FontWeight.w700,
       ),
-      hintStyle: AppTypography.bodySmall(context).copyWith(
+      hintStyle: AppTypography.caption(context).copyWith(
         color: AppColors.onSurfaceVariant,
       ),
       filled: true,

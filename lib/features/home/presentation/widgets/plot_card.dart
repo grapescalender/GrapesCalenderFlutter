@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../core/design_system/theme/app_status_colors.dart';
 import '../../domain/entities/plot_entity.dart';
 
@@ -10,7 +9,6 @@ import '../../domain/entities/plot_entity.dart';
 /// Modern, lightweight design inspired by Groww's stock cards
 /// Features: Compact layout, clean spacing, subtle selection state
 class PlotCard extends StatelessWidget {
-
   const PlotCard({
     Key? key,
     required this.plot,
@@ -25,9 +23,8 @@ class PlotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
-    final semantic = Theme.of(context).extension<AppSemanticColors>()!;
     final status = Theme.of(context).extension<AppStatusColors>()!;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -37,15 +34,13 @@ class PlotCard extends StatelessWidget {
         margin: const EdgeInsets.only(right: AppSpacing.md),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark 
+              ? (isDark
                   ? cs.primary.withOpacity(0.18)
                   : cs.primary.withOpacity(0.06))
               : cs.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
-            color: isSelected
-                ? cs.primary
-                : cs.outline,
+            color: isSelected ? cs.primary : cs.outline,
             width: isSelected ? 1.5 : 1.0,
           ),
           boxShadow: isSelected
@@ -79,12 +74,8 @@ class PlotCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       plot.name,
-                      style: AppTypography.titleMedium(context).copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: isSelected
-                            ? cs.primary
-                            : cs.onSurface,
-                        fontSize: _responsiveFontSize(context, 15, 16, 17),
+                      style: AppTypography.cardTitle(context).copyWith(
+                        color: isSelected ? cs.primary : cs.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -97,21 +88,23 @@ class PlotCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: (plot.isRunning ? status.completed : status.upcoming).withOpacity(0.14),
+                      color:
+                          (plot.isRunning ? status.completed : status.upcoming)
+                              .withOpacity(0.14),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                     ),
                     child: Text(
                       plot.isRunning ? 'Active' : 'Inactive',
-                      style: AppTypography.labelSmall(context).copyWith(
-                        color: plot.isRunning ? status.completed : cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 10,
+                      style: AppTypography.chipText(context).copyWith(
+                        color: plot.isRunning
+                            ? status.completed
+                            : cs.onSurfaceVariant,
                       ),
                     ),
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: AppSpacing.sm),
 
               // Crop / variety line (primary info for Groww-style cards)
@@ -124,7 +117,7 @@ class PlotCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              
+
               // Day Count (Highlighted) - kept if pruning exists
               if (plot.hasPruningDate) ...[
                 Container(
@@ -143,19 +136,15 @@ class PlotCard extends StatelessWidget {
                     children: [
                       Text(
                         '${plot.daysSincePruning}',
-                        style: AppTypography.titleSmall(context).copyWith(
+                        style: AppTypography.metricValue(context).copyWith(
                           color: cs.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: _responsiveFontSize(context, 18, 20, 22),
                         ),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'days',
-                        style: AppTypography.bodySmall(context).copyWith(
+                        style: AppTypography.metricLabel(context).copyWith(
                           color: cs.primary,
-                          fontWeight: FontWeight.w500,
-                          fontSize: _responsiveFontSize(context, 11, 12, 13),
                         ),
                       ),
                     ],
@@ -163,7 +152,7 @@ class PlotCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
               ],
-              
+
               // Pruning Date (Secondary)
               Text(
                 plot.hasPruningDate
@@ -171,7 +160,6 @@ class PlotCard extends StatelessWidget {
                     : 'Not pruned',
                 style: AppTypography.bodySmall(context).copyWith(
                   color: cs.onSurfaceVariant,
-                  fontSize: _responsiveFontSize(context, 11, 12, 13),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -183,24 +171,11 @@ class PlotCard extends StatelessWidget {
     );
   }
 
-  /// Responsive font size helper
-  double _responsiveFontSize(
-    BuildContext context,
-    double mobile,
-    double tablet,
-    double desktop,
-  ) {
-    final width = MediaQuery.of(context).size.width;
-    if (width >= 1200) return desktop;
-    if (width >= 600) return tablet;
-    return mobile;
-  }
-
   /// Format date to compact string
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date).inDays;
-    
+
     if (difference == 0) return 'Today';
     if (difference == 1) return 'Yesterday';
     if (difference < 7) return '$difference days ago';
@@ -208,7 +183,7 @@ class PlotCard extends StatelessWidget {
       final weeks = (difference / 7).floor();
       return weeks == 1 ? '1 week ago' : '$weeks weeks ago';
     }
-    
+
     return DateFormat('MMM dd').format(date);
   }
 }

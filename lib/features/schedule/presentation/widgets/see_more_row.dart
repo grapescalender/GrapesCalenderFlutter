@@ -6,7 +6,6 @@ import '../../../../core/design_system/typography/app_typography.dart';
 /// Styled as a LIST ROW (not a button)
 /// Center aligned "See More >" with subtle text color
 class SeeMoreRow extends StatelessWidget {
-
   const SeeMoreRow({
     Key? key,
     required this.onTap,
@@ -32,10 +31,9 @@ class SeeMoreRow extends StatelessWidget {
             children: [
               Text(
                 'See More',
-                style: AppTypography.bodyMedium(context).copyWith(
+                style: AppTypography.body(context).copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
-                  fontSize: 13,
                 ),
               ),
               const SizedBox(width: 4),
