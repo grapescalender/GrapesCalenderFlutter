@@ -67,20 +67,39 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
       totals[plot.variety] = current.add(plot);
     }
 
-    return totals.entries
+    final entries = totals.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    final colors = _shuffledCompetitionColors(entries);
+
+    return entries
+        .asMap()
+        .entries
         .map(
-          (entry) => _Seg(
-            entry.key,
-            entry.value.totalAcres,
-            entry.value.totalPlots,
-            entry.value.localPlots,
-            entry.value.localAcres,
-            entry.value.exportPlots,
-            entry.value.exportAcres,
-            _varietyColor(entry.key),
+          (indexedEntry) => _Seg(
+            indexedEntry.value.key,
+            indexedEntry.value.value.totalAcres,
+            indexedEntry.value.value.totalPlots,
+            indexedEntry.value.value.localPlots,
+            indexedEntry.value.value.localAcres,
+            indexedEntry.value.value.exportPlots,
+            indexedEntry.value.value.exportAcres,
+            colors[indexedEntry.key % colors.length],
           ),
         )
         .toList();
+  }
+
+  List<Color> _shuffledCompetitionColors(
+    List<MapEntry<String, _VarietyCount>> entries,
+  ) {
+    final seedSource = entries
+        .map((entry) => '${entry.key}:${entry.value.totalPlots}')
+        .join('|');
+    final seed = seedSource.codeUnits.fold<int>(
+      17,
+      (current, codeUnit) => current * 37 + codeUnit,
+    );
+    return [..._competitionPieColors]..shuffle(math.Random(seed));
   }
 
   @override
@@ -224,22 +243,20 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
   }
 
   double _degreesToRadians(double degrees) => degrees * math.pi / 180;
-
-  Color _varietyColor(String variety) {
-    switch (variety) {
-      case 'Thompson Seedless':
-        return AppColors.chartGreen;
-      case 'Sonaka':
-        return AppColors.chartMint;
-      case 'Sharad Seedless':
-        return AppColors.chartBlue;
-      case 'Manik Chaman':
-        return AppColors.chartAmber;
-      default:
-        return AppColors.chartGray;
-    }
-  }
 }
+
+const List<Color> _competitionPieColors = [
+  Color(0xFF2F8F83), // Deep Teal
+  Color(0xFFD6A23A), // Muted Gold
+  Color(0xFF7A8F46), // Olive
+  Color(0xFFB85C6A), // Soft Berry
+  Color(0xFF7467A8), // Dusty Violet
+  Color(0xFF5F8F5F), // Sage Green
+  Color(0xFFB87848), // Terracotta
+  Color(0xFF596987), // Steel Slate
+  Color(0xFFA65F8E), // Mauve
+  Color(0xFF7C7468), // Warm Stone
+];
 
 final List<_CompetitionPlot> _competitionPlots = [
   _CompetitionPlot(
@@ -834,10 +851,10 @@ class _DonutVisualState extends State<_DonutVisual> {
         widget.segments.fold<double>(0, (sum, segment) => sum + segment.value);
     if (total <= 0) return null;
 
-    final center = Offset(size.width * 0.52, size.height * 0.44);
-    final radiusX = size.width * 0.31;
-    final radiusY = size.height * 0.24;
-    final explode = size.width * 0.045;
+    final center = Offset(size.width * 0.34, size.height * 0.44);
+    final radiusX = size.width * 0.22;
+    final radiusY = size.height * 0.22;
+    final explode = size.width * 0.035;
     var startAngle = -math.pi * 0.10;
 
     for (final segment in widget.segments) {
@@ -1012,11 +1029,11 @@ class _ExplodedPiePainter extends CustomPainter {
         segments.fold<double>(0, (sum, segment) => sum + segment.value);
     if (total <= 0) return;
 
-    final center = Offset(size.width * 0.52, size.height * 0.44);
-    final radiusX = size.width * 0.31;
-    final radiusY = size.height * 0.24;
+    final center = Offset(size.width * 0.34, size.height * 0.44);
+    final radiusX = size.width * 0.22;
+    final radiusY = size.height * 0.22;
     final depth = size.height * 0.12;
-    final explode = size.width * 0.045;
+    final explode = size.width * 0.035;
     var startAngle = -math.pi * 0.10;
 
     final shadowPaint = Paint()
@@ -1025,7 +1042,7 @@ class _ExplodedPiePainter extends CustomPainter {
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.54, size.height * 0.64),
-        width: size.width * 0.62,
+        width: size.width * 0.44,
         height: size.height * 0.18,
       ),
       shadowPaint,
@@ -1136,13 +1153,7 @@ class _ExplodedPiePainter extends CustomPainter {
     Size size,
     List<_PieCallout> callouts,
   ) {
-    final left = callouts.where((callout) => !callout.isRight).toList();
-    final right = callouts.where((callout) => callout.isRight).toList();
-
-    return [
-      ..._layoutCalloutSide(size, left),
-      ..._layoutCalloutSide(size, right),
-    ];
+    return _layoutCalloutSide(size, callouts);
   }
 
   List<_LaidOutPieCallout> _layoutCalloutSide(
@@ -1184,7 +1195,7 @@ class _ExplodedPiePainter extends CustomPainter {
         _LaidOutPieCallout(
           callout: sorted[i],
           labelAnchor: Offset(
-            sorted[i].isRight ? size.width * 0.82 : size.width * 0.18,
+            size.width * 0.72,
             positions[i].clamp(minY, maxY),
           ),
         ),
@@ -1207,22 +1218,22 @@ class _ExplodedPiePainter extends CustomPainter {
     final segment = callout.segment;
     final anchor = callout.anchor;
     final labelAnchor = laidOut.labelAnchor;
-    final isRight = callout.isRight;
+    final labelWidth = (size.width * 0.28).clamp(64.0, 88.0);
+    final textX = labelAnchor.dx;
+    final textEdgeX = textX - AppSpacing.xs;
     final elbow = Offset(
-      isRight
-          ? labelAnchor.dx - size.width * 0.07
-          : labelAnchor.dx + size.width * 0.07,
+      size.width * 0.64,
       labelAnchor.dy,
     );
 
     final linePaint = Paint()
-      ..color = AppColors.onSurfaceVariant.withValues(alpha: 0.62)
-      ..strokeWidth = 1.2
+      ..color = AppColors.onBackground.withValues(alpha: 0.82)
+      ..strokeWidth = 1.35
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     final lineEnd = Offset(
-      isRight ? labelAnchor.dx - 2 : labelAnchor.dx + 2,
+      textEdgeX,
       labelAnchor.dy,
     );
     final linePath = Path()
@@ -1237,7 +1248,6 @@ class _ExplodedPiePainter extends CustomPainter {
     canvas.drawPath(linePath, linePaint);
     _paintArrowHead(canvas, anchor, elbow, linePaint.color);
 
-    final availableWidth = (size.width * 0.27).clamp(58.0, 82.0);
     final titlePainter = TextPainter(
       text: TextSpan(
         text: _shortVarietyName(segment.label),
@@ -1246,10 +1256,8 @@ class _ExplodedPiePainter extends CustomPainter {
       textDirection: ui.TextDirection.ltr,
       maxLines: 1,
       ellipsis: '...',
-    )..layout(maxWidth: availableWidth);
+    )..layout(maxWidth: labelWidth);
 
-    final textX =
-        isRight ? labelAnchor.dx + 4 : labelAnchor.dx - availableWidth - 4;
     final titleOffset = Offset(
       textX,
       labelAnchor.dy - titlePainter.height / 2,
