@@ -182,7 +182,6 @@ class _CompetitionSectionState extends ConsumerState<CompetitionSection> {
                   const _CompetitionEmptyState()
                 else
                   _DonutChart(
-                    totalAcres: matchingAcres,
                     segments: segments,
                   ),
               ],
@@ -760,9 +759,8 @@ class _CompetitionEmptyState extends StatelessWidget {
 // ── Dropdown filter ───────────────────────────────────────────────────────────
 // ── Exploded pie chart ────────────────────────────────────────────────────────
 class _DonutChart extends StatelessWidget {
-  const _DonutChart({required this.totalAcres, required this.segments});
+  const _DonutChart({required this.segments});
 
-  final double totalAcres;
   final List<_Seg> segments;
 
   @override
@@ -779,7 +777,6 @@ class _DonutChart extends StatelessWidget {
           final width = constraints.maxWidth;
           final chartWidth = (width * 0.82).clamp(228.0, 292.0);
           final chart = _DonutVisual(
-            totalAcres: totalAcres,
             segments: segments,
             width: chartWidth,
           );
@@ -798,31 +795,201 @@ class _DonutChart extends StatelessWidget {
   }
 }
 
-class _DonutVisual extends StatelessWidget {
+class _DonutVisual extends StatefulWidget {
   const _DonutVisual({
-    required this.totalAcres,
     required this.segments,
     required this.width,
   });
 
-  final double totalAcres;
   final List<_Seg> segments;
   final double width;
 
   @override
+  State<_DonutVisual> createState() => _DonutVisualState();
+}
+
+class _DonutVisualState extends State<_DonutVisual> {
+  _Seg? _activeSegment;
+  Offset? _tooltipPosition;
+
+  void _setActiveSegment(Offset position, Size size) {
+    final next = _segmentAt(position, size);
+    if (next == _activeSegment && position == _tooltipPosition) return;
+    setState(() {
+      _activeSegment = next;
+      _tooltipPosition = position;
+    });
+  }
+
+  void _clearActiveSegment() {
+    if (_activeSegment == null && _tooltipPosition == null) return;
+    setState(() {
+      _activeSegment = null;
+      _tooltipPosition = null;
+    });
+  }
+
+  _Seg? _segmentAt(Offset position, Size size) {
+    final total =
+        widget.segments.fold<double>(0, (sum, segment) => sum + segment.value);
+    if (total <= 0) return null;
+
+    final center = Offset(size.width * 0.52, size.height * 0.44);
+    final radiusX = size.width * 0.31;
+    final radiusY = size.height * 0.24;
+    final explode = size.width * 0.045;
+    var startAngle = -math.pi * 0.10;
+
+    for (final segment in widget.segments) {
+      final sweep = (segment.value / total) * math.pi * 2;
+      final midAngle = startAngle + sweep / 2;
+      final offset = Offset(math.cos(midAngle), math.sin(midAngle)) * explode;
+      final shifted = position - center - offset;
+      final normalizedDistance = math.sqrt(
+        math.pow(shifted.dx / radiusX, 2) + math.pow(shifted.dy / radiusY, 2),
+      );
+
+      if (normalizedDistance <= 1) {
+        final angle = math.atan2(shifted.dy / radiusY, shifted.dx / radiusX);
+        if (_angleInSweep(angle, startAngle, sweep)) return segment;
+      }
+
+      startAngle += sweep;
+    }
+
+    return null;
+  }
+
+  bool _angleInSweep(double angle, double startAngle, double sweep) {
+    final normalizedAngle = _normalizeAngle(angle);
+    final normalizedStart = _normalizeAngle(startAngle);
+    final normalizedEnd = _normalizeAngle(startAngle + sweep);
+
+    if (sweep >= math.pi * 2) return true;
+    if (normalizedStart <= normalizedEnd) {
+      return normalizedAngle >= normalizedStart &&
+          normalizedAngle <= normalizedEnd;
+    }
+    return normalizedAngle >= normalizedStart ||
+        normalizedAngle <= normalizedEnd;
+  }
+
+  double _normalizeAngle(double angle) {
+    var result = angle % (math.pi * 2);
+    if (result < 0) result += math.pi * 2;
+    return result;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final height = width * 0.66;
+    final extraRows = math.max(0, widget.segments.length - 5);
+    final height = widget.width * 0.76 + extraRows * AppSpacing.lg;
+    final chartSize = Size(widget.width, height);
 
     return SizedBox(
-      width: width,
+      width: widget.width,
       height: height,
-      child: CustomPaint(
-        painter: _ExplodedPiePainter(
-          segments: segments,
-          totalAcres: totalAcres,
-          labelStyle: AppTypography.labelLarge(context).copyWith(
-            color: AppColors.onBackground,
-            fontWeight: FontWeight.w600,
+      child: MouseRegion(
+        onHover: (event) => _setActiveSegment(event.localPosition, chartSize),
+        onExit: (_) => _clearActiveSegment(),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (details) =>
+              _setActiveSegment(details.localPosition, chartSize),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CustomPaint(
+                size: chartSize,
+                painter: _ExplodedPiePainter(
+                  segments: widget.segments,
+                  labelStyle: AppTypography.labelLarge(context).copyWith(
+                    color: AppColors.onBackground,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (_activeSegment != null && _tooltipPosition != null)
+                _ChartSliceTooltip(
+                  segment: _activeSegment!,
+                  position: _tooltipPosition!,
+                  chartSize: chartSize,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChartSliceTooltip extends StatelessWidget {
+  const _ChartSliceTooltip({
+    required this.segment,
+    required this.position,
+    required this.chartSize,
+  });
+
+  final _Seg segment;
+  final Offset position;
+  final Size chartSize;
+
+  @override
+  Widget build(BuildContext context) {
+    const tooltipWidth = 156.0;
+    final left = (position.dx + AppSpacing.sm)
+        .clamp(AppSpacing.xs, chartSize.width - tooltipWidth);
+    final top = (position.dy - AppSpacing.xl)
+        .clamp(AppSpacing.xs, chartSize.height - AppSpacing.xxl);
+
+    return Positioned(
+      left: left,
+      top: top,
+      width: tooltipWidth,
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.onBackground.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.16),
+                blurRadius: AppSpacing.md,
+                offset: const Offset(0, AppSpacing.xs),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  segment.label,
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  '${segment.totalAcres.round()} Acres '
+                  '(${segment.exportAcres.round()} Export, '
+                  '${segment.localAcres.round()} Local)',
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color: Colors.white.withValues(alpha: 0.82),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -833,12 +1000,10 @@ class _DonutVisual extends StatelessWidget {
 class _ExplodedPiePainter extends CustomPainter {
   const _ExplodedPiePainter({
     required this.segments,
-    required this.totalAcres,
     required this.labelStyle,
   });
 
   final List<_Seg> segments;
-  final double totalAcres;
   final TextStyle labelStyle;
 
   @override
@@ -847,7 +1012,7 @@ class _ExplodedPiePainter extends CustomPainter {
         segments.fold<double>(0, (sum, segment) => sum + segment.value);
     if (total <= 0) return;
 
-    final center = Offset(size.width * 0.52, size.height * 0.42);
+    final center = Offset(size.width * 0.52, size.height * 0.44);
     final radiusX = size.width * 0.31;
     final radiusY = size.height * 0.24;
     final depth = size.height * 0.12;
@@ -883,6 +1048,7 @@ class _ExplodedPiePainter extends CustomPainter {
     }
 
     startAngle = -math.pi * 0.10;
+    final callouts = <_PieCallout>[];
     for (final segment in segments) {
       final sweep = (segment.value / total) * math.pi * 2;
       final midAngle = startAngle + sweep / 2;
@@ -913,28 +1079,37 @@ class _ExplodedPiePainter extends CustomPainter {
           ..strokeWidth = 1
           ..color = Colors.white.withValues(alpha: 0.50),
       );
+      _paintSliceNumber(
+        canvas,
+        center +
+            offset +
+            Offset(
+              math.cos(midAngle) * radiusX * 0.42,
+              math.sin(midAngle) * radiusY * 0.42,
+            ),
+        segment,
+      );
 
-      if (sweep > 0.35) {
-        _paintSliceLabel(
-          canvas,
-          center +
+      callouts.add(
+        _PieCallout(
+          segment: segment,
+          anchor: center +
               offset +
               Offset(
-                math.cos(midAngle) * radiusX * 0.48,
-                math.sin(midAngle) * radiusY * 0.48,
+                math.cos(midAngle) * radiusX * 0.70,
+                math.sin(midAngle) * radiusY * 0.70,
               ),
-          '${segment.totalAcres.round()} ac',
-        );
-      }
+          angle: midAngle,
+          preferredY: _preferredCalloutY(size, midAngle),
+        ),
+      );
 
       startAngle += sweep;
     }
 
-    _paintTotalLabel(
-      canvas,
-      Offset(size.width * 0.52, size.height * 0.88),
-      '${totalAcres.round()} Total Acres',
-    );
+    for (final callout in _layoutCallouts(size, callouts)) {
+      _paintCallout(canvas, size, callout);
+    }
   }
 
   Path _sectorPath(
@@ -957,31 +1132,184 @@ class _ExplodedPiePainter extends CustomPainter {
       ..close();
   }
 
-  void _paintSliceLabel(Canvas canvas, Offset center, String text) {
+  List<_LaidOutPieCallout> _layoutCallouts(
+    Size size,
+    List<_PieCallout> callouts,
+  ) {
+    final left = callouts.where((callout) => !callout.isRight).toList();
+    final right = callouts.where((callout) => callout.isRight).toList();
+
+    return [
+      ..._layoutCalloutSide(size, left),
+      ..._layoutCalloutSide(size, right),
+    ];
+  }
+
+  List<_LaidOutPieCallout> _layoutCalloutSide(
+    Size size,
+    List<_PieCallout> callouts,
+  ) {
+    if (callouts.isEmpty) return const [];
+
+    final minY = size.height * 0.10;
+    final maxY = size.height * 0.80;
+    final availableHeight = maxY - minY;
+    final rowGap = callouts.length <= 1
+        ? 0.0
+        : (availableHeight / (callouts.length - 1)).clamp(20.0, 30.0);
+    final sorted = [...callouts]
+      ..sort((a, b) => a.preferredY.compareTo(b.preferredY));
+    final positions =
+        sorted.map((callout) => callout.preferredY.clamp(minY, maxY)).toList();
+
+    for (var i = 1; i < positions.length; i++) {
+      final minAllowed = positions[i - 1] + rowGap;
+      if (positions[i] < minAllowed) positions[i] = minAllowed;
+    }
+
+    final overflow = positions.last - maxY;
+    if (overflow > 0) {
+      for (var i = 0; i < positions.length; i++) {
+        positions[i] -= overflow;
+      }
+    }
+
+    for (var i = positions.length - 2; i >= 0; i--) {
+      final maxAllowed = positions[i + 1] - rowGap;
+      if (positions[i] > maxAllowed) positions[i] = maxAllowed;
+    }
+
+    return [
+      for (var i = 0; i < sorted.length; i++)
+        _LaidOutPieCallout(
+          callout: sorted[i],
+          labelAnchor: Offset(
+            sorted[i].isRight ? size.width * 0.82 : size.width * 0.18,
+            positions[i].clamp(minY, maxY),
+          ),
+        ),
+    ];
+  }
+
+  double _preferredCalloutY(Size size, double angle) {
+    final sin = math.sin(angle);
+    if (sin < -0.42) return size.height * 0.12;
+    if (sin > 0.48) return size.height * 0.78;
+    return size.height * (0.42 + sin * 0.20);
+  }
+
+  void _paintCallout(
+    Canvas canvas,
+    Size size,
+    _LaidOutPieCallout laidOut,
+  ) {
+    final callout = laidOut.callout;
+    final segment = callout.segment;
+    final anchor = callout.anchor;
+    final labelAnchor = laidOut.labelAnchor;
+    final isRight = callout.isRight;
+    final elbow = Offset(
+      isRight
+          ? labelAnchor.dx - size.width * 0.07
+          : labelAnchor.dx + size.width * 0.07,
+      labelAnchor.dy,
+    );
+
+    final linePaint = Paint()
+      ..color = AppColors.onSurfaceVariant.withValues(alpha: 0.62)
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final lineEnd = Offset(
+      isRight ? labelAnchor.dx - 2 : labelAnchor.dx + 2,
+      labelAnchor.dy,
+    );
+    final linePath = Path()
+      ..moveTo(anchor.dx, anchor.dy)
+      ..quadraticBezierTo(
+        (anchor.dx + elbow.dx) / 2,
+        anchor.dy,
+        elbow.dx,
+        elbow.dy,
+      )
+      ..lineTo(lineEnd.dx, lineEnd.dy);
+    canvas.drawPath(linePath, linePaint);
+    _paintArrowHead(canvas, anchor, elbow, linePaint.color);
+
+    final availableWidth = (size.width * 0.27).clamp(58.0, 82.0);
+    final titlePainter = TextPainter(
+      text: TextSpan(
+        text: _shortVarietyName(segment.label),
+        style: labelStyle.copyWith(color: AppColors.onBackground),
+      ),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+      ellipsis: '...',
+    )..layout(maxWidth: availableWidth);
+
+    final textX =
+        isRight ? labelAnchor.dx + 4 : labelAnchor.dx - availableWidth - 4;
+    final titleOffset = Offset(
+      textX,
+      labelAnchor.dy - titlePainter.height / 2,
+    );
+
+    titlePainter.paint(canvas, titleOffset);
+    canvas.drawCircle(anchor, 2.2, Paint()..color = segment.color);
+  }
+
+  void _paintSliceNumber(Canvas canvas, Offset center, _Seg segment) {
+    final textColor = _readableTextColor(segment.color);
     final painter = TextPainter(
-      text: TextSpan(text: text, style: labelStyle),
+      text: TextSpan(
+        text: '${segment.totalAcres.round()}',
+        style: labelStyle.copyWith(color: textColor),
+      ),
       textDirection: ui.TextDirection.ltr,
       maxLines: 1,
     )..layout();
+    final platePadding = AppSpacing.xs;
+    final plateRect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: center,
+        width: painter.width + platePadding * 2,
+        height: painter.height + platePadding,
+      ),
+      Radius.circular(AppSpacing.radiusFull),
+    );
+
+    canvas.drawRRect(
+      plateRect,
+      Paint()..color = _numberPlateColor(textColor),
+    );
     painter.paint(
       canvas,
       center - Offset(painter.width / 2, painter.height / 2),
     );
   }
 
-  void _paintTotalLabel(Canvas canvas, Offset center, String text) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: labelStyle.copyWith(color: AppColors.onSurfaceVariant),
-      ),
-      textDirection: ui.TextDirection.ltr,
-      maxLines: 1,
-    )..layout();
-    painter.paint(
-      canvas,
-      center - Offset(painter.width / 2, painter.height / 2),
-    );
+  void _paintArrowHead(Canvas canvas, Offset tip, Offset from, Color color) {
+    final angle = math.atan2(tip.dy - from.dy, tip.dx - from.dx);
+    const size = 5.0;
+    final path = Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..lineTo(
+        tip.dx - math.cos(angle - math.pi / 6) * size,
+        tip.dy - math.sin(angle - math.pi / 6) * size,
+      )
+      ..lineTo(
+        tip.dx - math.cos(angle + math.pi / 6) * size,
+        tip.dy - math.sin(angle + math.pi / 6) * size,
+      )
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  String _shortVarietyName(String label) {
+    final words = label.split(' ');
+    if (words.length <= 2) return label;
+    return words.take(2).join(' ');
   }
 
   static Color _darken(Color color, double amount) {
@@ -998,11 +1326,47 @@ class _ExplodedPiePainter extends CustomPainter {
         .toColor();
   }
 
+  static Color _readableTextColor(Color color) {
+    return color.computeLuminance() > 0.48
+        ? AppColors.onBackground
+        : Colors.white;
+  }
+
+  static Color _numberPlateColor(Color textColor) {
+    return textColor == Colors.white
+        ? Colors.black.withValues(alpha: 0.22)
+        : Colors.white.withValues(alpha: 0.34);
+  }
+
   @override
   bool shouldRepaint(covariant _ExplodedPiePainter oldDelegate) =>
-      oldDelegate.segments != segments ||
-      oldDelegate.totalAcres != totalAcres ||
-      oldDelegate.labelStyle != labelStyle;
+      oldDelegate.segments != segments || oldDelegate.labelStyle != labelStyle;
+}
+
+class _PieCallout {
+  const _PieCallout({
+    required this.segment,
+    required this.anchor,
+    required this.angle,
+    required this.preferredY,
+  });
+
+  final _Seg segment;
+  final Offset anchor;
+  final double angle;
+  final double preferredY;
+
+  bool get isRight => math.cos(angle) >= 0;
+}
+
+class _LaidOutPieCallout {
+  const _LaidOutPieCallout({
+    required this.callout,
+    required this.labelAnchor,
+  });
+
+  final _PieCallout callout;
+  final Offset labelAnchor;
 }
 
 class _VarietyBreakdown extends StatelessWidget {
