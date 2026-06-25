@@ -8,6 +8,7 @@ import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
@@ -49,15 +50,21 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   final _workNameController = TextEditingController();
   final _labourController = TextEditingController();
   final _durationController = TextEditingController();
+  final _waterDurationController = TextEditingController();
+  final _waterQuantityController = TextEditingController();
+  final _totalSprayWaterController = TextEditingController();
 
   Timer? _searchDebounce;
   late String _selectedPlotId;
   late String _selectedPlotName;
   ScheduleType _selectedType = ScheduleType.spray;
   ActivityType _selectedActivityType = ActivityType.cutting;
+  String? _selectedActivityId;
   DateTime _scheduleDate = DateTime.now();
-  DateTime _dueDate = DateTime.now();
+  DateTime? _dueDate;
   bool _isAlreadyApplied = false;
+  WaterMethod _waterMethod = WaterMethod.drip;
+  WaterDurationUnit _waterDurationUnit = WaterDurationUnit.minutes;
   List<ScheduleProductDraft> _products = const [];
   List<ProductEntity> _searchResults = const [];
   bool _isSearching = false;
@@ -89,6 +96,9 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     _workNameController.dispose();
     _labourController.dispose();
     _durationController.dispose();
+    _waterDurationController.dispose();
+    _waterQuantityController.dispose();
+    _totalSprayWaterController.dispose();
     super.dispose();
   }
 
@@ -154,16 +164,13 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // 1. Plot Selection Section
-                          CompactPlotSelector(
-                            plots: availablePlots,
-                            selectedPlotId: selectedPlot.id,
-                            onPlotChanged: _changePlot,
-                          ),
-                          const SizedBox(height: AppSpacing.smMd),
-
-                          // 2. Plot Summary Section
+                          // 1. Plot Selection and Summary Hero
                           AnimatedPlotSummaryCard(
+                            plotSelector: CompactPlotSelector(
+                              plots: availablePlots,
+                              selectedPlotId: selectedPlot.id,
+                              onPlotChanged: _changePlot,
+                            ),
                             plotName: selectedPlot.name,
                             dayAfterPruning:
                                 _dayAfterPruning(selectedPlot.pruningDate),
@@ -174,18 +181,15 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                           ),
                           const SizedBox(height: AppSpacing.smMd),
 
-                          // 3. Schedule Details Section
+                          // 2. Schedule Details Section
                           ScheduleDetailsForm(
                             activities: activityState.activities,
                             selectedType: _selectedType,
                             selectedActivityType: _selectedActivityType,
                             scheduleDate: _scheduleDate,
-                            dueDate: _dueDate,
                             onTypeChanged: _changeType,
                             onActivityChanged: _changeActivity,
-                            onScheduleDateChanged: _changeScheduleDate,
                             onScheduleDateTap: _selectScheduleDate,
-                            onDueDateTap: _selectDueDate,
                             onTimeTap: _selectTime,
                             contextMessage: _scheduleDateContextMessage(
                               activities: activityState.activities,
@@ -205,6 +209,16 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                           // 4. Product to Apply Section
                           if (_usesProducts) ...[
                             _buildProductSection(),
+                            const SizedBox(height: AppSpacing.smMd),
+                          ],
+
+                          if (_selectedType == ScheduleType.spray) ...[
+                            _buildSprayWaterSection(),
+                            const SizedBox(height: AppSpacing.smMd),
+                          ],
+
+                          if (_selectedType == ScheduleType.nutrition) ...[
+                            _buildNutritionWaterSection(),
                             const SizedBox(height: AppSpacing.smMd),
                           ],
 
@@ -292,9 +306,10 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Choose how it should appear after saving.',
+            'Is this schedule completed?',
             style: AppTypography.labelLarge(context).copyWith(
               color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -302,7 +317,12 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
           const SizedBox(height: AppSpacing.smMd),
           _ScheduleStatusToggle(
             isAlreadyApplied: _isAlreadyApplied,
-            onChanged: (value) => setState(() => _isAlreadyApplied = value),
+            onChanged: (value) {
+              setState(() {
+                _isAlreadyApplied = value;
+                if (value) _dueDate = null;
+              });
+            },
           ),
         ],
       ),
@@ -310,6 +330,34 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   }
 
   Widget _buildWorkSection() {
+    final labourField = TextFormField(
+      controller: _labourController,
+      decoration: DashboardField.decoration(
+        context: context,
+        label: 'Labour / Team',
+        hint: 'e.g. 4 workers',
+        icon: Icons.groups_outlined,
+      ),
+    );
+    final durationField = TextFormField(
+      controller: _durationController,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: DashboardField.decoration(
+        context: context,
+        label: 'Duration (Hours)',
+        hint: 'e.g. 4',
+        icon: Icons.timer_outlined,
+      ),
+      validator: (value) {
+        if (_selectedType != ScheduleType.work) return null;
+        if (value == null || value.trim().isEmpty) return null;
+        if ((double.tryParse(value) ?? 0) <= 0) {
+          return 'Enter hours';
+        }
+        return null;
+      },
+    );
+
     return ScheduleFormSectionCard(
       title: 'Work Details',
       icon: Icons.construction_outlined,
@@ -351,32 +399,25 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
             },
           ),
           const SizedBox(height: AppSpacing.smMd),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _labourController,
-                  decoration: DashboardField.decoration(
-                    context: context,
-                    label: 'Labour / Team',
-                    hint: 'e.g. 4 workers',
-                    icon: Icons.groups_outlined,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: TextFormField(
-                  controller: _durationController,
-                  decoration: DashboardField.decoration(
-                    context: context,
-                    label: 'Duration',
-                    hint: 'e.g. 3 hours',
-                    icon: Icons.timer_outlined,
-                  ),
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < AppSpacing.xhuge * 5) {
+                return Column(
+                  children: [
+                    labourField,
+                    const SizedBox(height: AppSpacing.sm),
+                    durationField,
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: labourField),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(child: durationField),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -387,16 +428,95 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     return ScheduleFormSectionCard(
       title: 'Water Details',
       icon: Icons.water_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Water Method',
+            style: AppTypography.titleMedium(context).copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _WaterMethodSelector(
+            selected: _waterMethod,
+            onChanged: (value) => setState(() => _waterMethod = value),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: _waterMethod == WaterMethod.drip
+                ? _WaterDurationInput(
+                    key: const ValueKey('drip-duration'),
+                    controller: _waterDurationController,
+                    unit: _waterDurationUnit,
+                    requiredFor: () =>
+                        _selectedType == ScheduleType.water &&
+                        _waterMethod == WaterMethod.drip,
+                    onUnitChanged: (value) =>
+                        setState(() => _waterDurationUnit = value),
+                  )
+                : TextFormField(
+                    key: const ValueKey('flood-quantity'),
+                    controller: _waterQuantityController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: DashboardField.decoration(
+                      context: context,
+                      label: 'Water Quantity (Liter)',
+                      hint: 'e.g. 2000',
+                      icon: Icons.opacity_rounded,
+                    ),
+                    validator: (value) {
+                      if (_selectedType != ScheduleType.water ||
+                          _waterMethod != WaterMethod.flooding) {
+                        return null;
+                      }
+                      if ((double.tryParse(value?.trim() ?? '') ?? 0) <= 0) {
+                        return 'Enter water quantity';
+                      }
+                      return null;
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNutritionWaterSection() {
+    return ScheduleFormSectionCard(
+      title: 'Water Given During Nutrition',
+      icon: Icons.water_drop_outlined,
+      child: _WaterDurationInput(
+        controller: _waterDurationController,
+        unit: _waterDurationUnit,
+        requiredFor: () => _selectedType == ScheduleType.nutrition,
+        onUnitChanged: (value) => setState(() => _waterDurationUnit = value),
+      ),
+    );
+  }
+
+  Widget _buildSprayWaterSection() {
+    return ScheduleFormSectionCard(
+      title: 'Total Water Sprayed',
+      icon: Icons.opacity_rounded,
       child: TextFormField(
-        controller: _instructionsController,
-        minLines: 2,
-        maxLines: 4,
+        controller: _totalSprayWaterController,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: DashboardField.decoration(
           context: context,
-          label: 'Irrigation Notes',
-          hint: 'Water quantity, duration, drip line, or field instructions',
+          label: 'Total Water (Liter)',
+          hint: 'e.g. 500',
           icon: Icons.water_drop_outlined,
         ),
+        validator: (value) {
+          if (_selectedType != ScheduleType.spray) return null;
+          if ((double.tryParse(value?.trim() ?? '') ?? 0) <= 0) {
+            return 'Enter total water sprayed';
+          }
+          return null;
+        },
       ),
     );
   }
@@ -451,16 +571,25 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     setState(() {
       _selectedPlotId = plot.id;
       _selectedPlotName = plot.name;
-      _selectedActivityType = ActivityType.cutting;
+      _selectedActivityId = null;
     });
     await _loadActivities();
   }
 
   void _changeActivity(ActivityType type) {
-    setState(() => _selectedActivityType = type);
+    final activities = ref.read(activityNotifierProvider).activities;
+    final detectedActivity = _activityForDate(activities, _scheduleDate);
+    final activity = _activityForType(
+      activities,
+      type,
+    );
+    setState(() {
+      _selectedActivityType = detectedActivity?.type ?? type;
+      _selectedActivityId = detectedActivity?.id ?? activity?.id;
+    });
   }
 
-  void _changeScheduleDate(DateTime value) {
+  void _setScheduleDate(DateTime value, {bool syncActivity = true}) {
     setState(() {
       _scheduleDate = DateTime(
         value.year,
@@ -469,15 +598,20 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
         _scheduleDate.hour,
         _scheduleDate.minute,
       );
-      if (_dueDate.isBefore(_scheduleDate)) {
-        _dueDate = _scheduleDate;
+      if (_dueDate != null &&
+          DateUtils.dateOnly(_dueDate!).isBefore(
+            DateUtils.dateOnly(_scheduleDate),
+          )) {
+        _dueDate = null;
       }
+      if (!syncActivity) return;
       final matchedActivity = _activityForDate(
         ref.read(activityNotifierProvider).activities,
         _scheduleDate,
       );
       if (matchedActivity != null) {
         _selectedActivityType = matchedActivity.type;
+        _selectedActivityId = matchedActivity.id;
       }
     });
   }
@@ -488,9 +622,17 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
           plotName: _selectedPlotName,
         );
     if (!mounted) return;
-    final active = ref.read(activityNotifierProvider).activeActivity;
-    if (active != null) {
-      setState(() => _selectedActivityType = active.type);
+    final activityState = ref.read(activityNotifierProvider);
+    final detectedActivity = _activityForDate(
+      activityState.activities,
+      _scheduleDate,
+    );
+    final activity = detectedActivity ?? activityState.activeActivity;
+    if (activity != null) {
+      setState(() {
+        _selectedActivityType = activity.type;
+        _selectedActivityId = activity.id;
+      });
     }
   }
 
@@ -677,58 +819,106 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
         updatedAt: DateTime.now(),
       ),
     );
-    final firstDate = _firstAllowedScheduleDate(selectedPlot.pruningDate);
+    final minimumAllowedDate =
+        _firstAllowedScheduleDate(selectedPlot.pruningDate);
     final lastDate = DateUtils.dateOnly(DateTime.now()).add(
       const Duration(days: 365),
     );
     final initialDate = _clampDate(
       DateUtils.dateOnly(_scheduleDate),
-      firstDate,
+      minimumAllowedDate,
       lastDate,
     );
     final value = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: firstDate,
+      firstDate: DateTime(2000),
       lastDate: lastDate,
     );
     if (value == null) return;
-    _changeScheduleDate(value);
     if (!mounted) return;
     final selectedDate = DateUtils.dateOnly(value);
-    final matchedActivity = _activityForDate(
-      ref.read(activityNotifierProvider).activities,
-      selectedDate,
-    );
-    if (matchedActivity != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Schedule date is within ${matchedActivity.type.displayName}. It will be linked to that activity.',
-          ),
-        ),
-      );
-    } else if (selectedDate.isBefore(DateUtils.dateOnly(DateTime.now()))) {
+    if (selectedDate.isBefore(minimumAllowedDate)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Past schedule selected. Choose the matching activity stage if needed.',
+            'You can add schedules only from 15 days before the Cutting Date.',
           ),
         ),
       );
+      return;
     }
+
+    final activities = ref.read(activityNotifierProvider).activities;
+    final matchedActivity = _activityForDate(
+      activities,
+      selectedDate,
+    );
+    final currentActivity = _currentActivity(activities);
+    final belongsToEarlierActivity = matchedActivity != null &&
+        currentActivity != null &&
+        _isEarlierActivity(matchedActivity, currentActivity);
+
+    if (belongsToEarlierActivity) {
+      final confirmed = await _confirmEarlierActivityWindow(matchedActivity);
+      if (!mounted) return;
+      if (confirmed != true) return;
+    }
+
+    _setScheduleDate(value);
   }
 
-  Future<void> _selectDueDate() async {
-    final value = await showDatePicker(
+  Future<bool?> _confirmEarlierActivityWindow(ActivityEntity activity) {
+    return showModalBottomSheet<bool>(
       context: context,
-      initialDate: _dueDate.isBefore(_scheduleDate) ? _scheduleDate : _dueDate,
-      firstDate: DateUtils.dateOnly(_scheduleDate),
-      lastDate: _scheduleDate.add(const Duration(days: 365)),
+      backgroundColor: DashboardStyle.of(context).surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusHuge),
+        ),
+      ),
+      builder: (context) => DashboardBottomSheetFrame(
+        maxHeightFactor: 0.44,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DashboardSheetHeader(
+              title: 'Confirm activity stage',
+              subtitle: 'This schedule date falls under the '
+                  "'${activity.type.displayName}' stage.",
+              icon: Icons.event_repeat_rounded,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Do you want to add this schedule to the '
+              '${activity.type.displayName} stage?',
+              style: AppTypography.bodyMedium(context).copyWith(
+                color: DashboardStyle.of(context).onSurface,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Continue'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
-    if (value != null) {
-      setState(() => _dueDate = value);
-    }
   }
 
   Future<void> _selectTime() async {
@@ -785,6 +975,44 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     return null;
   }
 
+  ActivityEntity? _activityForType(
+    List<ActivityEntity> activities,
+    ActivityType type,
+  ) {
+    for (final activity in activities) {
+      if (activity.type == type) return activity;
+    }
+    return null;
+  }
+
+  ActivityEntity? _currentActivity(List<ActivityEntity> activities) {
+    for (final activity in activities) {
+      if (activity.isActive) return activity;
+    }
+    for (final activity in activities) {
+      if (activity.isPending) return activity;
+    }
+    return null;
+  }
+
+  bool _isEarlierActivity(
+    ActivityEntity matchedActivity,
+    ActivityEntity currentActivity,
+  ) {
+    final orderedTypes = ActivityType.orderedTypes;
+    final matchedIndex = orderedTypes.indexOf(matchedActivity.type);
+    final currentIndex = orderedTypes.indexOf(currentActivity.type);
+    if (matchedIndex >= 0 && currentIndex >= 0) {
+      return matchedIndex < currentIndex;
+    }
+
+    final matchedStart = matchedActivity.startedAt;
+    final currentStart = currentActivity.startedAt;
+    return matchedStart != null &&
+        currentStart != null &&
+        matchedStart.isBefore(currentStart);
+  }
+
   String? _scheduleDateContextMessage({
     required List<ActivityEntity> activities,
     required DateTime? pruningDate,
@@ -814,6 +1042,36 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   Future<void> _submit() async {
     if (ref.read(scheduleNotifierProvider).isCreating) return;
     FocusScope.of(context).unfocus();
+
+    final plots = ref.read(plotNotifierProvider).plots;
+    final selectedPlot =
+        plots.where((plot) => plot.id == _selectedPlotId).firstOrNull;
+    final minimumAllowedDate =
+        _firstAllowedScheduleDate(selectedPlot?.pruningDate);
+    if (DateUtils.dateOnly(_scheduleDate).isBefore(minimumAllowedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'You can add schedules only from 15 days before the Cutting Date.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final detectedActivity = _activityForDate(
+      ref.read(activityNotifierProvider).activities,
+      _scheduleDate,
+    );
+    if (detectedActivity != null &&
+        (_selectedActivityId != detectedActivity.id ||
+            _selectedActivityType != detectedActivity.type)) {
+      setState(() {
+        _selectedActivityType = detectedActivity.type;
+        _selectedActivityId = detectedActivity.id;
+      });
+    }
+
     final formValid = _formKey.currentState?.validate() ?? false;
     final productValid = !_usesProducts ||
         (_products.isNotEmpty && _products.every(_isProductComplete));
@@ -828,22 +1086,55 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
 
     if (!formValid || !productValid) return;
 
-    final activityId =
+    if (!_isAlreadyApplied) {
+      final dueDate = _dueDate;
+      if (dueDate == null) {
+        final selectedDueDate = await _showDueDatePrompt();
+        if (!mounted || selectedDueDate == null) return;
+        setState(() => _dueDate = selectedDueDate);
+        await _submit();
+        return;
+      }
+      if (DateUtils.dateOnly(dueDate)
+          .isBefore(DateUtils.dateOnly(_scheduleDate))) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Due date cannot be before schedule date.'),
+          ),
+        );
+        return;
+      }
+    }
+
+    final activityId = detectedActivity?.id ??
+        _selectedActivityId ??
+        _activityForType(
+          ref.read(activityNotifierProvider).activities,
+          _selectedActivityType,
+        )?.id ??
         'activity_${_selectedPlotId}_${_selectedActivityType.value}';
     final request = AddScheduleRequest(
       plotId: _selectedPlotId,
       scheduleType: _selectedType,
       activityId: activityId,
-      stageId: _selectedActivityType.value,
+      stageId: (detectedActivity?.type ?? _selectedActivityType).value,
       scheduleDate: _scheduleDate,
-      dueDate: _dueDate,
-      totalWaterQuantity: null,
-      totalWaterUnit: 'L',
+      dueDate: _dueDate ?? _scheduleDate,
+      totalWaterQuantity: _selectedType == ScheduleType.spray
+          ? double.tryParse(_totalSprayWaterController.text.trim())
+          : null,
+      totalWaterUnit: 'Liter',
       tankCount: null,
-      instructions: _instructionsController.text.trim(),
+      instructions: _selectedType == ScheduleType.water
+          ? ''
+          : _instructionsController.text.trim(),
       notes: _notesController.text.trim(),
       labourTeam: _labourController.text.trim(),
-      estimatedDuration: _durationController.text.trim(),
+      estimatedDuration: _formattedWorkDuration(),
+      waterMethod: _requestWaterMethod,
+      durationValue: _requestDurationValue,
+      durationUnit: _requestDurationUnit,
+      waterQuantity: _requestWaterQuantity,
       products: _usesProducts ? _products : const [],
       combinationName: _usesProducts ? _combinationName : '',
     );
@@ -875,6 +1166,21 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
       return;
     }
 
+    var irrigationHistoryCreated = true;
+    if (request.scheduleType == ScheduleType.nutrition) {
+      irrigationHistoryCreated =
+          await ref.read(scheduleNotifierProvider.notifier).createSchedule(
+                plotId: request.plotId,
+                plotName: _selectedPlotName,
+                type: ScheduleType.water,
+                title: WaterMethod.fertigation.displayName,
+                scheduledDate: request.scheduleDate,
+                description: _fertigationWaterDescription(request),
+                activityIds: [request.activityId],
+                isCompleted: _isAlreadyApplied,
+              );
+    }
+
     if (_isAlreadyApplied) {
       await ref.read(activityNotifierProvider.notifier).startActivity(
             plotId: _selectedPlotId,
@@ -893,9 +1199,14 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Schedule created successfully'),
-        backgroundColor:
-            Theme.of(context).extension<AppSemanticColors>()!.success,
+        content: Text(
+          irrigationHistoryCreated
+              ? 'Schedule created successfully'
+              : 'Nutrition saved, but irrigation history could not be added.',
+        ),
+        backgroundColor: irrigationHistoryCreated
+            ? Theme.of(context).extension<AppSemanticColors>()!.success
+            : Theme.of(context).colorScheme.error,
       ),
     );
   }
@@ -905,9 +1216,300 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
       return _workNameController.text.trim();
     }
     if (request.scheduleType == ScheduleType.water) {
-      return 'Irrigation';
+      return request.waterMethod?.displayName ?? 'Irrigation';
     }
     return request.combinationName;
+  }
+
+  String _formattedWorkDuration() {
+    final value = _durationController.text.trim();
+    if (value.isEmpty) return value;
+    return '$value Hours';
+  }
+
+  WaterMethod? get _requestWaterMethod {
+    if (_selectedType == ScheduleType.nutrition) {
+      return WaterMethod.fertigation;
+    }
+    if (_selectedType == ScheduleType.water) return _waterMethod;
+    return null;
+  }
+
+  double? get _requestDurationValue {
+    if (_selectedType == ScheduleType.nutrition ||
+        (_selectedType == ScheduleType.water &&
+            _waterMethod == WaterMethod.drip)) {
+      return double.tryParse(_waterDurationController.text.trim());
+    }
+    return null;
+  }
+
+  WaterDurationUnit? get _requestDurationUnit =>
+      _requestDurationValue == null ? null : _waterDurationUnit;
+
+  double? get _requestWaterQuantity => _selectedType == ScheduleType.water &&
+          _waterMethod == WaterMethod.flooding
+      ? double.tryParse(_waterQuantityController.text.trim())
+      : null;
+
+  String _fertigationWaterDescription(AddScheduleRequest request) {
+    final duration = request.durationValue;
+    final unit = request.durationUnit;
+    final productNames =
+        request.products.map((product) => product.productName).toList();
+    final products = _naturalLanguageList(productNames);
+    final durationText = duration != null && unit != null
+        ? '${_formatNumber(duration)} ${_durationUnitSentence(unit, duration)}'
+        : 'the recorded duration';
+    final stage = request.stageId
+        .split(RegExp(r'[-_\s]+'))
+        .where((part) => part.isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
+    final irrigationNote =
+        'Irrigation note: On ${DateFormat('d MMM yyyy').format(request.scheduleDate)}, '
+        'water was applied to $_selectedPlotName for $durationText during '
+        'fertigation in the $stage stage using $products.';
+    final lines = <String>[
+      'Water method: ${WaterMethod.fertigation.displayName}',
+      if (duration != null && unit != null)
+        'Water duration: ${_formatNumber(duration)} ${unit.displayName}',
+      irrigationNote,
+    ];
+    return lines.join('\n');
+  }
+
+  String _durationUnitSentence(WaterDurationUnit unit, double value) {
+    if (value == 1) {
+      return unit == WaterDurationUnit.minutes ? 'minute' : 'hour';
+    }
+    return unit.displayName.toLowerCase();
+  }
+
+  String _naturalLanguageList(List<String> values) {
+    if (values.isEmpty) return 'the selected nutrition products';
+    if (values.length == 1) return values.first;
+    if (values.length == 2) return '${values.first} and ${values.last}';
+    return '${values.take(values.length - 1).join(', ')}, and ${values.last}';
+  }
+
+  String _formatNumber(double value) =>
+      value == value.roundToDouble() ? value.toInt().toString() : '$value';
+
+  Future<DateTime?> _showDueDatePrompt() {
+    final scheduleDay = DateUtils.dateOnly(_scheduleDate);
+    final lastDate = scheduleDay.add(const Duration(days: 365));
+
+    return showModalBottomSheet<DateTime>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        DateTime? selectedDate = _dueDate == null
+            ? null
+            : _clampDate(
+                DateUtils.dateOnly(_dueDate!),
+                scheduleDay,
+                lastDate,
+              );
+        String? validationMessage;
+
+        Future<void> selectDate(StateSetter setSheetState) async {
+          final value = await showDatePicker(
+            context: sheetContext,
+            initialDate: selectedDate ?? scheduleDay,
+            firstDate: scheduleDay,
+            lastDate: lastDate,
+          );
+          if (value == null || !sheetContext.mounted) return;
+          setSheetState(() {
+            selectedDate = DateUtils.dateOnly(value);
+            validationMessage = null;
+          });
+        }
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) => DashboardBottomSheetFrame(
+            maxHeightFactor: 0.52,
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenHorizontal,
+              AppSpacing.sm,
+              AppSpacing.screenHorizontal,
+              AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Center(child: DashboardDragHandle()),
+                const SizedBox(height: AppSpacing.smMd),
+                Text(
+                  'Select Due Date',
+                  style: AppTypography.titleLarge(context).copyWith(
+                    color: DashboardStyle.of(context).onBackground,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Choose a due date to remind you.',
+                  style: AppTypography.bodyMedium(context).copyWith(
+                    color: DashboardStyle.of(context).onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.smMd),
+                _DueDateCard(
+                  selectedDate: selectedDate,
+                  onTap: () => selectDate(setSheetState),
+                ),
+                if (validationMessage != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  _DueDateInlineError(message: validationMessage!),
+                ],
+                const SizedBox(height: AppSpacing.smMd),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    AppButton.text(
+                      label: 'Cancel',
+                      size: AppButtonSize.small,
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    AppButton.primary(
+                      label: 'Save',
+                      size: AppButtonSize.small,
+                      onPressed: selectedDate == null
+                          ? null
+                          : () {
+                              if (selectedDate!.isBefore(scheduleDay)) {
+                                setSheetState(() {
+                                  validationMessage =
+                                      'Due date cannot be before schedule date.';
+                                });
+                                return;
+                              }
+                              Navigator.of(sheetContext).pop(selectedDate);
+                            },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DueDateCard extends StatelessWidget {
+  const _DueDateCard({
+    required this.selectedDate,
+    required this.onTap,
+  });
+
+  final DateTime? selectedDate;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Material(
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.smMd),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(color: colors.outline),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: AppSpacing.xl,
+                height: AppSpacing.xl,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Icon(
+                  Icons.calendar_month_outlined,
+                  color: colors.primary,
+                  size: AppSpacing.mdLg,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.smMd),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Due Date',
+                      style: AppTypography.labelLarge(context).copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      selectedDate == null
+                          ? 'Select date'
+                          : DateFormat('d MMM yyyy').format(selectedDate!),
+                      style: AppTypography.titleMedium(context).copyWith(
+                        color: colors.onBackground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                selectedDate == null ? 'Select Date' : 'Change Date',
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DueDateInlineError extends StatelessWidget {
+  const _DueDateInlineError({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.error_outline_rounded,
+          color: colors.error,
+          size: AppSpacing.md,
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            message,
+            style: AppTypography.labelLarge(context).copyWith(
+              color: colors.error,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -923,48 +1525,41 @@ class _ScheduleStatusToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final pendingSegment = _StatusSegment(
-      label: 'Need to Apply',
-      icon: Icons.pending_actions_rounded,
-      color: AppColors.warning,
-      selected: !isAlreadyApplied,
-      onTap: () => onChanged(false),
-    );
-    final appliedSegment = _StatusSegment(
-      label: 'Already Applied',
-      icon: Icons.verified_rounded,
-      color: AppColors.success,
-      selected: isAlreadyApplied,
-      onTap: () => onChanged(true),
-    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 360;
+        final compact = constraints.maxWidth < 340;
+        final appliedSegment = _StatusSegment(
+          label: 'Completed',
+          icon: Icons.verified_rounded,
+          color: AppColors.success,
+          selected: isAlreadyApplied,
+          compact: compact,
+          onTap: () => onChanged(true),
+        );
+        final pendingSegment = _StatusSegment(
+          label: 'Pending',
+          icon: Icons.pending_actions_rounded,
+          color: AppColors.warning,
+          selected: !isAlreadyApplied,
+          compact: compact,
+          onTap: () => onChanged(false),
+        );
+
         return Container(
-          padding: const EdgeInsets.all(AppSpacing.xs),
+          padding: EdgeInsets.all(compact ? 3 : AppSpacing.xs),
           decoration: BoxDecoration(
             color: cs.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(
-              compact ? AppSpacing.radiusLg : AppSpacing.radiusFull,
-            ),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             border: Border.all(color: cs.outlineVariant),
           ),
-          child: compact
-              ? Column(
-                  children: [
-                    pendingSegment,
-                    const SizedBox(height: AppSpacing.xs),
-                    appliedSegment,
-                  ],
-                )
-              : Row(
-                  children: [
-                    Expanded(child: pendingSegment),
-                    const SizedBox(width: AppSpacing.xs),
-                    Expanded(child: appliedSegment),
-                  ],
-                ),
+          child: Row(
+            children: [
+              Expanded(child: appliedSegment),
+              SizedBox(width: compact ? 2 : AppSpacing.xs),
+              Expanded(child: pendingSegment),
+            ],
+          ),
         );
       },
     );
@@ -977,6 +1572,7 @@ class _StatusSegment extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.selected,
+    required this.compact,
     required this.onTap,
   });
 
@@ -984,6 +1580,7 @@ class _StatusSegment extends StatelessWidget {
   final IconData icon;
   final Color color;
   final bool selected;
+  final bool compact;
   final VoidCallback onTap;
 
   @override
@@ -1000,9 +1597,10 @@ class _StatusSegment extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.smMd,
-            vertical: AppSpacing.sm,
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? AppSpacing.xs : AppSpacing.smMd,
+            vertical: compact ? 6 : AppSpacing.sm,
           ),
           decoration: BoxDecoration(
             color: selected ? color : Colors.transparent,
@@ -1024,15 +1622,16 @@ class _StatusSegment extends StatelessWidget {
               Icon(
                 icon,
                 color: foregroundColor,
-                size: AppSpacing.md,
+                size: compact ? 14 : AppSpacing.md,
               ),
-              const SizedBox(width: AppSpacing.xs),
+              SizedBox(width: compact ? 3 : AppSpacing.xs),
               Flexible(
                 child: Text(
                   label,
                   style: AppTypography.labelLarge(context).copyWith(
                     color: foregroundColor,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w600,
+                    fontSize: compact ? 11 : null,
+                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1042,6 +1641,122 @@ class _StatusSegment extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WaterMethodSelector extends StatelessWidget {
+  const _WaterMethodSelector({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final WaterMethod selected;
+  final ValueChanged<WaterMethod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<WaterMethod>(
+        segments: const [
+          ButtonSegment(
+            value: WaterMethod.drip,
+            icon: Icon(Icons.water_drop_outlined),
+            label: Text('Drip'),
+          ),
+          ButtonSegment(
+            value: WaterMethod.flooding,
+            icon: Icon(Icons.waves_outlined),
+            label: Text('Flooding'),
+          ),
+        ],
+        selected: {selected},
+        onSelectionChanged: (values) => onChanged(values.first),
+        showSelectedIcon: false,
+        style: ButtonStyle(
+          minimumSize: WidgetStateProperty.all(const Size(0, 52)),
+          visualDensity: VisualDensity.standard,
+        ),
+      ),
+    );
+  }
+}
+
+class _WaterDurationInput extends StatelessWidget {
+  const _WaterDurationInput({
+    super.key,
+    required this.controller,
+    required this.unit,
+    required this.requiredFor,
+    required this.onUnitChanged,
+  });
+
+  final TextEditingController controller;
+  final WaterDurationUnit unit;
+  final bool Function() requiredFor;
+  final ValueChanged<WaterDurationUnit> onUnitChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final durationField = TextFormField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: DashboardField.decoration(
+        context: context,
+        label: 'Water Duration',
+        hint: unit == WaterDurationUnit.minutes ? 'e.g. 30' : 'e.g. 2',
+        icon: Icons.timer_outlined,
+      ),
+      validator: (value) {
+        if (!requiredFor()) return null;
+        if ((double.tryParse(value?.trim() ?? '') ?? 0) <= 0) {
+          return 'Enter water duration';
+        }
+        return null;
+      },
+    );
+    final unitSelector = SegmentedButton<WaterDurationUnit>(
+      segments: const [
+        ButtonSegment(
+          value: WaterDurationUnit.minutes,
+          label: Text('Minutes'),
+        ),
+        ButtonSegment(
+          value: WaterDurationUnit.hours,
+          label: Text('Hours'),
+        ),
+      ],
+      selected: {unit},
+      onSelectionChanged: (values) => onUnitChanged(values.first),
+      showSelectedIcon: false,
+      style: ButtonStyle(
+        minimumSize: WidgetStateProperty.all(const Size(0, 48)),
+        visualDensity: VisualDensity.standard,
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 380) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              durationField,
+              const SizedBox(height: AppSpacing.sm),
+              unitSelector,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: durationField),
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(child: unitSelector),
+          ],
+        );
+      },
     );
   }
 }

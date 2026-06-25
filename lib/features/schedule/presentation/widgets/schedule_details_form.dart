@@ -7,6 +7,7 @@ import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../domain/entities/schedule_entity.dart';
+import '../utils/schedule_type_colors.dart';
 import 'compact_activity_selector.dart';
 
 class ScheduleDetailsForm extends StatelessWidget {
@@ -16,12 +17,9 @@ class ScheduleDetailsForm extends StatelessWidget {
     required this.selectedType,
     required this.selectedActivityType,
     required this.scheduleDate,
-    required this.dueDate,
     required this.onTypeChanged,
     required this.onActivityChanged,
-    required this.onScheduleDateChanged,
     required this.onScheduleDateTap,
-    required this.onDueDateTap,
     required this.onTimeTap,
     this.contextMessage,
   });
@@ -30,12 +28,9 @@ class ScheduleDetailsForm extends StatelessWidget {
   final ScheduleType selectedType;
   final ActivityType selectedActivityType;
   final DateTime scheduleDate;
-  final DateTime dueDate;
   final ValueChanged<ScheduleType> onTypeChanged;
   final ValueChanged<ActivityType> onActivityChanged;
-  final ValueChanged<DateTime> onScheduleDateChanged;
   final VoidCallback onScheduleDateTap;
-  final VoidCallback onDueDateTap;
   final VoidCallback onTimeTap;
   final String? contextMessage;
 
@@ -58,7 +53,7 @@ class ScheduleDetailsForm extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Activity Stage',
+                'Current Stage',
                 style: AppTypography.titleMedium(context).copyWith(
                   fontWeight: FontWeight.w600,
                   color: colors.onBackground,
@@ -86,12 +81,6 @@ class ScheduleDetailsForm extends StatelessWidget {
                   value: DateFormat('h:mm a').format(scheduleDate),
                   icon: Icons.schedule_rounded,
                   onTap: onTimeTap,
-                ),
-                _DateActionChip(
-                  label: 'Due',
-                  value: DateFormat('d MMM').format(dueDate),
-                  icon: Icons.flag_outlined,
-                  onTap: onDueDateTap,
                 ),
               ];
 
@@ -162,16 +151,6 @@ class ScheduleDetailsForm extends StatelessWidget {
         !selectedDate.isAfter(DateUtils.dateOnly(end));
   }
 
-  DateTime _adjustedDateFor(ActivityEntity activity) {
-    final start = activity.startedAt;
-    if (start == null) return scheduleDate;
-    final end = activity.completedAt ?? DateTime.now();
-    final selectedDate = DateUtils.dateOnly(scheduleDate);
-    if (selectedDate.isBefore(DateUtils.dateOnly(start))) return start;
-    if (selectedDate.isAfter(DateUtils.dateOnly(end))) return end;
-    return scheduleDate;
-  }
-
   String _stageDateRange(ActivityEntity activity) {
     final start = activity.startedAt;
     if (start == null) return 'Stage date not available';
@@ -192,8 +171,8 @@ class ScheduleDetailsForm extends StatelessWidget {
       ),
       builder: (context) => SafeArea(
         child: _SelectorSheet(
-          title: 'Select Activity Stage',
-          subtitle: 'Choose the current grape stage for this schedule',
+          title: 'Select Current Stage',
+          subtitle: 'Choose the grape stage for this schedule',
           icon: Icons.timeline_rounded,
           children: [
             for (var index = 0;
@@ -224,8 +203,6 @@ class ScheduleDetailsForm extends StatelessWidget {
                       await _handleStageTap(
                         context: context,
                         type: type,
-                        activity: activity,
-                        isPast: isPast,
                       );
                     },
                   );
@@ -246,59 +223,8 @@ class ScheduleDetailsForm extends StatelessWidget {
   Future<void> _handleStageTap({
     required BuildContext context,
     required ActivityType type,
-    required ActivityEntity? activity,
-    required bool isPast,
   }) async {
-    if (!isPast || activity == null || _dateInsideActivity(activity)) {
-      onActivityChanged(type);
-      Navigator.of(context).pop();
-      return;
-    }
-
-    final start = activity.startedAt;
-    if (start == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${type.displayName} stage date range is not set.'),
-        ),
-      );
-      return;
-    }
-
-    final adjustedDate = _adjustedDateFor(activity);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          'Use ${type.displayName} stage?',
-          style: AppTypography.titleLarge(dialogContext).copyWith(
-            color: DashboardStyle.of(dialogContext).onBackground,
-          ),
-        ),
-        content: Text(
-          'This schedule date is outside ${type.displayName} stage '
-          '(${_stageDateRange(activity)}). Do you want to continue and move '
-          'the schedule date inside this stage?',
-          style: AppTypography.bodyMedium(dialogContext).copyWith(
-            color: DashboardStyle.of(dialogContext).onSurface,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('Use ${DateFormat('d MMM').format(adjustedDate)}'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !context.mounted) return;
     onActivityChanged(type);
-    onScheduleDateChanged(adjustedDate);
     Navigator.of(context).pop();
   }
 }
@@ -406,7 +332,8 @@ class _TypeSegment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = DashboardStyle.of(context);
-    final color = selected ? colors.primary : colors.onSurfaceVariant;
+    final accent = ScheduleTypeColors.accent(type);
+    final color = selected ? accent : colors.onSurfaceVariant;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -421,7 +348,9 @@ class _TypeSegment extends StatelessWidget {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: selected ? colors.primaryContainer : Colors.transparent,
+            color: selected
+                ? ScheduleTypeColors.container(type)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
           child: Row(
@@ -433,7 +362,7 @@ class _TypeSegment extends StatelessWidget {
                 child: Text(
                   type.displayName,
                   style: AppTypography.labelLarge(context).copyWith(
-                    color: selected ? colors.primary : colors.onSurface,
+                    color: selected ? accent : colors.onSurface,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w600,
                   ),
                   maxLines: 1,

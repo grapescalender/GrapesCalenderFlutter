@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../shared/widgets/dashboard_design.dart';
 import '../models/add_schedule_request.dart';
 
 class SelectedProductCard extends StatelessWidget {
   const SelectedProductCard({
-    super.key,
     required this.product,
     required this.onEdit,
     required this.onRemove,
+    super.key,
   });
 
   final ScheduleProductDraft product;
@@ -21,86 +21,98 @@ class SelectedProductCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.smMd),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.smMd,
+        AppSpacing.sm,
+        AppSpacing.xs,
+        AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(color: cs.outlineVariant),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  product.productName,
-                  style: AppTypography.titleMedium(context).copyWith(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              IconButton(
-                tooltip: 'Edit product dose',
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined),
-                color: cs.primary,
-                style: IconButton.styleFrom(
-                  padding: const EdgeInsets.all(AppSpacing.xs),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-              IconButton(
-                tooltip: 'Remove product',
-                onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded),
-                color: cs.error,
-                style: IconButton.styleFrom(
-                  padding: const EdgeInsets.all(AppSpacing.xs),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ],
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            ),
+            child: const Icon(
+              Icons.science_outlined,
+              color: AppColors.primary,
+              size: 18,
+            ),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  border: Border.all(color: cs.primary.withValues(alpha: 0.16)),
-                ),
-                child: Text(
-                  product.categoryLabel,
+          const SizedBox(width: AppSpacing.smMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  product.productName,
                   style: AppTypography.labelLarge(context).copyWith(
-                    color: cs.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  '${product.dose} ${product.doseUnit} / '
-                  '${product.perWaterQuantity} ${product.perWaterUnit}',
-                  style: AppTypography.bodyMedium(context).copyWith(
-                    color: cs.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w700,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  product.manufacturer,
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  product.dosageSummary,
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: onEdit,
+                tooltip: 'Edit product',
+                icon: const Icon(Icons.edit_outlined),
+                iconSize: 18,
+                color: cs.onSurfaceVariant,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 32,
+                  height: 32,
+                ),
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                onPressed: onRemove,
+                tooltip: 'Remove product',
+                icon: const Icon(Icons.delete_outline_rounded),
+                iconSize: 18,
+                color: cs.error,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 32,
+                  height: 32,
+                ),
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),

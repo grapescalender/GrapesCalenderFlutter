@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
 import '../../domain/entities/schedule_entity.dart';
+import '../utils/schedule_type_colors.dart';
 
 class PlotSummaryCard extends StatelessWidget {
   const PlotSummaryCard({
@@ -27,13 +27,7 @@ class PlotSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = DashboardStyle.of(context);
-    final typeColor = switch (scheduleType) {
-      ScheduleType.spray => AppColors.info,
-      ScheduleType.nutrition => AppColors.warning,
-      ScheduleType.water => AppColors.primary,
-      ScheduleType.work => AppColors.success,
-      ScheduleType.all => AppColors.primary,
-    };
+    final typeColor = ScheduleTypeColors.accent(scheduleType);
     final hasProducts = scheduleType == ScheduleType.spray ||
         scheduleType == ScheduleType.nutrition;
 
@@ -113,19 +107,19 @@ class PlotSummaryCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (pruningDate != null) ...[
+                      _buildSummaryRow(
+                        context,
+                        'Cutting Date',
+                        DateFormat('d MMM yy').format(pruningDate!),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                    ],
                     _buildSummaryRow(
                       context,
                       'Today\'s Date',
-                      DateFormat('d MMM yyyy').format(DateTime.now()),
+                      DateFormat('d MMM yy').format(DateTime.now()),
                     ),
-                    if (pruningDate != null) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      _buildSummaryRow(
-                        context,
-                        'Pruning Date',
-                        DateFormat('d MMM yyyy').format(pruningDate!),
-                      ),
-                    ],
                   ],
                 ),
               ),

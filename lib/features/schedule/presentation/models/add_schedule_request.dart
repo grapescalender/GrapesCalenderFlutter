@@ -1,5 +1,33 @@
 import '../../domain/entities/schedule_entity.dart';
 
+String _scheduleUnitLabel(String unit) => unit == 'litre' ? 'liter' : unit;
+
+enum WaterMethod {
+  drip,
+  flooding,
+  fertigation;
+
+  String get value => name;
+
+  String get displayName => switch (this) {
+        WaterMethod.drip => 'Drip Irrigation',
+        WaterMethod.flooding => 'Flood Irrigation',
+        WaterMethod.fertigation => 'Nutrition / Fertigation',
+      };
+}
+
+enum WaterDurationUnit {
+  minutes,
+  hours;
+
+  String get value => name;
+
+  String get displayName => switch (this) {
+        WaterDurationUnit.minutes => 'Minutes',
+        WaterDurationUnit.hours => 'Hours',
+      };
+}
+
 class ScheduleProductDraft {
   const ScheduleProductDraft({
     required this.productId,
@@ -11,7 +39,7 @@ class ScheduleProductDraft {
     this.dose = '',
     this.doseUnit = 'gm',
     this.perWaterQuantity = '',
-    this.perWaterUnit = 'litre',
+    this.perWaterUnit = 'liter',
   });
 
   final String productId;
@@ -57,6 +85,14 @@ class ScheduleProductDraft {
     return doseValue * totalWater / perWaterValue;
   }
 
+  String get dosageSummary {
+    if (dose.trim().isEmpty || perWaterQuantity.trim().isEmpty) {
+      return 'Add dose and water quantity';
+    }
+    return '${dose.trim()} ${_scheduleUnitLabel(doseUnit)} / '
+        '${perWaterQuantity.trim()} ${_scheduleUnitLabel(perWaterUnit)}';
+  }
+
   Map<String, dynamic> toMap() => {
         'productId': productId,
         'productName': productName,
@@ -86,6 +122,11 @@ class AddScheduleRequest {
     this.tankCount,
     this.labourTeam,
     this.estimatedDuration,
+    this.waterMethod,
+    this.durationValue,
+    this.durationUnit,
+    this.waterQuantity,
+    this.waterQuantityUnit = 'Liter',
   });
 
   final String plotId;
@@ -101,6 +142,11 @@ class AddScheduleRequest {
   final String notes;
   final String? labourTeam;
   final String? estimatedDuration;
+  final WaterMethod? waterMethod;
+  final double? durationValue;
+  final WaterDurationUnit? durationUnit;
+  final double? waterQuantity;
+  final String waterQuantityUnit;
   final List<ScheduleProductDraft> products;
   final String combinationName;
 
@@ -118,6 +164,11 @@ class AddScheduleRequest {
         'notes': notes,
         'labourTeam': labourTeam,
         'estimatedDuration': estimatedDuration,
+        'waterMethod': waterMethod?.value,
+        'durationValue': durationValue,
+        'durationUnit': durationUnit?.value,
+        'waterQuantity': waterQuantity,
+        'waterQuantityUnit': waterQuantityUnit,
         'combinationName': combinationName,
         'products': products.map((product) => product.toMap()).toList(),
       };
@@ -132,6 +183,11 @@ class AddScheduleRequest {
       if (labourTeam?.isNotEmpty ?? false) 'Labour/team: $labourTeam',
       if (estimatedDuration?.isNotEmpty ?? false)
         'Estimated duration: $estimatedDuration',
+      if (waterMethod != null) 'Water method: ${waterMethod!.displayName}',
+      if (durationValue != null && durationUnit != null)
+        'Water duration: ${_number(durationValue!)} ${durationUnit!.displayName}',
+      if (waterQuantity != null)
+        'Water quantity: ${_number(waterQuantity!)} $waterQuantityUnit',
       for (final product in products) _productLine(product),
     ];
     return lines.join('\n');
@@ -142,7 +198,7 @@ class AddScheduleRequest {
 
   static String _productLine(ScheduleProductDraft product) {
     return '${product.sequenceNo}. ${product.productName}: ${product.dose} '
-        '${product.doseUnit} per ${product.perWaterQuantity} '
-        '${product.perWaterUnit}';
+        '${_scheduleUnitLabel(product.doseUnit)} per '
+        '${product.perWaterQuantity} ${_scheduleUnitLabel(product.perWaterUnit)}';
   }
 }

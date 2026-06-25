@@ -123,6 +123,22 @@ class ScheduleListItem extends StatelessWidget {
   String _scheduleDateLabel() =>
       DateFormat('dd MMM yyyy').format(schedule.scheduledDate);
 
+  String? get _irrigationSummary {
+    if (schedule.type != ScheduleType.water) return null;
+    final description = schedule.description;
+    if (description == null || description.trim().isEmpty) return null;
+    for (final line in description.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.startsWith('Water duration:')) {
+        return trimmed.substring('Water duration:'.length).trim();
+      }
+      if (trimmed.startsWith('Water quantity:')) {
+        return trimmed.substring('Water quantity:'.length).trim();
+      }
+    }
+    return null;
+  }
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -166,6 +182,18 @@ class ScheduleListItem extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (_irrigationSummary != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      _irrigationSummary!,
+                      style: AppTypography.bodyMedium(context).copyWith(
+                        color: tc,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,

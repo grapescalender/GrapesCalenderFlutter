@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
+
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../shared/widgets/dashboard_design.dart';
 import '../../domain/entities/schedule_entity.dart';
 
 class AnimatedPlotSummaryCard extends StatelessWidget {
   const AnimatedPlotSummaryCard({
-    super.key,
+    required this.plotSelector,
     required this.plotName,
     required this.dayAfterPruning,
     required this.scheduleType,
     required this.stageName,
     required this.productCount,
     required this.pruningDate,
+    super.key,
   });
 
+  final Widget plotSelector;
   final String plotName;
   final int? dayAfterPruning;
   final ScheduleType scheduleType;
@@ -26,15 +27,7 @@ class AnimatedPlotSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    final typeColor = switch (scheduleType) {
-      ScheduleType.spray => AppColors.info,
-      ScheduleType.nutrition => AppColors.warning,
-      ScheduleType.water => AppColors.primary,
-      ScheduleType.work => AppColors.success,
-      ScheduleType.all => AppColors.primary,
-    };
+    final colors = Theme.of(context).colorScheme;
     final hasProducts = scheduleType == ScheduleType.spray ||
         scheduleType == ScheduleType.nutrition;
 
@@ -49,214 +42,220 @@ class AnimatedPlotSummaryCard extends StatelessWidget {
         ),
       ),
       child: Container(
-        key: ValueKey('$plotName-$scheduleType-$productCount'),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.smMd,
+        key: ValueKey(
+          '$plotName-$scheduleType-$stageName-$productCount-$dayAfterPruning',
         ),
         decoration: BoxDecoration(
-          color: cs.surfaceContainerHigh,
+          gradient: LinearGradient(
+            colors: [
+              Color.lerp(colors.primary, Colors.black, 0.06) ?? colors.primary,
+              colors.primary,
+              Color.lerp(colors.secondary, Colors.white, 0.08) ??
+                  colors.secondary,
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Row 1: Plot name + DAP badge ──────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // plot icon
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: cs.primary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                  ),
-                  child: Icon(
-                    Icons.agriculture_rounded,
-                    size: 16,
-                    color: cs.primary,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        plotName,
-                        style: AppTypography.titleMedium(context).copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.onSurface,
-                          height: 1.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        stageName,
-                        style: AppTypography.bodyMedium(context).copyWith(
-                          color: cs.onSurfaceVariant,
-                          height: 1.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                // DAP badge
-                if (dayAfterPruning != null) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  _DapBadge(days: dayAfterPruning!, color: cs.primary),
-                ],
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.sm),
-            Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
-            const SizedBox(height: AppSpacing.sm),
-
-            // ── Row 2: Type chip + dates ───────────────────────────────
-            Row(
-              children: [
-                // schedule type pill
-                _MiniPill(
-                  label: scheduleType.displayName,
-                  color: typeColor,
-                ),
-                if (hasProducts) ...[
-                  const SizedBox(width: AppSpacing.xs),
-                  _MiniPill(
-                    label:
-                        '$productCount Product${productCount == 1 ? '' : 's'}',
-                    color: cs.primary,
-                  ),
-                ],
-                const Spacer(),
-                // dates
-                _DateInfo(
-                  icon: Icons.today_rounded,
-                  label: DateFormat('d MMM').format(DateTime.now()),
-                  color: cs.onSurfaceVariant,
-                ),
-                if (pruningDate != null) ...[
-                  const SizedBox(width: AppSpacing.smMd),
-                  _DateInfo(
-                    icon: Icons.content_cut_rounded,
-                    label: DateFormat('d MMM yyyy').format(pruningDate!),
-                    color: cs.onSurfaceVariant,
-                  ),
-                ],
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: colors.primary.withValues(alpha: 0.22),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ─── Small helpers ──────────────────────────────────────────────────────────
-
-class _DapBadge extends StatelessWidget {
-  const _DapBadge({required this.days, required this.color});
-  final int days;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$days',
-            style: AppTypography.titleMedium(context).copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
-              height: 1.0,
-            ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          child: Stack(
+            children: [
+              Positioned(
+                left: -54,
+                top: -66,
+                child: Container(
+                  width: 142,
+                  height: 142,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.09),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -48,
+                bottom: -62,
+                child: Container(
+                  width: 146,
+                  height: 146,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.smMd),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    plotSelector,
+                    const SizedBox(height: AppSpacing.smMd),
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        _HeroPill(
+                          label: scheduleType.displayName,
+                        ),
+                        if (hasProducts)
+                          _HeroPill(
+                            label:
+                                '$productCount Product${productCount == 1 ? '' : 's'}',
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.smMd),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _HeroMetric(
+                            value: pruningDate == null
+                                ? '—'
+                                : DateFormat('dd MMM').format(pruningDate!),
+                            label: 'Cutting Date',
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: _HeroMetric(
+                            value: dayAfterPruning == null
+                                ? '—'
+                                : _ordinalDay(dayAfterPruning!),
+                            label: 'After Pruning',
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: _HeroMetric(
+                            value: stageName,
+                            label: 'Current Activity',
+                            compactValue: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Text(
-            'DAP',
-            style: AppTypography.labelLarge(context).copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 9,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniPill extends StatelessWidget {
-  const _MiniPill({required this.label, required this.color});
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.labelLarge(context).copyWith(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
         ),
       ),
     );
   }
+
+  String _ordinalDay(int value) {
+    final suffix = value % 100 >= 11 && value % 100 <= 13
+        ? 'th'
+        : switch (value % 10) {
+            1 => 'st',
+            2 => 'nd',
+            3 => 'rd',
+            _ => 'th',
+          };
+    return '$value$suffix Day';
+  }
 }
 
-class _DateInfo extends StatelessWidget {
-  const _DateInfo({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-  final IconData icon;
+class _HeroPill extends StatelessWidget {
+  const _HeroPill({required this.label});
+
   final String label;
-  final Color color;
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 12, color: color),
-        const SizedBox(width: 3),
-        Text(
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.30)),
+        ),
+        child: Text(
           label,
           style: AppTypography.labelLarge(context).copyWith(
-            color: color,
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-      ],
-    );
-  }
+      );
+}
+
+class _HeroMetric extends StatelessWidget {
+  const _HeroMetric({
+    required this.value,
+    required this.label,
+    this.compactValue = false,
+  });
+
+  final String value;
+  final String label;
+  final bool compactValue;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        constraints: const BoxConstraints(minHeight: 58),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.24),
+              Colors.white.withValues(alpha: 0.10),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              value,
+              textAlign: TextAlign.center,
+              style: (compactValue
+                      ? AppTypography.labelLarge(context)
+                      : AppTypography.titleMedium(context))
+                  .copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                height: 1,
+              ),
+              maxLines: compactValue ? 2 : 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTypography.labelLarge(context).copyWith(
+                color: Colors.white.withValues(alpha: 0.74),
+                fontWeight: FontWeight.w600,
+                height: 1.1,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      );
 }
