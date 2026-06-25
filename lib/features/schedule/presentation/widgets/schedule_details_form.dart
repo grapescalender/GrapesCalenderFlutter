@@ -6,77 +6,71 @@ import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
-import '../../../home/domain/entities/plot_entity.dart';
 import '../../domain/entities/schedule_entity.dart';
+import 'compact_activity_selector.dart';
 
 class ScheduleDetailsForm extends StatelessWidget {
   const ScheduleDetailsForm({
     super.key,
-    required this.plots,
     required this.activities,
-    required this.selectedPlotId,
     required this.selectedType,
     required this.selectedActivityType,
     required this.scheduleDate,
     required this.dueDate,
-    required this.onPlotChanged,
     required this.onTypeChanged,
     required this.onActivityChanged,
     required this.onScheduleDateChanged,
     required this.onScheduleDateTap,
     required this.onDueDateTap,
     required this.onTimeTap,
+    this.contextMessage,
   });
 
-  final List<PlotEntity> plots;
   final List<ActivityEntity> activities;
-  final String selectedPlotId;
   final ScheduleType selectedType;
   final ActivityType selectedActivityType;
   final DateTime scheduleDate;
   final DateTime dueDate;
-  final ValueChanged<String> onPlotChanged;
   final ValueChanged<ScheduleType> onTypeChanged;
   final ValueChanged<ActivityType> onActivityChanged;
   final ValueChanged<DateTime> onScheduleDateChanged;
   final VoidCallback onScheduleDateTap;
   final VoidCallback onDueDateTap;
   final VoidCallback onTimeTap;
+  final String? contextMessage;
 
   @override
   Widget build(BuildContext context) {
-    final selectedPlot = plots.firstWhere(
-      (plot) => plot.id == selectedPlotId,
-      orElse: () => plots.first,
-    );
+    final colors = DashboardStyle.of(context);
 
     return _SectionCard(
       title: 'Schedule Details',
       icon: Icons.event_note_outlined,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _PickerTile(
-            label: 'Plot',
-            value: selectedPlot.name,
-            meta: _plotMeta(selectedPlot),
-            icon: Icons.agriculture_rounded,
-            dense: true,
-            onTap: () => _openPlotSelector(context),
-          ),
-          const SizedBox(height: AppSpacing.smMd),
           _TypeSelector(
             selectedType: selectedType,
             onChanged: onTypeChanged,
           ),
-          const SizedBox(height: AppSpacing.smMd),
-          _PickerTile(
-            label: 'Activity Stage',
-            value: '${selectedActivityType.displayName} Stage',
-            meta: _stageMeta(selectedActivityType),
-            icon: Icons.timeline_rounded,
-            onTap: () => _openStageSelector(context),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Activity Stage',
+                style: AppTypography.titleMedium(context).copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colors.onBackground,
+                ),
+              ),
+              CompactActivitySelector(
+                selectedActivity: selectedActivityType,
+                onTap: () => _openStageSelector(context),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.smMd),
+          const SizedBox(height: AppSpacing.md),
           LayoutBuilder(
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 360;
@@ -124,18 +118,13 @@ class ScheduleDetailsForm extends StatelessWidget {
               );
             },
           ),
+          if (contextMessage != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _ScheduleDateContextMessage(message: contextMessage!),
+          ],
         ],
       ),
     );
-  }
-
-  String _plotMeta(PlotEntity plot) {
-    final details = <String>[
-      plot.cropType,
-      '${plot.area} ha',
-      if (plot.hasPruningDate) 'Day ${plot.daysSincePruning}',
-    ];
-    return details.join('  ·  ');
   }
 
   String _stageMeta(ActivityType type) {
@@ -189,36 +178,6 @@ class ScheduleDetailsForm extends StatelessWidget {
     final end = activity.completedAt ?? DateTime.now();
     final formatter = DateFormat('d MMM');
     return '${formatter.format(start)} - ${formatter.format(end)}';
-  }
-
-  void _openPlotSelector(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: DashboardStyle.of(context).surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSpacing.radiusHuge),
-        ),
-      ),
-      builder: (context) => SafeArea(
-        child: _SelectorSheet(
-          title: 'Select Plot',
-          subtitle: 'Tap a plot to use for this schedule',
-          icon: Icons.agriculture_rounded,
-          children: [
-            for (final plot in plots)
-              _PlotOptionTile(
-                plot: plot,
-                selected: plot.id == selectedPlotId,
-                onTap: () {
-                  onPlotChanged(plot.id);
-                  Navigator.of(context).pop();
-                },
-              ),
-          ],
-        ),
-      ),
-    );
   }
 
   void _openStageSelector(BuildContext context) {
@@ -344,6 +303,48 @@ class ScheduleDetailsForm extends StatelessWidget {
   }
 }
 
+class _ScheduleDateContextMessage extends StatelessWidget {
+  const _ScheduleDateContextMessage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.smMd,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            color: colors.primary,
+            size: AppSpacing.md,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTypography.labelLarge(context).copyWith(
+                color: colors.onSurface,
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TypeSelector extends StatelessWidget {
   const _TypeSelector({
     required this.selectedType,
@@ -447,99 +448,6 @@ class _TypeSegment extends StatelessWidget {
   }
 }
 
-class _PickerTile extends StatelessWidget {
-  const _PickerTile({
-    required this.label,
-    required this.value,
-    required this.meta,
-    required this.icon,
-    required this.onTap,
-    this.dense = false,
-  });
-
-  final String label;
-  final String value;
-  final String meta;
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool dense;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = DashboardStyle.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      child: Container(
-        padding: EdgeInsets.all(dense ? AppSpacing.sm : AppSpacing.smMd),
-        decoration: BoxDecoration(
-          color: colors.background,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: colors.outline),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: dense ? AppSpacing.lg : AppSpacing.xl,
-              height: dense ? AppSpacing.lg : AppSpacing.xl,
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-              ),
-              child: Icon(
-                icon,
-                size: dense ? AppSpacing.smMd : AppSpacing.md,
-                color: colors.primary,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: AppTypography.labelLarge(context).copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    value,
-                    style: (dense
-                            ? AppTypography.titleMedium(context)
-                            : AppTypography.titleMedium(context))
-                        .copyWith(
-                      color: colors.onBackground,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    meta,
-                    style: AppTypography.labelLarge(context).copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: colors.onSurfaceVariant,
-              size: AppSpacing.mdLg,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _DateActionChip extends StatelessWidget {
   const _DateActionChip({
     required this.label,
@@ -626,31 +534,6 @@ class _SelectorSheet extends StatelessWidget {
             ],
           ],
         ),
-      );
-}
-
-class _PlotOptionTile extends StatelessWidget {
-  const _PlotOptionTile({
-    required this.plot,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final PlotEntity plot;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => _OptionTile(
-        title: plot.name,
-        subtitle: [
-          plot.cropType,
-          '${plot.area} ha',
-          if (plot.hasPruningDate) 'Day ${plot.daysSincePruning}',
-        ].join('  ·  '),
-        icon: Icons.agriculture_rounded,
-        selected: selected,
-        onTap: onTap,
       );
 }
 
@@ -806,30 +689,12 @@ class _StageStatusPill extends StatelessWidget {
       );
 }
 
-class _OptionTile extends StatelessWidget {
-  const _OptionTile({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
+class _SectionCard extends DashboardSectionCard {
+  const _SectionCard({
+    required super.title,
+    required super.icon,
+    required super.child,
   });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => DashboardListItem(
-        title: title,
-        subtitle: subtitle,
-        icon: icon,
-        selected: selected,
-        onTap: onTap,
-        trailing: _SelectionDot(selected: selected),
-      );
 }
 
 class ScheduleFormSectionCard extends DashboardSectionCard {
@@ -840,42 +705,4 @@ class ScheduleFormSectionCard extends DashboardSectionCard {
     required super.child,
     super.action,
   });
-}
-
-class _SectionCard extends DashboardSectionCard {
-  const _SectionCard({
-    required super.title,
-    required super.icon,
-    required super.child,
-  });
-}
-
-class _SelectionDot extends StatelessWidget {
-  const _SelectionDot({required this.selected});
-
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = DashboardStyle.of(context);
-    return Container(
-      width: AppSpacing.mdLg,
-      height: AppSpacing.mdLg,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: selected ? colors.primary : Colors.transparent,
-        border: Border.all(
-          color: selected ? colors.primary : colors.outlineStrong,
-          width: 1.5,
-        ),
-      ),
-      child: selected
-          ? Icon(
-              Icons.check_rounded,
-              size: AppSpacing.smMd,
-              color: Theme.of(context).colorScheme.onPrimary,
-            )
-          : null,
-    );
-  }
 }

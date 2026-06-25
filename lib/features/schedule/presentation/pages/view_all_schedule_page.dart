@@ -12,7 +12,7 @@ import '../providers/schedule_notifier.dart';
 import '../providers/schedule_providers.dart';
 import '../providers/schedule_state.dart';
 import '../utils/schedule_filter_utils.dart';
-import '../widgets/add_schedule_form.dart';
+import '../widgets/add_schedule_popup.dart';
 import '../widgets/schedule_context_message.dart';
 import '../widgets/schedule_detail_popup.dart';
 import '../widgets/schedule_filter_chip.dart';
@@ -439,7 +439,7 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddScheduleForm(
+      builder: (context) => AddSchedulePopup(
         plotId: plotId,
         plotName: plotName,
       ),

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/dashboard_design.dart';
 
-class StickySaveButton extends StatelessWidget {
-  const StickySaveButton({
+class StickySaveAction extends StatelessWidget {
+  const StickySaveAction({
     super.key,
     required this.isSaving,
     required this.onSave,
@@ -16,7 +14,7 @@ class StickySaveButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = DashboardStyle.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
@@ -25,8 +23,8 @@ class StickySaveButton extends StatelessWidget {
         AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(top: BorderSide(color: colors.outline)),
+        color: cs.surfaceContainerLow,
+        border: Border(top: BorderSide(color: cs.outlineVariant)),
       ),
       child: AppButton.primary(
         label: isSaving ? 'Saving Schedule...' : 'Save Schedule',

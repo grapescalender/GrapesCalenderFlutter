@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/theme/app_semantic_colors.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
-import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
@@ -18,16 +18,16 @@ import '../../../products/presentation/providers/product_providers.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../models/add_schedule_request.dart';
 import '../providers/schedule_providers.dart';
-import 'added_product_card.dart';
-import 'product_dose_editor.dart';
-import 'product_search_field.dart';
+import 'compact_plot_selector.dart';
+import 'animated_plot_summary_card.dart';
 import 'schedule_details_form.dart';
-import 'schedule_summary_header.dart';
-import 'sticky_save_button.dart';
+import 'selected_product_card.dart';
+import 'sticky_save_action.dart';
+import 'product_search_bottom_sheet.dart';
+import 'product_config_bottom_sheet.dart';
 
-/// Full-height, keyboard-safe Add Schedule experience.
-class AddScheduleForm extends ConsumerStatefulWidget {
-  const AddScheduleForm({
+class AddSchedulePopup extends ConsumerStatefulWidget {
+  const AddSchedulePopup({
     required this.plotId,
     required this.plotName,
     super.key,
@@ -37,10 +37,10 @@ class AddScheduleForm extends ConsumerStatefulWidget {
   final String plotName;
 
   @override
-  ConsumerState<AddScheduleForm> createState() => _AddScheduleFormState();
+  ConsumerState<AddSchedulePopup> createState() => _AddSchedulePopupState();
 }
 
-class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
+class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   final _formKey = GlobalKey<FormState>();
   final _productSearchController = TextEditingController();
   final _productSearchFocusNode = FocusNode();
@@ -115,16 +115,16 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       orElse: () => availablePlots.first,
     );
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final colors = DashboardStyle.of(context);
+    final cs = Theme.of(context).colorScheme;
 
     return FractionallySizedBox(
       heightFactor: 0.96,
       child: AnimatedPadding(
         duration: const Duration(milliseconds: 180),
         padding: EdgeInsets.only(bottom: bottomInset),
-        child: DecoratedBox(
+        child: Container(
           decoration: BoxDecoration(
-            color: colors.background,
+            color: cs.surfaceContainerLowest,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppSpacing.radiusHuge),
             ),
@@ -154,43 +154,61 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ScheduleSummaryHeader(
-                            plotName: selectedPlot.name,
-                            scheduleType: _selectedType,
-                            stageName: _selectedActivityType.displayName,
-                            scheduleDate: _scheduleDate,
-                            dayAfterPruning:
-                                _dayAfterPruning(selectedPlot.pruningDate),
-                            productCount: _products.length,
+                          // 1. Plot Selection Section
+                          CompactPlotSelector(
+                            plots: availablePlots,
+                            selectedPlotId: selectedPlot.id,
+                            onPlotChanged: _changePlot,
                           ),
                           const SizedBox(height: AppSpacing.smMd),
+
+                          // 2. Plot Summary Section
+                          AnimatedPlotSummaryCard(
+                            plotName: selectedPlot.name,
+                            dayAfterPruning:
+                                _dayAfterPruning(selectedPlot.pruningDate),
+                            scheduleType: _selectedType,
+                            stageName: _selectedActivityType.displayName,
+                            productCount: _products.length,
+                            pruningDate: selectedPlot.pruningDate,
+                          ),
+                          const SizedBox(height: AppSpacing.smMd),
+
+                          // 3. Schedule Details Section
                           ScheduleDetailsForm(
-                            plots: availablePlots,
                             activities: activityState.activities,
-                            selectedPlotId: selectedPlot.id,
                             selectedType: _selectedType,
                             selectedActivityType: _selectedActivityType,
                             scheduleDate: _scheduleDate,
                             dueDate: _dueDate,
-                            onPlotChanged: _changePlot,
                             onTypeChanged: _changeType,
                             onActivityChanged: _changeActivity,
                             onScheduleDateChanged: _changeScheduleDate,
                             onScheduleDateTap: _selectScheduleDate,
                             onDueDateTap: _selectDueDate,
                             onTimeTap: _selectTime,
+                            contextMessage: _scheduleDateContextMessage(
+                              activities: activityState.activities,
+                              pruningDate: selectedPlot.pruningDate,
+                            ),
                           ),
                           const SizedBox(height: AppSpacing.smMd),
-                          if (_usesProducts) ...[
-                            _buildProductSection(),
-                            const SizedBox(height: AppSpacing.smMd),
-                          ] else if (_selectedType == ScheduleType.work) ...[
+
+                          if (_selectedType == ScheduleType.work) ...[
                             _buildWorkSection(),
                             const SizedBox(height: AppSpacing.smMd),
-                          ] else ...[
+                          ] else if (_selectedType == ScheduleType.water) ...[
                             _buildWaterSection(),
                             const SizedBox(height: AppSpacing.smMd),
                           ],
+
+                          // 4. Product to Apply Section
+                          if (_usesProducts) ...[
+                            _buildProductSection(),
+                            const SizedBox(height: AppSpacing.smMd),
+                          ],
+
+                          // 5. Notes / Additional Info Section
                           _buildInstructionsSection(),
                           const SizedBox(height: AppSpacing.smMd),
                           _buildStatusSection(),
@@ -199,7 +217,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
                     ),
                   ),
                 ),
-                StickySaveButton(
+                StickySaveAction(
                   isSaving: scheduleState.isCreating,
                   onSave: _submit,
                 ),
@@ -212,59 +230,61 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
   }
 
   Widget _buildProductSection() {
-    final colors = DashboardStyle.of(context);
-    return ScheduleFormSectionCard(
-      title: 'Products to Apply',
-      icon: Icons.science_outlined,
-      action: TextButton.icon(
-        onPressed: _openProductSearchSheet,
-        icon: const Icon(Icons.add_rounded),
-        label: Text(_products.isEmpty ? 'Add Product' : 'Add another'),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_productError != null) ...[
-            Text(
-              _productError!,
-              style: AppTypography.labelLarge(context).copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_productError != null) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline_rounded,
+                    size: 14, color: AppColors.error),
+                const SizedBox(width: 4),
+                Text(
+                  _productError!,
+                  style: AppTypography.labelLarge(context).copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          if (_products.isEmpty)
-            const _EmptyProductsPrompt()
-          else ...[
-            Text(
-              'Selected Products',
-              style: AppTypography.titleMedium(context).copyWith(
-                color: colors.onBackground,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            for (var index = 0; index < _products.length; index++) ...[
-              AddedProductCard(
-                product: _products[index],
-                isEditing: false,
-                showErrors: false,
-                onChanged: (product) => _updateProduct(index, product),
-                onRemove: () => _removeProduct(index),
-                onEdit: () => _editProduct(index),
-                onDone: () {},
-              ),
-              if (index != _products.length - 1)
-                const SizedBox(height: AppSpacing.sm),
-            ],
-          ],
+          ),
         ],
-      ),
+        ScheduleFormSectionCard(
+          title: 'Products to Apply',
+          icon: Icons.science_outlined,
+          action: _AddProductPill(onTap: _openProductSearchSheet),
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 280),
+            curve: Curves.easeInOut,
+            child: _products.isEmpty
+                ? _ProductEmptyState(onAdd: _openProductSearchSheet)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var index = 0;
+                          index < _products.length;
+                          index++) ...[
+                        SelectedProductCard(
+                          product: _products[index],
+                          onRemove: () => _removeProduct(index),
+                          onEdit: () => _editProduct(index),
+                        ),
+                        if (index != _products.length - 1)
+                          const SizedBox(height: AppSpacing.sm),
+                      ],
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildStatusSection() {
-    final colors = DashboardStyle.of(context);
+    final cs = Theme.of(context).colorScheme;
     return DashboardSectionCard(
       title: 'Final status',
       icon: Icons.fact_check_outlined,
@@ -274,7 +294,7 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
           Text(
             'Choose how it should appear after saving.',
             style: AppTypography.labelLarge(context).copyWith(
-              color: colors.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -452,6 +472,13 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       if (_dueDate.isBefore(_scheduleDate)) {
         _dueDate = _scheduleDate;
       }
+      final matchedActivity = _activityForDate(
+        ref.read(activityNotifierProvider).activities,
+        _scheduleDate,
+      );
+      if (matchedActivity != null) {
+        _selectedActivityType = matchedActivity.type;
+      }
     });
   }
 
@@ -533,14 +560,6 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     );
   }
 
-  void _updateProduct(int index, ScheduleProductDraft product) {
-    setState(() {
-      final updated = [..._products];
-      updated[index] = product;
-      _products = updated;
-    });
-  }
-
   void _removeProduct(int index) {
     setState(() {
       final updated = [..._products]..removeAt(index);
@@ -574,30 +593,16 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
         ),
       ),
       builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => DashboardBottomSheetFrame(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const DashboardSheetHeader(
-                title: 'Add Product',
-                subtitle: 'Search catalog, then set dose details.',
-                icon: Icons.science_outlined,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              ProductSearchField(
-                controller: _productSearchController,
-                results: _searchResults,
-                isLoading: _isSearching,
-                onChanged: (query) =>
-                    _searchProducts(query, () => setSheetState(() {})),
-                onSelected: _addProduct,
-                addedProductIds:
-                    _products.map((product) => product.productId).toSet(),
-                focusNode: _productSearchFocusNode,
-              ),
-            ],
-          ),
+        builder: (context, setSheetState) => ProductSearchBottomSheet(
+          controller: _productSearchController,
+          results: _searchResults,
+          isLoading: _isSearching,
+          onChanged: (query) =>
+              _searchProducts(query, () => setSheetState(() {})),
+          onSelected: _addProduct,
+          addedProductIds:
+              _products.map((product) => product.productId).toSet(),
+          focusNode: _productSearchFocusNode,
         ),
       ),
     );
@@ -625,48 +630,27 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       ),
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, setSheetState) => DashboardBottomSheetFrame(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                DashboardSheetHeader(
-                  title: draft.productName,
-                  subtitle: '${draft.categoryLabel} • ${draft.manufacturer}',
-                  icon: Icons.tune_rounded,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                ProductDoseEditor(
-                  product: draft,
-                  showErrors: showErrors,
-                  onChanged: (ScheduleProductDraft value) =>
-                      setSheetState(() => draft = value),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppButton.primary(
-                  label: 'Confirm Product',
-                  icon: Icons.check_rounded,
-                  onPressed: () {
-                    if (!_isProductComplete(draft)) {
-                      setSheetState(() => showErrors = true);
-                      return;
-                    }
-                    setState(() {
-                      if (index == null) {
-                        _products = [..._products, draft];
-                      } else {
-                        final updated = [..._products];
-                        updated[index] = draft;
-                        _products = updated;
-                      }
-                      _productError = null;
-                    });
-                    Navigator.of(context).pop();
-                  },
-                  isFullWidth: true,
-                ),
-              ],
-            ),
+          builder: (context, setSheetState) => ProductConfigBottomSheet(
+            draft: draft,
+            showErrors: showErrors,
+            onChanged: (value) => setSheetState(() => draft = value),
+            onConfirm: () {
+              if (!_isProductComplete(draft)) {
+                setSheetState(() => showErrors = true);
+                return;
+              }
+              setState(() {
+                if (index == null) {
+                  _products = [..._products, draft];
+                } else {
+                  final updated = [..._products];
+                  updated[index] = draft;
+                  _products = updated;
+                }
+                _productError = null;
+              });
+              Navigator.of(context).pop();
+            },
           ),
         );
       },
@@ -680,25 +664,59 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
       (double.tryParse(product.perWaterQuantity) ?? 0) > 0;
 
   Future<void> _selectScheduleDate() async {
+    final plots = ref.read(plotNotifierProvider).plots;
+    final selectedPlot = plots.firstWhere(
+      (plot) => plot.id == _selectedPlotId,
+      orElse: () => PlotEntity(
+        id: _selectedPlotId,
+        name: _selectedPlotName,
+        area: 0,
+        location: '',
+        cropType: 'Grapes',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    final firstDate = _firstAllowedScheduleDate(selectedPlot.pruningDate);
+    final lastDate = DateUtils.dateOnly(DateTime.now()).add(
+      const Duration(days: 365),
+    );
+    final initialDate = _clampDate(
+      DateUtils.dateOnly(_scheduleDate),
+      firstDate,
+      lastDate,
+    );
     final value = await showDatePicker(
       context: context,
-      initialDate: _scheduleDate,
-      firstDate: DateUtils.dateOnly(DateTime.now()),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (value == null) return;
-    setState(() {
-      _scheduleDate = DateTime(
-        value.year,
-        value.month,
-        value.day,
-        _scheduleDate.hour,
-        _scheduleDate.minute,
+    _changeScheduleDate(value);
+    if (!mounted) return;
+    final selectedDate = DateUtils.dateOnly(value);
+    final matchedActivity = _activityForDate(
+      ref.read(activityNotifierProvider).activities,
+      selectedDate,
+    );
+    if (matchedActivity != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Schedule date is within ${matchedActivity.type.displayName}. It will be linked to that activity.',
+          ),
+        ),
       );
-      if (_dueDate.isBefore(_scheduleDate)) {
-        _dueDate = _scheduleDate;
-      }
-    });
+    } else if (selectedDate.isBefore(DateUtils.dateOnly(DateTime.now()))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Past schedule selected. Choose the matching activity stage if needed.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _selectDueDate() async {
@@ -736,6 +754,61 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
     return DateUtils.dateOnly(_scheduleDate)
         .difference(DateUtils.dateOnly(pruningDate))
         .inDays;
+  }
+
+  DateTime _firstAllowedScheduleDate(DateTime? pruningDate) {
+    final baseDate = pruningDate ?? DateTime.now();
+    return DateUtils.dateOnly(baseDate).subtract(const Duration(days: 15));
+  }
+
+  DateTime _clampDate(DateTime value, DateTime firstDate, DateTime lastDate) {
+    if (value.isBefore(firstDate)) return firstDate;
+    if (value.isAfter(lastDate)) return lastDate;
+    return value;
+  }
+
+  ActivityEntity? _activityForDate(
+    List<ActivityEntity> activities,
+    DateTime date,
+  ) {
+    final selectedDate = DateUtils.dateOnly(date);
+    for (final activity in activities) {
+      final start = activity.startedAt;
+      if (start == null) continue;
+
+      final end = activity.completedAt ?? DateTime.now();
+      if (!selectedDate.isBefore(DateUtils.dateOnly(start)) &&
+          !selectedDate.isAfter(DateUtils.dateOnly(end))) {
+        return activity;
+      }
+    }
+    return null;
+  }
+
+  String? _scheduleDateContextMessage({
+    required List<ActivityEntity> activities,
+    required DateTime? pruningDate,
+  }) {
+    final formatter = DateFormat('d MMM');
+    final firstDate = _firstAllowedScheduleDate(pruningDate);
+    final matchedActivity = _activityForDate(activities, _scheduleDate);
+    if (matchedActivity != null) {
+      final start = matchedActivity.startedAt;
+      final end = matchedActivity.completedAt ?? DateTime.now();
+      final range = start == null
+          ? null
+          : '${formatter.format(start)} - ${formatter.format(end)}';
+      return range == null
+          ? 'This schedule will be linked to ${matchedActivity.type.displayName}.'
+          : 'This date falls inside ${matchedActivity.type.displayName} ($range), so the schedule will be linked to that activity.';
+    }
+
+    if (DateUtils.dateOnly(_scheduleDate)
+        .isBefore(DateUtils.dateOnly(DateTime.now()))) {
+      return 'You can backfill missing schedules from ${formatter.format(firstDate)}. Select the activity stage that matches this past schedule.';
+    }
+
+    return 'You can select dates from ${formatter.format(firstDate)} to add missed schedules around the pruning/activity window.';
   }
 
   Future<void> _submit() async {
@@ -809,6 +882,14 @@ class _AddScheduleFormState extends ConsumerState<AddScheduleForm> {
           );
     }
     if (!mounted) return;
+    ref.read(plotNotifierProvider.notifier).selectPlot(_selectedPlotId);
+    ref.read(scheduleNotifierProvider.notifier).setFilter(ScheduleType.all);
+    await ref.read(scheduleNotifierProvider.notifier).loadSchedules(
+          plotId: _selectedPlotId,
+          plotName: _selectedPlotName,
+          filterType: ScheduleType.all,
+        );
+    if (!mounted) return;
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -841,7 +922,7 @@ class _ScheduleStatusToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = DashboardStyle.of(context);
+    final cs = Theme.of(context).colorScheme;
     final pendingSegment = _StatusSegment(
       label: 'Need to Apply',
       icon: Icons.pending_actions_rounded,
@@ -863,11 +944,11 @@ class _ScheduleStatusToggle extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(AppSpacing.xs),
           decoration: BoxDecoration(
-            color: colors.background,
+            color: cs.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(
               compact ? AppSpacing.radiusLg : AppSpacing.radiusFull,
             ),
-            border: Border.all(color: colors.outline),
+            border: Border.all(color: cs.outlineVariant),
           ),
           child: compact
               ? Column(
@@ -907,9 +988,9 @@ class _StatusSegment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = DashboardStyle.of(context);
+    final cs = Theme.of(context).colorScheme;
     final foregroundColor =
-        selected ? Theme.of(context).colorScheme.onPrimary : colors.onSurface;
+        selected ? Theme.of(context).colorScheme.onPrimary : cs.onSurface;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -965,17 +1046,6 @@ class _StatusSegment extends StatelessWidget {
   }
 }
 
-class _EmptyProductsPrompt extends StatelessWidget {
-  const _EmptyProductsPrompt();
-
-  @override
-  Widget build(BuildContext context) => const DashboardListItem(
-        title: 'No products added yet',
-        subtitle: 'Use Add Product to search catalog and set dose details.',
-        icon: Icons.add_rounded,
-      );
-}
-
 class _AppBar extends StatelessWidget {
   const _AppBar({
     required this.onClose,
@@ -987,7 +1057,7 @@ class _AppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = DashboardStyle.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.xs,
@@ -1006,7 +1076,8 @@ class _AppBar extends StatelessWidget {
             child: Text(
               'Add Schedule',
               style: AppTypography.titleLarge(context).copyWith(
-                color: colors.onBackground,
+                color: cs.onSurface,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -1016,6 +1087,144 @@ class _AppBar extends StatelessWidget {
             icon: const Icon(Icons.check_rounded),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Add Product Pill ────────────────────────────────────────────────────────
+
+class _AddProductPill extends StatelessWidget {
+  const _AddProductPill({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: 'Add Product',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        child: Container(
+          height: 34,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            border: Border.all(
+              color: cs.primary.withValues(alpha: 0.24),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.add_rounded,
+                  size: 12,
+                  color: cs.primary,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                'Add',
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Product Empty State ─────────────────────────────────────────────────────
+
+class _ProductEmptyState extends StatelessWidget {
+  const _ProductEmptyState({required this.onAdd});
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onAdd,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.md,
+          horizontal: AppSpacing.smMd,
+        ),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
+              child: Icon(
+                Icons.add_shopping_cart_rounded,
+                size: 20,
+                color: cs.primary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.smMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'No products added yet',
+                    style: AppTypography.titleMedium(context).copyWith(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tap to search and add pesticide, fungicide or fertilizer',
+                    style: AppTypography.bodyMedium(context).copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: cs.onSurfaceVariant,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }

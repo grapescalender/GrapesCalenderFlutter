@@ -11,7 +11,7 @@ import '../../../home/presentation/providers/plot_state.dart';
 import '../providers/schedule_notifier.dart';
 import '../providers/schedule_providers.dart';
 import '../providers/schedule_state.dart';
-import 'add_schedule_form.dart';
+import 'add_schedule_popup.dart';
 import 'schedule_detail_popup.dart';
 import 'schedule_filter_chip.dart';
 import 'schedule_header.dart';
@@ -147,7 +147,8 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (scheduleState.schedules.isNotEmpty) ...[
+              if (scheduleState.schedules.isNotEmpty ||
+                  scheduleState.selectedFilter != ScheduleType.all) ...[
                 _buildFilterChips(
                   context,
                   scheduleState.selectedFilter,
@@ -225,9 +226,12 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       onRetry: _loadSchedulesForSelectedPlot,
       inlineError: true,
       emptyIcon: Icons.calendar_today_outlined,
-      emptyTitle: 'No schedules added yet',
-      emptySubtitle:
-          'Create your first spray, nutrition, or work reminder. You can link it with the current activity while adding it.',
+      emptyTitle: scheduleState.selectedFilter == ScheduleType.all
+          ? 'No schedules added yet'
+          : 'No ${scheduleState.selectedFilter.displayName} schedules found',
+      emptySubtitle: scheduleState.selectedFilter == ScheduleType.all
+          ? 'Create your first spray, nutrition, or work reminder. You can link it with the current activity while adding it.'
+          : 'Try another filter or add a ${scheduleState.selectedFilter.displayName.toLowerCase()} schedule for this plot.',
       emptyActionLabel: 'Add Schedule',
       onEmptyAction: () => _showAddScheduleForm(
         selectedPlot.id,
@@ -324,7 +328,7 @@ class _ScheduleSectionState extends ConsumerState<ScheduleSection> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddScheduleForm(
+      builder: (context) => AddSchedulePopup(
         plotId: plotId,
         plotName: plotName,
       ),

@@ -9,7 +9,7 @@ import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../home/presentation/providers/plot_notifier.dart';
 import '../providers/schedule_providers.dart';
 import '../../domain/entities/schedule_entity.dart';
-import '../widgets/add_schedule_form.dart';
+import '../widgets/add_schedule_popup.dart';
 import '../widgets/schedule_detail_popup.dart';
 
 /// Schedule / Calendar Page — premium redesign
@@ -205,7 +205,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => AddScheduleForm(plotId: plotId, plotName: plotName),
+      builder: (_) => AddSchedulePopup(plotId: plotId, plotName: plotName),
     );
   }
 }

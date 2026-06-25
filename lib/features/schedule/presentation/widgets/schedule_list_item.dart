@@ -177,8 +177,7 @@ class ScheduleListItem extends StatelessWidget {
                           children: [
                             Text(
                               _scheduleDateLabel(),
-                              style:
-                                  AppTypography.bodyMedium(context).copyWith(
+                              style: AppTypography.bodyMedium(context).copyWith(
                                 color: AppColors.onSurfaceVariant,
                                 height: 1.15,
                               ),
@@ -188,8 +187,7 @@ class ScheduleListItem extends StatelessWidget {
                             const SizedBox(height: AppSpacing.xs),
                             Text(
                               activityLabel,
-                              style:
-                                  AppTypography.bodyMedium(context).copyWith(
+                              style: AppTypography.bodyMedium(context).copyWith(
                                 color: AppColors.onBackground,
                                 height: 1.15,
                               ),

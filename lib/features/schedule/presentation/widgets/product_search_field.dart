@@ -90,19 +90,67 @@ class ProductSearchField extends StatelessWidget {
                           horizontal: AppSpacing.xs,
                           vertical: AppSpacing.xs,
                         ),
-                        child: DashboardListItem(
-                          title: product.name,
-                          subtitle: product.description,
-                          meta:
-                              '${product.category.displayName} • ${product.company}',
-                          icon: Icons.inventory_2_outlined,
-                          selected: isAdded,
+                        child: InkWell(
                           onTap: () => onSelected(product),
-                          trailing: Icon(
-                            isAdded
-                                ? Icons.check_circle_rounded
-                                : Icons.add_circle_outline_rounded,
-                            color: isAdded ? AppColors.success : colors.primary,
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusMd),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.smMd,
+                              vertical: AppSpacing.sm,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isAdded
+                                  ? colors.primaryContainer
+                                      .withValues(alpha: 0.12)
+                                  : colors.background,
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusMd),
+                              border: Border.all(
+                                color: isAdded
+                                    ? colors.primary.withValues(alpha: 0.42)
+                                    : colors.outline,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          product.name,
+                                          style:
+                                              AppTypography.titleMedium(context)
+                                                  .copyWith(
+                                            color: isAdded
+                                                ? colors.primary
+                                                : colors.onBackground,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      _ProductChip(
+                                          label: product.category.displayName),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Icon(
+                                  isAdded
+                                      ? Icons.check_circle_rounded
+                                      : Icons.add_circle_outline_rounded,
+                                  color: isAdded
+                                      ? AppColors.success
+                                      : colors.primary,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -111,6 +159,32 @@ class ProductSearchField extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _ProductChip extends StatelessWidget {
+  const _ProductChip({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DashboardStyle.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.labelLarge(context).copyWith(
+          color: colors.primary,
+        ),
+      ),
     );
   }
 }
