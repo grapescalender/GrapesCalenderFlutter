@@ -99,8 +99,15 @@ class CompactPlotSelector extends StatelessWidget {
   void _openSelector(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
+      showDragHandle: true,
       useRootNavigator: true,
-      backgroundColor: DashboardStyle.of(context).surface,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.72,
+      ),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
@@ -129,8 +136,8 @@ class CompactPlotSelector extends StatelessWidget {
                       )
                     : null,
                 onTap: () {
-                  onPlotChanged(plot.id);
                   Navigator.of(sheetContext).pop();
+                  onPlotChanged(plot.id);
                 },
               ),
               if (plot != plots.last) const SizedBox(height: AppSpacing.sm),

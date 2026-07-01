@@ -350,6 +350,7 @@ class DashboardBottomSheetFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = DashboardStyle.of(context);
     return SafeArea(
+      top: false,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.sizeOf(context).height * maxHeightFactor,
@@ -366,7 +367,7 @@ class DashboardBottomSheetFrame extends StatelessWidget {
             padding: padding ??
                 EdgeInsets.fromLTRB(
                   AppSpacing.screenHorizontal,
-                  AppSpacing.smMd,
+                  AppSpacing.xs,
                   AppSpacing.screenHorizontal,
                   AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
                 ),
@@ -396,8 +397,6 @@ class DashboardSheetHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Center(child: DashboardDragHandle()),
-        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             if (icon != null) ...[
@@ -442,23 +441,6 @@ class DashboardSheetHeader extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class DashboardDragHandle extends StatelessWidget {
-  const DashboardDragHandle({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = DashboardStyle.of(context);
-    return Container(
-      width: AppSpacing.xl,
-      height: 4,
-      decoration: BoxDecoration(
-        color: colors.outlineStrong,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-      ),
     );
   }
 }

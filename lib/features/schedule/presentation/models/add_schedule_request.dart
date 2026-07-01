@@ -176,6 +176,8 @@ class AddScheduleRequest {
   String get legacyDescription {
     final lines = <String>[
       if (instructions.isNotEmpty) instructions,
+      'Stage: $stageId',
+      'Due date: ${dueDate.toIso8601String()}',
       if (notes.isNotEmpty) 'Notes: $notes',
       if (totalWaterQuantity != null)
         'Total water: ${_number(totalWaterQuantity!)} $totalWaterUnit',

@@ -27,6 +27,7 @@ class ScheduleListItem extends StatelessWidget {
     required this.schedule,
     this.onTap,
     this.pruningDate,
+    this.actionMenu,
   }) : super(key: key);
 
   final ScheduleEntity schedule;
@@ -34,6 +35,7 @@ class ScheduleListItem extends StatelessWidget {
 
   /// When provided, shows "Day N" instead of relative date
   final DateTime? pruningDate;
+  final Widget? actionMenu;
 
   // ── Type helpers ──────────────────────────────────────────────────────────
 
@@ -173,14 +175,29 @@ class ScheduleListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    schedule.title,
-                    style: AppTypography.titleMedium(context).copyWith(
-                      color: AppColors.onBackground,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          schedule.title,
+                          style: AppTypography.titleMedium(context).copyWith(
+                            color: AppColors.onBackground,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (actionMenu != null) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: actionMenu,
+                        ),
+                      ],
+                    ],
                   ),
                   if (_irrigationSummary != null) ...[
                     const SizedBox(height: AppSpacing.xs),
@@ -291,29 +308,35 @@ class _ScheduleTypeTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         border: Border.all(color: AppColors.outlineVariant),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 18,
-            height: 18,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 128),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
+              ),
+              child: Icon(icon, size: 12, color: color),
             ),
-            child: Icon(icon, size: 12, color: color),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            label,
-            style: AppTypography.labelLarge(context).copyWith(
-              color: AppColors.onSurface,
-              fontWeight: FontWeight.w600,
+            const SizedBox(width: AppSpacing.xs),
+            Flexible(
+              child: Text(
+                label,
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: AppColors.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+              ),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

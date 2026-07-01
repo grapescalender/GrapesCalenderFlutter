@@ -88,84 +88,78 @@ class _ScheduleDetailPopupState extends ConsumerState<ScheduleDetailPopup> {
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxHeight),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow.withValues(alpha: 0.24),
-                  blurRadius: 24,
-                  offset: const Offset(0, -8),
-                ),
-              ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24),
             ),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: AppSpacing.sm),
-                  const _DragHandle(),
-                  Padding(
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow.withValues(alpha: 0.24),
+                blurRadius: 24,
+                offset: const Offset(0, -8),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.sm,
+                    AppSpacing.xs,
+                    AppSpacing.smMd,
+                  ),
+                  child: _Header(
+                    schedule: _schedule,
+                    typeColor: typeColor,
+                    statusLabel: _statusLabel,
+                    statusColor: _statusColor(context),
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.screenHorizontal,
-                      AppSpacing.sm,
-                      AppSpacing.xs,
-                      AppSpacing.smMd,
+                      0,
+                      AppSpacing.screenHorizontal,
+                      AppSpacing.md,
                     ),
-                    child: _Header(
-                      schedule: _schedule,
-                      typeColor: typeColor,
-                      statusLabel: _statusLabel,
-                      statusColor: _statusColor(context),
-                      onClose: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.screenHorizontal,
-                        0,
-                        AppSpacing.screenHorizontal,
-                        AppSpacing.md,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const _SectionTitle(title: 'Summary'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _SectionTitle(title: 'Summary'),
+                        const SizedBox(height: AppSpacing.sm),
+                        _SummaryGrid(items: _summaryItems(context)),
+                        if (_detailItems.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          const _SectionTitle(title: 'Details'),
                           const SizedBox(height: AppSpacing.sm),
-                          _SummaryGrid(items: _summaryItems(context)),
-                          if (_detailItems.isNotEmpty) ...[
-                            const SizedBox(height: AppSpacing.md),
-                            const _SectionTitle(title: 'Details'),
-                            const SizedBox(height: AppSpacing.sm),
-                            _DetailCard(items: _detailItems),
-                          ],
-                          if (_isActivityCompleted) ...[
-                            const SizedBox(height: AppSpacing.md),
-                            const _MutedMessage(
-                              text: 'This activity is already completed.',
-                            ),
-                          ],
+                          _DetailCard(items: _detailItems),
                         ],
-                      ),
+                        if (_isActivityCompleted) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          const _MutedMessage(
+                            text: 'This activity is already completed.',
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (_canMarkCompleted || _isCompleting)
-                    _ActionBar(
-                      isCompleting: _isCompleting,
-                      onComplete: _completeSchedule,
-                    ),
-                ],
-              ),
+                ),
+                if (_canMarkCompleted || _isCompleting)
+                  _ActionBar(
+                    isCompleting: _isCompleting,
+                    onComplete: _completeSchedule,
+                  ),
+              ],
             ),
           ),
         ),
@@ -379,35 +373,6 @@ class _ScheduleDetailPopupState extends ConsumerState<ScheduleDetailPopup> {
         return AppColors.onSurface;
     }
   }
-
-  static IconData _typeIcon(ScheduleType type) {
-    switch (type) {
-      case ScheduleType.spray:
-        return Icons.water_drop_outlined;
-      case ScheduleType.nutrition:
-        return Icons.grass_outlined;
-      case ScheduleType.water:
-        return Icons.water_outlined;
-      case ScheduleType.work:
-        return Icons.construction_outlined;
-      case ScheduleType.all:
-        return Icons.list_alt_outlined;
-    }
-  }
-}
-
-class _DragHandle extends StatelessWidget {
-  const _DragHandle();
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 42,
-        height: 4,
-        decoration: BoxDecoration(
-          color: AppColors.outline,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        ),
-      );
 }
 
 class _Header extends StatelessWidget {
@@ -416,35 +381,18 @@ class _Header extends StatelessWidget {
     required this.typeColor,
     required this.statusLabel,
     required this.statusColor,
-    required this.onClose,
   });
 
   final ScheduleEntity schedule;
   final Color typeColor;
   final String statusLabel;
   final Color statusColor;
-  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: typeColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: typeColor.withValues(alpha: 0.22)),
-          ),
-          child: Icon(
-            _ScheduleDetailPopupState._typeIcon(schedule.type),
-            color: typeColor,
-            size: 22,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.smMd),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,23 +407,24 @@ class _Header extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
-              Text(
-                schedule.type.displayName,
-                style: AppTypography.labelLarge(context).copyWith(
-                  color: typeColor,
-                  fontWeight: FontWeight.w600,
-                ),
+              const SizedBox(height: AppSpacing.xs),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    schedule.type.displayName,
+                    style: AppTypography.labelLarge(context).copyWith(
+                      color: typeColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  DashboardPill(label: statusLabel, color: statusColor),
+                ],
               ),
             ],
           ),
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        DashboardPill(label: statusLabel, color: statusColor),
-        IconButton(
-          tooltip: 'Close',
-          onPressed: onClose,
-          icon: const Icon(Icons.close_rounded),
         ),
       ],
     );

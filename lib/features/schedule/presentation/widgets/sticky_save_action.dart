@@ -7,10 +7,14 @@ class StickySaveAction extends StatelessWidget {
     super.key,
     required this.isSaving,
     required this.onSave,
+    this.label = 'Save Schedule',
+    this.loadingLabel = 'Saving Schedule...',
   });
 
   final bool isSaving;
   final VoidCallback? onSave;
+  final String label;
+  final String loadingLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +31,7 @@ class StickySaveAction extends StatelessWidget {
         border: Border(top: BorderSide(color: cs.outlineVariant)),
       ),
       child: AppButton.primary(
-        label: isSaving ? 'Saving Schedule...' : 'Save Schedule',
+        label: isSaving ? loadingLabel : label,
         icon: Icons.check_rounded,
         onPressed: isSaving ? null : onSave,
         isLoading: isSaving,

@@ -102,9 +102,16 @@ class ProductDoseEditor extends StatelessWidget {
   }) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
+      showDragHandle: true,
       useRootNavigator: true,
       isScrollControlled: true,
-      backgroundColor: DashboardStyle.of(context).surface,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.48,
+      ),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
@@ -132,8 +139,8 @@ class ProductDoseEditor extends StatelessWidget {
                     ? const Icon(Icons.check_rounded, color: AppColors.primary)
                     : null,
                 onTap: () {
-                  onSelected(unit);
                   Navigator.of(context).pop();
+                  onSelected(unit);
                 },
               ),
               if (unit != units.last) const SizedBox(height: AppSpacing.sm),

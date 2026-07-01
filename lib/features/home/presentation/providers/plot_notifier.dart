@@ -159,6 +159,28 @@ class PlotNotifier extends StateNotifier<PlotState> {
     }
   }
 
+  /// Start a season for an existing plot from the dashboard.
+  void startSeason({
+    required String plotId,
+    required DateTime pruningDate,
+  }) {
+    final date = _dateOnly(pruningDate);
+    final plots = state.plots.map((plot) {
+      if (plot.id != plotId) return plot;
+      return plot.copyWith(
+        pruningDate: date,
+        isRunning: true,
+        updatedAt: DateTime.now(),
+      );
+    }).toList();
+
+    state = state.copyWith(
+      plots: plots,
+      selectedPlotId: plotId,
+      errorMessage: null,
+    );
+  }
+
   /// Complete the active April cycle and schedule the next pruning date.
   ///
   /// If the selected next pruning date is today or earlier, the next cycle

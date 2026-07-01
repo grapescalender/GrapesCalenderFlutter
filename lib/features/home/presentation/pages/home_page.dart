@@ -14,6 +14,7 @@ import '../widgets/add_plot_form.dart';
 import '../widgets/competition_section.dart';
 import '../widgets/dashboard_insights_section.dart';
 import '../widgets/plots_section.dart';
+import '../widgets/start_season_bottom_sheet.dart';
 import '../providers/plot_notifier.dart';
 import '../models/dashboard_preview_data.dart';
 import '../state/dashboard_view_state.dart';
@@ -85,6 +86,7 @@ class HomePage extends ConsumerWidget {
               context,
               horizontalPadding,
               dashboardState.selectedPlot!,
+              ref,
             ),
             SizedBox(height: bottomPadding),
           ] else ...[
@@ -106,6 +108,7 @@ class HomePage extends ConsumerWidget {
                 context,
                 dashboardState,
                 horizontalPadding,
+                ref,
               ),
               SizedBox(height: sectionSpacing),
             ],
@@ -138,6 +141,7 @@ class HomePage extends ConsumerWidget {
     BuildContext context,
     double horizontalPadding,
     PlotEntity plot,
+    WidgetRef ref,
   ) {
     final cs = Theme.of(context).colorScheme;
 
@@ -266,7 +270,7 @@ class HomePage extends ConsumerWidget {
               label: 'Start Season',
               icon: Icons.play_arrow_rounded,
               isFullWidth: true,
-              onPressed: () {},
+              onPressed: () => _openStartSeasonSheet(context, plot, ref),
             ),
           ],
         ),
@@ -375,6 +379,7 @@ class HomePage extends ConsumerWidget {
     BuildContext context,
     DashboardViewState state,
     double horizontalPadding,
+    WidgetRef ref,
   ) {
     final cs = Theme.of(context).colorScheme;
     final content = _dashboardStateContent(state);
@@ -431,7 +436,8 @@ class HomePage extends ConsumerWidget {
                   TextButton.icon(
                     onPressed: () => _handleDashboardStateAction(
                       context,
-                      state.phase,
+                      state,
+                      ref,
                     ),
                     icon: Icon(content.actionIcon, size: 16),
                     label: Text(content.actionLabel),
@@ -505,16 +511,70 @@ class HomePage extends ConsumerWidget {
 
   void _handleDashboardStateAction(
     BuildContext context,
-    DashboardViewPhase phase,
+    DashboardViewState state,
+    WidgetRef ref,
   ) {
-    if (phase != DashboardViewPhase.noPlot) return;
+    switch (state.phase) {
+      case DashboardViewPhase.noPlot:
+        _openAddPlotForm(context);
+        return;
+      case DashboardViewPhase.plotExists:
+      case DashboardViewPhase.seasonExists:
+        final plot = state.selectedPlot;
+        if (plot != null) _openStartSeasonSheet(context, plot, ref);
+        return;
+      case DashboardViewPhase.seasonCompleted:
+      case DashboardViewPhase.aprilCycleActive:
+      case DashboardViewPhase.octoberCycleActive:
+        return;
+    }
+  }
 
-    _openAddPlotForm(context);
+  void _openStartSeasonSheet(
+    BuildContext context,
+    PlotEntity plot,
+    WidgetRef ref,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.76,
+      ),
+      builder: (sheetContext) => StartSeasonBottomSheet(
+        plot: plot,
+        onStart: ({
+          required seasonYear,
+          required cycle,
+          required pruningDate,
+        }) {
+          ref.read(plotNotifierProvider.notifier).startSeason(
+                plotId: plot.id,
+                pruningDate: pruningDate,
+              );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '$cycle $seasonYear started for ${plot.name}',
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _openAddPlotForm(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddPlotForm(),

@@ -4,7 +4,6 @@ import '../../config/router/app_router.dart';
 
 /// Main shell widget that provides bottom navigation
 class MainShell extends StatelessWidget {
-
   const MainShell({
     Key? key,
     required this.child,
@@ -21,40 +20,57 @@ class MainShell extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNavigation(BuildContext context, String currentLocation) => BottomNavigationBar(
-      currentIndex: _getSelectedIndex(currentLocation),
-      onTap: (index) => _onItemTapped(context, index),
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
+  Widget _buildBottomNavigation(BuildContext context, String currentLocation) {
+    final cs = Theme.of(context).colorScheme;
+    return NavigationBar(
+      selectedIndex: _getSelectedIndex(currentLocation),
+      onDestinationSelected: (index) => _onItemTapped(context, index),
+      backgroundColor: cs.surface,
+      indicatorColor: cs.primaryContainer,
+      surfaceTintColor: Colors.transparent,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.dashboard_outlined),
+          selectedIcon: Icon(Icons.dashboard_rounded),
+          label: 'Dashboard',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today),
-          label: 'Schedule',
+        NavigationDestination(
+          icon: Icon(Icons.agriculture_outlined),
+          selectedIcon: Icon(Icons.agriculture_rounded),
+          label: 'Plots',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.assessment),
-          label: 'Activity',
+        NavigationDestination(
+          icon: Icon(Icons.trending_up_outlined),
+          selectedIcon: Icon(Icons.trending_up_rounded),
+          label: 'Market',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
+        NavigationDestination(
+          icon: Icon(Icons.inventory_2_outlined),
+          selectedIcon: Icon(Icons.inventory_2_rounded),
+          label: 'Products',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.person_outline_rounded),
+          selectedIcon: Icon(Icons.person_rounded),
           label: 'Profile',
         ),
       ],
     );
+  }
 
   int _getSelectedIndex(String currentLocation) {
     switch (currentLocation) {
       case AppRoutes.home:
         return 0;
-      case AppRoutes.schedule:
+      case AppRoutes.plots:
         return 1;
-      case AppRoutes.activity:
+      case AppRoutes.market:
         return 2;
-      case AppRoutes.profile:
+      case AppRoutes.products:
         return 3;
+      case AppRoutes.profile:
+        return 4;
       default:
         return 0;
     }
@@ -66,12 +82,15 @@ class MainShell extends StatelessWidget {
         context.go(AppRoutes.home);
         break;
       case 1:
-        context.go(AppRoutes.schedule);
+        context.go(AppRoutes.plots);
         break;
       case 2:
-        context.go(AppRoutes.activity);
+        context.go(AppRoutes.market);
         break;
       case 3:
+        context.go(AppRoutes.products);
+        break;
+      case 4:
         context.go(AppRoutes.profile);
         break;
     }

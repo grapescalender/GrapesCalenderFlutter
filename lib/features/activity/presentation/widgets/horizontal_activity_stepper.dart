@@ -1,27 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../domain/entities/activity_entity.dart';
-import 'activity_card.dart';
-import 'step_indicator.dart';
 
-/// Redesigned Horizontal Activity Stepper
-///
-/// Layout:
-///   ┌──────────────────────────────────────────────┐
-///   │  [●]──[●]──[◉]──[○]──[○]   View All →        │
-///   │  Cut  Floor Form Harv Dip                     │
-///   └──────────────────────────────────────────────┘
-///   └── Selected ActivityCard ──────────────────────┘
+/// Material 3-style activity carousel for the dashboard.
 class HorizontalActivityStepper extends StatefulWidget {
   const HorizontalActivityStepper({
-    Key? key,
     required this.activities,
     required this.onStepTapped,
     required this.onViewAllActivities,
     this.selectedActivity,
-  }) : super(key: key);
+    super.key,
+  });
 
   final List<ActivityEntity> activities;
   final ValueChanged<ActivityEntity> onStepTapped;
@@ -34,13 +24,20 @@ class HorizontalActivityStepper extends StatefulWidget {
 }
 
 class _HorizontalActivityStepperState extends State<HorizontalActivityStepper> {
+  static const _carouselWeights = <int>[5, 3, 1];
+
   late ActivityEntity _selected;
+  late CarouselController _carouselController;
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _selected = widget.selectedActivity ??
         (widget.activities.isNotEmpty ? widget.activities.first : null)!;
+    _currentIndex = _indexFor(_selected);
+    _carouselController = CarouselController(initialItem: _currentIndex)
+      ..addListener(_handleCarouselScroll);
   }
 
   @override
@@ -49,218 +46,417 @@ class _HorizontalActivityStepperState extends State<HorizontalActivityStepper> {
     if (widget.selectedActivity != null &&
         widget.selectedActivity != old.selectedActivity) {
       _selected = widget.selectedActivity!;
+      final nextIndex = _indexFor(_selected);
+      _currentIndex = nextIndex;
+      if (_carouselController.hasClients) {
+        _carouselController.animateToItem(
+          nextIndex,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+        );
+      }
     }
   }
 
-  ActivityStepState _stepState(ActivityEntity a) {
-    if (a.isCompleted) return ActivityStepState.completed;
-    if (a.isActive) return ActivityStepState.current;
-    return ActivityStepState.upcoming;
+  @override
+  void dispose() {
+    _carouselController
+      ..removeListener(_handleCarouselScroll)
+      ..dispose();
+    super.dispose();
   }
 
-  int _dayCount() {
-    if (_selected.startedAt == null) return 0;
-    final end = _selected.completedAt ?? DateTime.now();
-    return end.difference(_selected.startedAt!).inDays + 1;
+  int _indexFor(ActivityEntity activity) {
+    final index =
+        widget.activities.indexWhere((item) => item.id == activity.id);
+    return index < 0 ? 0 : index;
+  }
+
+  int _dayCount(ActivityEntity activity) {
+    if (activity.startedAt == null) {
+      return 0;
+    }
+    final end = activity.completedAt ?? DateTime.now();
+    return end.difference(activity.startedAt!).inDays + 1;
+  }
+
+  void _handleCarouselScroll() {
+    if (!_carouselController.hasClients ||
+        !_carouselController.position.hasViewportDimension) {
+      return;
+    }
+
+    final viewportWidth = _carouselController.position.viewportDimension;
+    if (viewportWidth <= 0) {
+      return;
+    }
+
+    final totalWeight =
+        _carouselWeights.reduce((value, weight) => value + weight);
+    final itemStride = viewportWidth * _carouselWeights.first / totalWeight;
+    final nextIndex = (_carouselController.offset / itemStride)
+        .round()
+        .clamp(0, widget.activities.length - 1);
+
+    if (nextIndex != _currentIndex && mounted) {
+      setState(() {
+        _currentIndex = nextIndex;
+        _selected = widget.activities[nextIndex];
+      });
+    }
+  }
+
+  void _openItem(int index) {
+    _carouselController.animateToItem(
+      index,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.activities.isEmpty) return const SizedBox.shrink();
+    if (widget.activities.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final cs = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Stepper rail ────────────────────────────────────────────────
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-            border: Border.all(color: AppColors.outline),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+        Semantics(
+          label: 'Activities carousel',
+          hint:
+              'Scroll horizontally to browse activities. Each activity becomes the large card in turn.',
+          child: SizedBox(
+            height: 124,
+            child: CarouselView.weightedBuilder(
+              controller: _carouselController,
+              flexWeights: _carouselWeights,
+              itemCount: widget.activities.length,
+              itemSnapping: true,
+              shrinkExtent: 40,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
               ),
-            ],
+              itemBuilder: (context, index) {
+                final activity = widget.activities[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: 2,
+                  ),
+                  child: _ActivityCarouselCard(
+                    activity: activity,
+                    stepNumber: index + 1,
+                    totalSteps: widget.activities.length,
+                    selected: index == _currentIndex,
+                    dayCount: _dayCount(activity),
+                    onTap: () {
+                      if (index == _currentIndex) {
+                        widget.onStepTapped(activity);
+                      } else {
+                        _openItem(index);
+                      }
+                    },
+                  ),
+                );
+              },
+            ),
           ),
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: AppSpacing.md),
-          child: Column(
-            children: [
-              // Progress track row
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: _buildTrack(context),
-              ),
-
-              const SizedBox(height: AppSpacing.smMd),
-              const Divider(height: 1, color: AppColors.outline),
-              const SizedBox(height: AppSpacing.smMd),
-
-              // "View all" row
-              GestureDetector(
-                onTap: widget.onViewAllActivities,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'View All Activities',
-                      style: AppTypography.labelLarge(context).copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+        ),
+        if (widget.activities.length > 1) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Semantics(
+            label:
+                'Showing activity ${_currentIndex + 1} of ${widget.activities.length}',
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (var index = 0; index < widget.activities.length; index++)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      width: index == _currentIndex ? 22 : 7,
+                      height: 7,
+                      margin: const EdgeInsets.only(right: 5),
+                      decoration: BoxDecoration(
+                        color: index == _currentIndex
+                            ? cs.primary
+                            : cs.outlineVariant,
+                        borderRadius: BorderRadius.circular(99),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.arrow_forward_rounded,
-                        size: 14, color: AppColors.primary),
-                  ],
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-
-        const SizedBox(height: AppSpacing.smMd),
-
-        // ── Selected activity card ───────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenHorizontal),
-          child: ActivityCard(
-            activity: _selected,
-            isSelected: true,
-            isClickable: false,
-            dayCount: _dayCount(),
-            startDay: 1,
-          ),
-        ),
+        ],
       ],
     );
   }
-
-  /// Builds the horizontal step indicators with connector lines + labels
-  Widget _buildTrack(BuildContext context) {
-    final total = widget.activities.length;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(total * 2 - 1, (i) {
-        // Odd indices = connector lines
-        if (i.isOdd) {
-          final stepIdx = i ~/ 2;
-          final a = widget.activities[stepIdx];
-          final filled = _stepState(a) == ActivityStepState.completed;
-          return _Connector(filled: filled);
-        }
-
-        // Even indices = step + label
-        final stepIdx = i ~/ 2;
-        final activity = widget.activities[stepIdx];
-        final state = _stepState(activity);
-        final isClickable = state != ActivityStepState.upcoming;
-        final isSelectedStep = _selected.id == activity.id;
-
-        return _StepWithLabel(
-          activity: activity,
-          state: state,
-          stepNumber: stepIdx + 1,
-          isClickable: isClickable,
-          isSelected: isSelectedStep,
-          onTap: isClickable
-              ? () {
-                  setState(() => _selected = activity);
-                  widget.onStepTapped(activity);
-                }
-              : null,
-        );
-      }),
-    );
-  }
 }
 
-// ── Connector line ────────────────────────────────────────────────────────
-class _Connector extends StatelessWidget {
-  const _Connector({required this.filled});
-  final bool filled;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 28,
-        height: 2,
-        margin: const EdgeInsets.only(top: 18, left: 2, right: 2),
-        decoration: BoxDecoration(
-          color: filled ? AppColors.success : AppColors.outline,
-          borderRadius: BorderRadius.circular(2),
-        ),
-      );
-}
-
-// ── Step + label column ───────────────────────────────────────────────────
-class _StepWithLabel extends StatelessWidget {
-  const _StepWithLabel({
+class _ActivityCarouselCard extends StatelessWidget {
+  const _ActivityCarouselCard({
     required this.activity,
-    required this.state,
     required this.stepNumber,
-    required this.isClickable,
-    required this.isSelected,
-    this.onTap,
+    required this.totalSteps,
+    required this.selected,
+    required this.dayCount,
+    required this.onTap,
   });
 
   final ActivityEntity activity;
-  final ActivityStepState state;
   final int stepNumber;
-  final bool isClickable;
-  final bool isSelected;
-  final VoidCallback? onTap;
+  final int totalSteps;
+  final bool selected;
+  final int dayCount;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 58,
-        child: Column(
-          children: [
-            // Glow ring for selected active step
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: isSelected && state == ActivityStepState.current
-                  ? const EdgeInsets.all(3)
-                  : EdgeInsets.zero,
-              decoration: isSelected && state == ActivityStepState.current
-                  ? BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        width: 2,
+    final cs = Theme.of(context).colorScheme;
+    final colors = _ActivityCarouselColors.forActivity(context, activity);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label:
+          '${activity.type.displayName}, ${_statusLabel.toLowerCase()}, item $stepNumber of $totalSteps',
+      hint: 'Opens activity details',
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: selected ? 2 : 0,
+        clipBehavior: Clip.antiAlias,
+        color: selected ? colors.container : cs.surfaceContainerHigh,
+        surfaceTintColor: cs.surfaceTint,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          side: BorderSide(
+            color: selected
+                ? colors.accent.withValues(alpha: 0.46)
+                : cs.outlineVariant,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 120;
+              final icon = Container(
+                width: compact ? 32 : 34,
+                height: compact ? 32 : 34,
+                decoration: BoxDecoration(
+                  color: colors.accent.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+                child: Icon(
+                  activity.type.icon,
+                  color: colors.accent,
+                  size: compact ? 18 : 20,
+                ),
+              );
+
+              if (compact) {
+                return Center(child: icon);
+              }
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.smMd,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        icon,
+                        if (selected) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: _StatusPill(activity: activity),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                activity.type.displayName,
+                                style:
+                                    AppTypography.titleMedium(context).copyWith(
+                                  color: cs.onSurface,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              _subtitle,
+                              style: AppTypography.bodyMedium(context).copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                  : null,
-              child: StepIndicator(
-                state: state,
-                stepNumber: stepNumber,
-                icon: activity.type.icon,
-                isClickable: isClickable,
-                size: 36,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(99),
+                            child: LinearProgressIndicator(
+                              value: stepNumber / totalSteps,
+                              minHeight: 6,
+                              backgroundColor: cs.surfaceContainerHighest,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                colors.accent,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          '$stepNumber/$totalSteps',
+                          style: AppTypography.labelLarge(context).copyWith(
+                            color: cs.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  String get _subtitle {
+    if (activity.isActive) {
+      return dayCount > 0 ? 'In progress for $dayCount days' : 'In progress';
+    }
+    if (activity.isCompleted) {
+      return dayCount > 0
+          ? 'Completed activity • $dayCount days'
+          : 'Completed activity';
+    }
+    return 'Upcoming activity stage';
+  }
+
+  String get _statusLabel {
+    if (activity.isActive) return 'Current';
+    if (activity.isCompleted) return 'Done';
+    return 'Upcoming';
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.activity});
+
+  final ActivityEntity activity;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _ActivityCarouselColors.forActivity(context, activity);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: colors.accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 74),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_icon, color: colors.accent, size: 14),
+            const SizedBox(width: 3),
+            Flexible(
+              child: Text(
+                _label,
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: colors.accent,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              activity.type.displayName,
-              style: AppTypography.labelLarge(context).copyWith(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? AppColors.primary : AppColors.onSurface,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  IconData get _icon {
+    if (activity.isActive) return Icons.radio_button_checked_rounded;
+    if (activity.isCompleted) return Icons.check_circle_rounded;
+    return Icons.schedule_rounded;
+  }
+
+  String get _label {
+    if (activity.isActive) return 'Current';
+    if (activity.isCompleted) return 'Done';
+    return 'Upcoming';
+  }
+}
+
+class _ActivityCarouselColors {
+  const _ActivityCarouselColors({
+    required this.accent,
+    required this.container,
+  });
+
+  final Color accent;
+  final Color container;
+
+  static _ActivityCarouselColors forActivity(
+    BuildContext context,
+    ActivityEntity activity,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    if (activity.isActive) {
+      return _ActivityCarouselColors(
+        accent: cs.primary,
+        container: cs.primaryContainer.withValues(alpha: 0.46),
+      );
+    }
+    if (activity.isCompleted) {
+      return _ActivityCarouselColors(
+        accent: Colors.green.shade700,
+        container: Colors.green.shade50,
+      );
+    }
+    return _ActivityCarouselColors(
+      accent: cs.onSurfaceVariant,
+      container: cs.surfaceContainerHighest,
     );
   }
 }

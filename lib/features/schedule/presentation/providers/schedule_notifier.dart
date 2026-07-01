@@ -4,6 +4,8 @@ import '../../domain/entities/schedule_entity.dart';
 import '../../domain/usecases/get_schedules_usecase.dart';
 import '../../domain/usecases/create_schedule_usecase.dart';
 import '../../domain/usecases/complete_schedule_usecase.dart';
+import '../../domain/usecases/delete_schedule_usecase.dart';
+import '../../domain/usecases/update_schedule_usecase.dart';
 import 'schedule_state.dart';
 
 /// Schedule notifier that manages schedule state
@@ -12,10 +14,14 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
     required this.getGetSchedulesUseCase,
     required this.getCreateScheduleUseCase,
     required this.getCompleteScheduleUseCase,
+    required this.getUpdateScheduleUseCase,
+    required this.getDeleteScheduleUseCase,
   }) : super(ScheduleState.initial());
   final Future<GetSchedulesUseCase> Function() getGetSchedulesUseCase;
   final Future<CreateScheduleUseCase> Function() getCreateScheduleUseCase;
   final Future<CompleteScheduleUseCase> Function() getCompleteScheduleUseCase;
+  final Future<UpdateScheduleUseCase> Function() getUpdateScheduleUseCase;
+  final Future<DeleteScheduleUseCase> Function() getDeleteScheduleUseCase;
 
   /// Load schedules for selected plot
   Future<void> loadSchedules({
@@ -87,7 +93,10 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
     List<String> activityIds = const [],
     bool isCompleted = false,
   }) async {
-    state = state.copyWith(isCreating: true, errorMessage: null);
+    state = state.copyWith(
+      isCreating: true,
+      errorMessage: null,
+    );
 
     try {
       final createScheduleUseCase = await getCreateScheduleUseCase();
@@ -178,6 +187,118 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
       );
     } catch (e) {
       return 'Failed to complete schedule: ${e.toString()}';
+    }
+  }
+
+  Future<bool> updateSchedule({
+    required ScheduleEntity originalSchedule,
+    required String plotId,
+    required String plotName,
+    required ScheduleType type,
+    required String title,
+    required DateTime scheduledDate,
+    String? description,
+    List<String> activityIds = const [],
+    bool isCompleted = false,
+  }) async {
+    if (state.isCreating) return false;
+
+    state = state.copyWith(
+      isCreating: true,
+      errorMessage: null,
+    );
+
+    try {
+      final updateScheduleUseCase = await getUpdateScheduleUseCase();
+      final result = await updateScheduleUseCase(
+        UpdateScheduleParams(
+          schedule: ScheduleEntity(
+            id: originalSchedule.id,
+            plotId: plotId,
+            plotName: plotName,
+            type: type,
+            title: title,
+            scheduledDate: scheduledDate,
+            description: description,
+            isCompleted: isCompleted,
+            activityIds: activityIds,
+            createdAt: originalSchedule.createdAt,
+            updatedAt: DateTime.now(),
+          ),
+        ),
+      );
+
+      return result.fold(
+        (failure) {
+          state = state.copyWith(
+            isCreating: false,
+            errorMessage: _mapFailureToMessage(failure),
+          );
+          return false;
+        },
+        (schedule) {
+          final shouldShowInCurrentFilter =
+              state.selectedFilter == ScheduleType.all ||
+                  state.selectedFilter == schedule.type;
+          final nextSchedules = shouldShowInCurrentFilter
+              ? _sortLatestFirst([
+                  schedule,
+                  ...state.schedules.where((item) => item.id != schedule.id),
+                ])
+              : state.schedules
+                  .where((item) => item.id != schedule.id)
+                  .toList();
+
+          state = state.copyWith(
+            schedules: nextSchedules,
+            selectedPlotId: plotId,
+            selectedPlotName: plotName,
+            isCreating: false,
+            errorMessage: null,
+          );
+          return true;
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isCreating: false,
+        errorMessage: 'Failed to update schedule: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> deleteSchedule(ScheduleEntity schedule) async {
+    state = state.copyWith(errorMessage: null);
+
+    try {
+      final deleteScheduleUseCase = await getDeleteScheduleUseCase();
+      final result = await deleteScheduleUseCase(
+        DeleteScheduleParams(scheduleId: schedule.id),
+      );
+
+      return result.fold(
+        (failure) {
+          state = state.copyWith(
+            errorMessage: _mapFailureToMessage(failure),
+          );
+          return false;
+        },
+        (_) {
+          state = state.copyWith(
+            schedules: state.schedules
+                .where((item) => item.id != schedule.id)
+                .toList(),
+            errorMessage: null,
+          );
+          return true;
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Failed to delete schedule: ${e.toString()}',
+      );
+      return false;
     }
   }
 

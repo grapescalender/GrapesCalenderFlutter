@@ -6,6 +6,8 @@ import '../../domain/repositories/schedule_repository.dart';
 import '../../domain/usecases/get_schedules_usecase.dart';
 import '../../domain/usecases/create_schedule_usecase.dart';
 import '../../domain/usecases/complete_schedule_usecase.dart';
+import '../../domain/usecases/delete_schedule_usecase.dart';
+import '../../domain/usecases/update_schedule_usecase.dart';
 import 'schedule_notifier.dart';
 import 'schedule_state.dart';
 
@@ -45,6 +47,18 @@ final completeScheduleUseCaseProvider =
   return CompleteScheduleUseCase(repository);
 });
 
+final updateScheduleUseCaseProvider =
+    FutureProvider<UpdateScheduleUseCase>((ref) async {
+  final repository = await ref.watch(scheduleRepositoryProvider.future);
+  return UpdateScheduleUseCase(repository);
+});
+
+final deleteScheduleUseCaseProvider =
+    FutureProvider<DeleteScheduleUseCase>((ref) async {
+  final repository = await ref.watch(scheduleRepositoryProvider.future);
+  return DeleteScheduleUseCase(repository);
+});
+
 /// Schedule notifier provider
 /// Note: Uses async providers - notifier fetches use cases when needed
 final scheduleNotifierProvider =
@@ -56,4 +70,8 @@ final scheduleNotifierProvider =
                   ref.watch(createScheduleUseCaseProvider.future),
               getCompleteScheduleUseCase: () =>
                   ref.watch(completeScheduleUseCaseProvider.future),
+              getUpdateScheduleUseCase: () =>
+                  ref.watch(updateScheduleUseCaseProvider.future),
+              getDeleteScheduleUseCase: () =>
+                  ref.watch(deleteScheduleUseCaseProvider.future),
             ));

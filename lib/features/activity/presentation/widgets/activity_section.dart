@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/router/app_router.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
+import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/utils/date_utils.dart' as activity_date_utils;
 import '../../../../shared/widgets/app_ui.dart';
 import '../../../../shared/widgets/dashboard_design.dart';
@@ -77,13 +78,32 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionHeader(plotName: selectedPlot.name),
-        const SizedBox(height: AppSpacing.smMd),
-        _buildStepper(context, activityState, selectedPlot),
-      ],
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      child: DashboardSectionCard(
+        title: 'Activities',
+        icon: Icons.timeline_rounded,
+        action: TextButton(
+          onPressed: () => context.push(AppRoutes.viewAllActivities),
+          child: const Text('View All'),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              selectedPlot.name,
+              style: AppTypography.bodyMedium(context).copyWith(
+                color: DashboardStyle.of(context).onSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AppSpacing.smMd),
+            _buildStepper(context, activityState, selectedPlot),
+          ],
+        ),
+      ),
     );
   }
 
@@ -110,21 +130,17 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
       emptySubtitle:
           'Add a schedule and connect it to the activity happening in this plot.',
       compactEmpty: true,
-      loading: AppLoadingState.blocks(heights: const [80, 100]),
-      builder: (context) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-        child: HorizontalActivityStepper(
-          activities: state.activities,
-          selectedActivity: state.activities.firstWhere(
-            (a) => a.isActive,
-            orElse: () => state.activities.first,
-          ),
-          onStepTapped: (a) => _showDetail(context, a, plot.id),
-          onViewAllActivities: () {
-            if (context.mounted) context.push(AppRoutes.viewAllActivities);
-          },
+      loading: AppLoadingState.blocks(heights: const [80]),
+      builder: (context) => HorizontalActivityStepper(
+        activities: state.activities,
+        selectedActivity: state.activities.firstWhere(
+          (a) => a.isActive,
+          orElse: () => state.activities.first,
         ),
+        onStepTapped: (a) => _showDetail(context, a, plot.id),
+        onViewAllActivities: () {
+          if (context.mounted) context.push(AppRoutes.viewAllActivities);
+        },
       ),
     );
   }
@@ -141,6 +157,8 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
 
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ActivityDetailBottomSheet(
@@ -186,20 +204,5 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
         'activityName': activity.type.displayName,
       });
     }
-  }
-}
-
-// ── Section header ────────────────────────────────────────────────────────
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.plotName});
-  final String plotName;
-
-  @override
-  Widget build(BuildContext context) {
-    return DashboardSectionHeader(
-      icon: Icons.timeline_rounded,
-      title: 'Activities',
-      subtitle: plotName,
-    );
   }
 }

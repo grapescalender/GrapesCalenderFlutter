@@ -169,6 +169,8 @@ class _ViewAllActivitiesPageState extends ConsumerState<ViewAllActivitiesPage> {
 
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => ActivityDetailBottomSheet(

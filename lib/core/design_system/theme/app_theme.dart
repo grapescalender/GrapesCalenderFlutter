@@ -23,6 +23,21 @@ class AppTheme {
       colorScheme: colorScheme,
       fontFamily: AppTypography.fontFamily,
       scaffoldBackgroundColor: AppColors.background,
+      bottomSheetTheme: BottomSheetThemeData(
+        showDragHandle: true,
+        dragHandleColor: colorScheme.onSurfaceVariant,
+        dragHandleSize: const Size(32, 4),
+        backgroundColor: colorScheme.surface,
+        modalBackgroundColor: colorScheme.surface,
+        modalElevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusHuge),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        constraints: const BoxConstraints(maxWidth: 640),
+      ),
       extensions: <ThemeExtension<dynamic>>[
         AppSemanticColors.light,
         AppStatusColors.light,
@@ -199,6 +214,21 @@ class AppTheme {
       colorScheme: colorScheme,
       fontFamily: AppTypography.fontFamily,
       scaffoldBackgroundColor: AppColors.darkBackground,
+      bottomSheetTheme: BottomSheetThemeData(
+        showDragHandle: true,
+        dragHandleColor: colorScheme.onSurfaceVariant,
+        dragHandleSize: const Size(32, 4),
+        backgroundColor: colorScheme.surface,
+        modalBackgroundColor: colorScheme.surface,
+        modalElevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusHuge),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        constraints: const BoxConstraints(maxWidth: 640),
+      ),
       extensions: <ThemeExtension<dynamic>>[
         AppSemanticColors.dark,
         AppStatusColors.dark,

@@ -79,17 +79,6 @@ class ActivityDetailBottomSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Handle ───────────────────────────────────────────────────
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 4),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.outline,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              ),
-            ),
-
             // ── Hero header ──────────────────────────────────────────────
             _Header(
               activity: activity,
@@ -275,13 +264,6 @@ class _Header extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          // Close
-          IconButton(
-            icon: const Icon(Icons.close_rounded),
-            onPressed: () => Navigator.of(context).pop(),
-            iconSize: 20,
-            color: AppColors.onSurface,
           ),
         ],
       ),

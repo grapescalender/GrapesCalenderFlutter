@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
 import '../../domain/entities/plot_entity.dart';
 import '../providers/plot_notifier.dart';
@@ -301,25 +302,25 @@ class PlotsSection extends ConsumerWidget {
       BuildContext context, PlotState state, PlotNotifier notifier) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+      showDragHandle: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
         ),
       ),
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.72,
+      ),
       builder: (ctx) => SafeArea(
+        top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: AppSpacing.smMd),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.outline,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              ),
-            ),
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenHorizontal),
@@ -351,130 +352,143 @@ class PlotsSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
-                  AppSpacing.sm, AppSpacing.screenHorizontal, AppSpacing.md),
-              itemCount: state.plots.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, i) {
-                final p = state.plots[i];
-                final isSel = state.selectedPlotId == p.id;
-                return GestureDetector(
-                  onTap: () {
-                    notifier.selectPlot(p.id);
-                    Navigator.of(context).pop();
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.smMd, vertical: AppSpacing.smMd),
-                    decoration: BoxDecoration(
-                      color: isSel
-                          ? AppColors.primaryContainer
-                          : AppColors.background,
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
+                    AppSpacing.sm, AppSpacing.screenHorizontal, AppSpacing.md),
+                itemCount: state.plots.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.sm),
+                itemBuilder: (context, i) {
+                  final p = state.plots[i];
+                  final isSel = state.selectedPlotId == p.id;
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        notifier.selectPlot(p.id);
+                      },
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      border: Border.all(
-                        color: isSel
-                            ? AppColors.primary.withValues(alpha: 0.40)
-                            : AppColors.outline,
-                        width: isSel ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Farm icon
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.smMd,
+                            vertical: AppSpacing.smMd),
+                        decoration: BoxDecoration(
+                          color: isSel
+                              ? AppColors.primaryContainer
+                              : AppColors.background,
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusMd),
+                          border: Border.all(
                             color: isSel
-                                ? AppColors.primary.withValues(alpha: 0.12)
-                                : AppColors.surface,
-                            borderRadius:
-                                BorderRadius.circular(AppSpacing.radiusSm),
-                            border: Border.all(
-                                color: isSel
-                                    ? AppColors.primary.withValues(alpha: 0.25)
-                                    : AppColors.outline),
+                                ? AppColors.primary.withValues(alpha: 0.40)
+                                : AppColors.outline,
+                            width: isSel ? 1.5 : 1.0,
                           ),
-                          child: Icon(Icons.agriculture_rounded,
-                              color: isSel
-                                  ? AppColors.primary
-                                  : AppColors.onSurfaceVariant,
-                              size: 18),
                         ),
-                        const SizedBox(width: AppSpacing.smMd),
-
-                        // Plot info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                p.name,
-                                style:
-                                    AppTypography.titleLarge(context).copyWith(
+                        child: Row(
+                          children: [
+                            // Farm icon
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: isSel
+                                    ? AppColors.primary.withValues(alpha: 0.12)
+                                    : AppColors.surface,
+                                borderRadius:
+                                    BorderRadius.circular(AppSpacing.radiusSm),
+                                border: Border.all(
+                                    color: isSel
+                                        ? AppColors.primary
+                                            .withValues(alpha: 0.25)
+                                        : AppColors.outline),
+                              ),
+                              child: Icon(Icons.agriculture_rounded,
                                   color: isSel
                                       ? AppColors.primary
-                                      : AppColors.onBackground,
-                                  fontWeight:
-                                      isSel ? FontWeight.w600 : FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
+                                      : AppColors.onSurfaceVariant,
+                                  size: 18),
+                            ),
+                            const SizedBox(width: AppSpacing.smMd),
+
+                            // Plot info
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${p.cropType}  ·  ${p.area} ha',
-                                    style: AppTypography.labelLarge(context)
+                                    p.name,
+                                    style: AppTypography.titleLarge(context)
                                         .copyWith(
-                                            color: AppColors.onSurfaceVariant),
-                                  ),
-                                  if (p.hasPruningDate) ...[
-                                    Text(
-                                      '  ·  Day ${p.daysSincePruning}',
-                                      style: AppTypography.labelLarge(context)
-                                          .copyWith(
-                                        color: isSel
-                                            ? AppColors.primary
-                                            : AppColors.onSurfaceVariant,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      color: isSel
+                                          ? AppColors.primary
+                                          : AppColors.onBackground,
+                                      fontWeight: isSel
+                                          ? FontWeight.w600
+                                          : FontWeight.w600,
                                     ),
-                                  ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '${p.cropType}  ·  ${p.area} ha',
+                                        style: AppTypography.labelLarge(context)
+                                            .copyWith(
+                                                color:
+                                                    AppColors.onSurfaceVariant),
+                                      ),
+                                      if (p.hasPruningDate) ...[
+                                        Text(
+                                          '  ·  Day ${p.daysSincePruning}',
+                                          style:
+                                              AppTypography.labelLarge(context)
+                                                  .copyWith(
+                                            color: isSel
+                                                ? AppColors.primary
+                                                : AppColors.onSurfaceVariant,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
-
-                        // Selection indicator
-                        Container(
-                          width: 22,
-                          height: 22,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color:
-                                isSel ? AppColors.primary : Colors.transparent,
-                            border: Border.all(
-                              color:
-                                  isSel ? AppColors.primary : AppColors.outline,
-                              width: 1.5,
                             ),
-                          ),
-                          child: isSel
-                              ? const Icon(Icons.check_rounded,
-                                  size: 13, color: Colors.white)
-                              : null,
+
+                            // Selection indicator
+                            Container(
+                              width: 22,
+                              height: 22,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSel
+                                    ? AppColors.primary
+                                    : Colors.transparent,
+                                border: Border.all(
+                                  color: isSel
+                                      ? AppColors.primary
+                                      : AppColors.outline,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: isSel
+                                  ? const Icon(Icons.check_rounded,
+                                      size: 13, color: Colors.white)
+                                  : null,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -485,9 +499,11 @@ class PlotsSection extends ConsumerWidget {
   void _openPlotDetails(BuildContext context, PlotEntity plot) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _PlotDetailsSheet(plot: plot),
+      builder: (_) => PlotDetailsSheet(plot: plot),
     );
   }
 
@@ -884,15 +900,15 @@ class _GrapePaintingPainter extends CustomPainter {
 }
 
 // ── Plot Details Bottom Sheet ─────────────────────────────────────────────────
-class _PlotDetailsSheet extends StatefulWidget {
-  const _PlotDetailsSheet({required this.plot});
+class PlotDetailsSheet extends StatefulWidget {
+  const PlotDetailsSheet({super.key, required this.plot});
   final PlotEntity plot;
 
   @override
-  State<_PlotDetailsSheet> createState() => _PlotDetailsSheetState();
+  State<PlotDetailsSheet> createState() => _PlotDetailsSheetState();
 }
 
-class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
+class _PlotDetailsSheetState extends State<PlotDetailsSheet> {
   final List<String> _seasons = ['2024-25', '2025-26', '2026-27'];
   String _selectedSeason = '2025-26';
 
@@ -920,39 +936,9 @@ class _PlotDetailsSheetState extends State<_PlotDetailsSheet> {
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenHorizontal),
             children: [
-              // Handle
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: AppSpacing.smMd),
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.outline,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Plot Details',
-                            style: AppTypography.headlineMedium(context)
-                                .copyWith(fontWeight: FontWeight.w600)),
-                        Text(plot.name,
-                            style: AppTypography.bodyMedium(context)
-                                .copyWith(color: AppColors.onSurface)),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    padding: EdgeInsets.zero,
-                  ),
-                ],
+              DashboardSheetHeader(
+                title: 'Plot Details',
+                subtitle: plot.name,
               ),
               const SizedBox(height: AppSpacing.md),
 

@@ -10,6 +10,8 @@ import '../../../home/presentation/providers/plot_notifier.dart';
 import '../providers/schedule_providers.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../widgets/add_schedule_popup.dart';
+import '../widgets/schedule_action_menu.dart';
+import '../widgets/schedule_delete_bottom_sheet.dart';
 import '../widgets/schedule_detail_popup.dart';
 
 /// Schedule / Calendar Page — premium redesign
@@ -164,6 +166,15 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                         upcoming[i],
                         pruningDate: plot?.pruningDate,
                       ),
+                      actionMenu: ScheduleActionMenu(
+                        onSelected: (action) => _handleScheduleAction(
+                          ctx,
+                          action,
+                          upcoming[i],
+                          plotName: plot?.name,
+                          pruningDate: plot?.pruningDate,
+                        ),
+                      ),
                     ),
                   ),
                   childCount: upcoming.length,
@@ -203,9 +214,85 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   void _showAddForm(String plotId, String plotName) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => AddSchedulePopup(plotId: plotId, plotName: plotName),
+    );
+  }
+
+  void _handleScheduleAction(
+    BuildContext context,
+    ScheduleAction action,
+    ScheduleEntity schedule, {
+    required String? plotName,
+    DateTime? pruningDate,
+  }) {
+    switch (action) {
+      case ScheduleAction.view:
+        _showDetail(context, schedule, pruningDate: pruningDate);
+        return;
+      case ScheduleAction.edit:
+        _showEditForm(schedule, plotName);
+        return;
+      case ScheduleAction.delete:
+        _showDeleteConfirmation(context, schedule);
+        return;
+    }
+  }
+
+  void _showEditForm(ScheduleEntity schedule, String? plotName) {
+    showModalBottomSheet<void>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AddSchedulePopup(
+        plotId: schedule.plotId,
+        plotName: schedule.plotName.isEmpty
+            ? plotName ?? schedule.plotId
+            : schedule.plotName,
+        initialSchedule: schedule,
+      ),
+    );
+  }
+
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    ScheduleEntity schedule,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+    final deleted = await showModalBottomSheet<bool>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ScheduleDeleteBottomSheet(
+        onConfirm: () async {
+          final success = await ref
+              .read(scheduleNotifierProvider.notifier)
+              .deleteSchedule(schedule);
+          if (!success && mounted) {
+            final message = ref.read(scheduleNotifierProvider).errorMessage ??
+                'Failed to delete schedule';
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: errorColor,
+              ),
+            );
+          }
+          return success;
+        },
+      ),
+    );
+    if (!mounted || deleted != true) return;
+    ScaffoldMessenger.of(this.context).showSnackBar(
+      const SnackBar(content: Text('Schedule deleted.')),
     );
   }
 }
@@ -390,13 +477,18 @@ class _TodaySummary extends StatelessWidget {
 
 // ── Upcoming Card ─────────────────────────────────────────────────────────────
 class _UpcomingCard extends StatelessWidget {
-  const _UpcomingCard({required this.schedule, required this.onTap});
+  const _UpcomingCard({
+    required this.schedule,
+    required this.onTap,
+    this.actionMenu,
+  });
   final ScheduleEntity schedule;
   final VoidCallback onTap;
+  final Widget? actionMenu;
 
   Color _typeColor(BuildContext ctx) {
     if (schedule.type == ScheduleType.spray) return AppColors.info;
-    if (schedule.type == ScheduleType.nutrition) return const Color(0xFFF59E0B);
+    if (schedule.type == ScheduleType.nutrition) return AppColors.warning;
     if (schedule.type == ScheduleType.water) return AppColors.primary;
     return AppColors.primary;
   }
@@ -487,6 +579,14 @@ class _UpcomingCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   )),
             ),
+            if (actionMenu != null) ...[
+              const SizedBox(width: AppSpacing.xs),
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: actionMenu,
+              ),
+            ],
           ],
         ),
       ),

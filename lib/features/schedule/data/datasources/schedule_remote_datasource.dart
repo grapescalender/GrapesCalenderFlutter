@@ -16,6 +16,9 @@ abstract class ScheduleRemoteDataSource {
 /// Implementation of ScheduleRemoteDataSource
 class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   static final Map<String, List<ScheduleModel>> _createdSchedulesByPlot = {};
+  static final Map<String, ScheduleModel> _updatedSchedulesByKey = {};
+  static final Set<String> _deletedScheduleKeys = {};
+  static final Set<String> _deletedScheduleIds = {};
 
   @override
   Future<List<ScheduleModel>> getSchedules({
@@ -272,7 +275,21 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         ...List<ScheduleModel>.from(
           _createdSchedulesByPlot[plotId] ?? const [],
         ),
-      ],
+      ]
+          .where(
+            (schedule) =>
+                !_deletedScheduleIds.contains(schedule.id) &&
+                !_deletedScheduleKeys.contains(
+                  _scheduleKey(schedule.plotId, schedule.id),
+                ),
+          )
+          .map(
+            (schedule) =>
+                _updatedSchedulesByKey[
+                    _scheduleKey(schedule.plotId, schedule.id)] ??
+                schedule,
+          )
+          .toList(),
       type: type,
       limit: limit,
     );
@@ -301,14 +318,40 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   Future<ScheduleModel> updateSchedule(ScheduleModel schedule) async {
     // TODO: Implement actual API call
     await Future<void>.delayed(const Duration(milliseconds: 300));
-    return schedule.copyWith(updatedAt: DateTime.now());
+    final updatedSchedule = schedule.copyWith(updatedAt: DateTime.now());
+    final existing = _createdSchedulesByPlot[schedule.plotId];
+    if (existing != null) {
+      _createdSchedulesByPlot[schedule.plotId] = existing
+          .map((item) => item.id == schedule.id ? updatedSchedule : item)
+          .toList();
+    }
+    _updatedSchedulesByKey[_scheduleKey(schedule.plotId, schedule.id)] =
+        updatedSchedule;
+    _deletedScheduleKeys.remove(_scheduleKey(schedule.plotId, schedule.id));
+    _deletedScheduleIds.remove(schedule.id);
+    return updatedSchedule;
   }
 
   @override
   Future<void> deleteSchedule(String scheduleId) async {
     // TODO: Implement actual API call
     await Future<void>.delayed(const Duration(milliseconds: 300));
+    _deletedScheduleIds.add(scheduleId);
+    for (final entry in _createdSchedulesByPlot.entries) {
+      _createdSchedulesByPlot[entry.key] =
+          entry.value.where((schedule) => schedule.id != scheduleId).toList();
+      _deletedScheduleKeys.add(_scheduleKey(entry.key, scheduleId));
+    }
+    for (final key in List<String>.from(_updatedSchedulesByKey.keys)) {
+      if (key.endsWith(':$scheduleId')) {
+        _updatedSchedulesByKey.remove(key);
+        _deletedScheduleKeys.add(key);
+      }
+    }
   }
+
+  String _scheduleKey(String plotId, String scheduleId) =>
+      '$plotId:$scheduleId';
 
   List<ScheduleModel> _filterAndLimit({
     required List<ScheduleModel> schedules,

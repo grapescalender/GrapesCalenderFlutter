@@ -15,7 +15,6 @@ class ProductSearchField extends StatelessWidget {
     required this.onChanged,
     required this.onSelected,
     required this.addedProductIds,
-    this.focusNode,
   });
 
   final TextEditingController controller;
@@ -24,7 +23,6 @@ class ProductSearchField extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final ValueChanged<ProductEntity> onSelected;
   final Set<String> addedProductIds;
-  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +33,7 @@ class ProductSearchField extends StatelessWidget {
       children: [
         TextFormField(
           controller: controller,
-          focusNode: focusNode,
+          autofocus: true,
           decoration: DashboardField.decoration(
             context: context,
             label: 'Search Product',

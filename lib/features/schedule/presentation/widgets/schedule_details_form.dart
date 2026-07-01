@@ -163,53 +163,52 @@ class ScheduleDetailsForm extends StatelessWidget {
     final currentIndex = _currentStageIndex();
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: DashboardStyle.of(context).surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSpacing.radiusHuge),
-        ),
+      useRootNavigator: true,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      showDragHandle: true,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.72,
       ),
-      builder: (context) => SafeArea(
-        child: _SelectorSheet(
-          title: 'Select Current Stage',
-          subtitle: 'Choose the grape stage for this schedule',
-          icon: Icons.timeline_rounded,
-          children: [
-            for (var index = 0;
-                index < ActivityType.orderedTypes.length;
-                index++)
-              Builder(
-                builder: (context) {
-                  final type = ActivityType.orderedTypes[index];
-                  final activity = _activityFor(type);
-                  final isPast = index < currentIndex;
-                  final hasWindow = activity?.startedAt != null;
-                  final isDateValid =
-                      activity == null || _dateInsideActivity(activity);
-                  final enabled = !isPast || hasWindow;
-                  return _StageOptionTile(
-                    type: type,
-                    stepNumber: index + 1,
-                    selected: type == selectedActivityType,
-                    statusLabel: _stageStatusLabel(index, currentIndex),
-                    dateLabel: activity == null
-                        ? 'Date range not set'
-                        : _stageMeta(type),
-                    enabled: enabled,
-                    warning: isPast && !isDateValid
-                        ? 'Selected date is outside this stage'
-                        : null,
-                    onTap: () async {
-                      await _handleStageTap(
-                        context: context,
-                        type: type,
-                      );
-                    },
-                  );
-                },
-              ),
-          ],
-        ),
+      builder: (context) => _SelectorSheet(
+        title: 'Select Current Stage',
+        subtitle: 'Choose the grape stage for this schedule',
+        children: [
+          for (var index = 0; index < ActivityType.orderedTypes.length; index++)
+            Builder(
+              builder: (context) {
+                final type = ActivityType.orderedTypes[index];
+                final activity = _activityFor(type);
+                final isPast = index < currentIndex;
+                final hasWindow = activity?.startedAt != null;
+                final isDateValid =
+                    activity == null || _dateInsideActivity(activity);
+                final enabled = !isPast || hasWindow;
+                return _StageOptionTile(
+                  type: type,
+                  stepNumber: index + 1,
+                  selected: type == selectedActivityType,
+                  statusLabel: _stageStatusLabel(index, currentIndex),
+                  dateLabel: activity == null
+                      ? 'Date range not set'
+                      : _stageMeta(type),
+                  enabled: enabled,
+                  warning: isPast && !isDateValid
+                      ? 'Selected date is outside this stage'
+                      : null,
+                  onTap: () async {
+                    await _handleStageTap(
+                      context: context,
+                      type: type,
+                    );
+                  },
+                );
+              },
+            ),
+        ],
       ),
     );
   }
@@ -224,8 +223,8 @@ class ScheduleDetailsForm extends StatelessWidget {
     required BuildContext context,
     required ActivityType type,
   }) async {
-    onActivityChanged(type);
     Navigator.of(context).pop();
+    onActivityChanged(type);
   }
 }
 
@@ -436,13 +435,11 @@ class _SelectorSheet extends StatelessWidget {
   const _SelectorSheet({
     required this.title,
     required this.subtitle,
-    required this.icon,
     required this.children,
   });
 
   final String title;
   final String subtitle;
-  final IconData icon;
   final List<Widget> children;
 
   @override
@@ -453,7 +450,6 @@ class _SelectorSheet extends StatelessWidget {
             DashboardSheetHeader(
               title: title,
               subtitle: subtitle,
-              icon: icon,
             ),
             const SizedBox(height: AppSpacing.md),
             for (var index = 0; index < children.length; index++) ...[

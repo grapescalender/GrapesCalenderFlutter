@@ -31,11 +31,13 @@ class AddSchedulePopup extends ConsumerStatefulWidget {
   const AddSchedulePopup({
     required this.plotId,
     required this.plotName,
+    this.initialSchedule,
     super.key,
   });
 
   final String plotId;
   final String plotName;
+  final ScheduleEntity? initialSchedule;
 
   @override
   ConsumerState<AddSchedulePopup> createState() => _AddSchedulePopupState();
@@ -43,8 +45,6 @@ class AddSchedulePopup extends ConsumerStatefulWidget {
 
 class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   final _formKey = GlobalKey<FormState>();
-  final _productSearchController = TextEditingController();
-  final _productSearchFocusNode = FocusNode();
   final _instructionsController = TextEditingController();
   final _notesController = TextEditingController();
   final _workNameController = TextEditingController();
@@ -70,6 +70,12 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   bool _isSearching = false;
   String? _productError;
 
+  bool get _isEditMode => widget.initialSchedule != null;
+  bool get _isSaving {
+    final state = ref.read(scheduleNotifierProvider);
+    return state.isCreating;
+  }
+
   bool get _usesProducts =>
       _selectedType == ScheduleType.spray ||
       _selectedType == ScheduleType.nutrition;
@@ -79,8 +85,24 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   @override
   void initState() {
     super.initState();
-    _selectedPlotId = widget.plotId;
-    _selectedPlotName = widget.plotName;
+    final initialSchedule = widget.initialSchedule;
+    _selectedPlotId = initialSchedule?.plotId ?? widget.plotId;
+    _selectedPlotName = initialSchedule?.plotName.isNotEmpty == true
+        ? initialSchedule!.plotName
+        : widget.plotName;
+    if (initialSchedule != null) {
+      _prefillSchedule(initialSchedule);
+    }
+    for (final controller in [
+      _instructionsController,
+      _workNameController,
+      _durationController,
+      _waterDurationController,
+      _waterQuantityController,
+      _totalSprayWaterController,
+    ]) {
+      controller.addListener(_refreshSubmitState);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadActivities();
     });
@@ -89,8 +111,6 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   @override
   void dispose() {
     _searchDebounce?.cancel();
-    _productSearchController.dispose();
-    _productSearchFocusNode.dispose();
     _instructionsController.dispose();
     _notesController.dispose();
     _workNameController.dispose();
@@ -105,6 +125,8 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   @override
   Widget build(BuildContext context) {
     final scheduleState = ref.watch(scheduleNotifierProvider);
+    final isSaving = scheduleState.isCreating;
+    final canSubmit = _canSubmit;
     final activityState = ref.watch(activityNotifierProvider);
     final plots = ref.watch(plotNotifierProvider).plots;
     final availablePlots = plots.isEmpty
@@ -126,9 +148,11 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     );
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final cs = Theme.of(context).colorScheme;
+    final screenSize = MediaQuery.sizeOf(context);
+    final sheetHeightFactor = screenSize.height < 600 ? 0.92 : 0.90;
 
     return FractionallySizedBox(
-      heightFactor: 0.96,
+      heightFactor: sheetHeightFactor,
       child: AnimatedPadding(
         duration: const Duration(milliseconds: 180),
         padding: EdgeInsets.only(bottom: bottomInset),
@@ -143,11 +167,8 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
             top: false,
             child: Column(
               children: [
-                const SizedBox(height: AppSpacing.sm),
-                const DashboardDragHandle(),
                 _AppBar(
-                  onClose: () => Navigator.of(context).pop(),
-                  onSave: scheduleState.isCreating ? null : _submit,
+                  title: _isEditMode ? 'Edit Schedule' : 'Add Schedule',
                 ),
                 Expanded(
                   child: Form(
@@ -232,8 +253,12 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                   ),
                 ),
                 StickySaveAction(
-                  isSaving: scheduleState.isCreating,
-                  onSave: _submit,
+                  isSaving: isSaving,
+                  onSave: canSubmit ? _submit : null,
+                  label: _isEditMode ? 'Update Schedule' : 'Save Schedule',
+                  loadingLabel: _isEditMode
+                      ? 'Updating Schedule...'
+                      : 'Saving Schedule...',
                 ),
               ],
             ),
@@ -241,6 +266,164 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
         ),
       ),
     );
+  }
+
+  void _refreshSubmitState() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _canSubmit {
+    if (_selectedPlotId.trim().isEmpty) return false;
+
+    switch (_selectedType) {
+      case ScheduleType.work:
+        return _workNameController.text.trim().isNotEmpty &&
+            _instructionsController.text.trim().isNotEmpty;
+      case ScheduleType.water:
+        final value = _waterMethod == WaterMethod.flooding
+            ? _waterQuantityController.text
+            : _waterDurationController.text;
+        return (double.tryParse(value.trim()) ?? 0) > 0;
+      case ScheduleType.spray:
+        return _productsAreReady &&
+            (double.tryParse(_totalSprayWaterController.text.trim()) ?? 0) > 0;
+      case ScheduleType.nutrition:
+        return _productsAreReady &&
+            (double.tryParse(_waterDurationController.text.trim()) ?? 0) > 0;
+      case ScheduleType.all:
+        return false;
+    }
+  }
+
+  bool get _productsAreReady =>
+      (_isEditMode && _products.isEmpty) ||
+      (_products.isNotEmpty && _products.every(_isProductComplete));
+
+  void _prefillSchedule(ScheduleEntity schedule) {
+    _selectedType = schedule.type;
+    _scheduleDate = schedule.scheduledDate;
+    _dueDate = schedule.scheduledDate;
+    _isAlreadyApplied = schedule.isCompleted;
+    if (schedule.activityIds.isNotEmpty) {
+      _selectedActivityId = schedule.activityIds.first;
+      _selectedActivityType = _activityTypeFromText(schedule.activityIds.first);
+    }
+
+    if (schedule.type == ScheduleType.work) {
+      _workNameController.text = schedule.title;
+    }
+
+    final description = schedule.description ?? '';
+    final instructionLines = <String>[];
+    for (final line in description.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+      if (trimmed.startsWith('Notes:')) {
+        _notesController.text = trimmed.substring('Notes:'.length).trim();
+      } else if (trimmed.startsWith('Stage:')) {
+        _selectedActivityType =
+            _activityTypeFromText(trimmed.substring('Stage:'.length).trim());
+      } else if (trimmed.startsWith('Due date:')) {
+        _dueDate = DateTime.tryParse(
+              trimmed.substring('Due date:'.length).trim(),
+            ) ??
+            _dueDate;
+      } else if (trimmed.startsWith('Total water:')) {
+        _totalSprayWaterController.text =
+            _firstNumber(trimmed.substring('Total water:'.length));
+      } else if (trimmed.startsWith('Labour/team:')) {
+        _labourController.text =
+            trimmed.substring('Labour/team:'.length).trim();
+      } else if (trimmed.startsWith('Estimated duration:')) {
+        _durationController.text =
+            _firstNumber(trimmed.substring('Estimated duration:'.length));
+      } else if (trimmed.startsWith('Water method:')) {
+        _waterMethod = _waterMethodFromLabel(
+          trimmed.substring('Water method:'.length).trim(),
+        );
+      } else if (trimmed.startsWith('Water duration:')) {
+        final value = trimmed.substring('Water duration:'.length).trim();
+        _waterDurationController.text = _firstNumber(value);
+        _waterDurationUnit = value.toLowerCase().contains('hour')
+            ? WaterDurationUnit.hours
+            : WaterDurationUnit.minutes;
+      } else if (trimmed.startsWith('Water quantity:')) {
+        _waterQuantityController.text =
+            _firstNumber(trimmed.substring('Water quantity:'.length));
+      } else if (RegExp(r'^\d+\. ').hasMatch(trimmed)) {
+        _products = [
+          ..._products,
+          _productDraftFromLine(trimmed, _products.length + 1),
+        ];
+      } else if (!trimmed.startsWith('Tank count:')) {
+        instructionLines.add(trimmed);
+      }
+    }
+    _instructionsController.text = instructionLines.join('\n');
+  }
+
+  String _firstNumber(String value) =>
+      RegExp(r'[\d.]+').firstMatch(value)?.group(0) ?? '';
+
+  ActivityType _activityTypeFromText(String value) {
+    final normalized = value.toLowerCase();
+    for (final type in ActivityType.values) {
+      if (normalized.contains(type.value) ||
+          normalized.contains(type.displayName.toLowerCase())) {
+        return type;
+      }
+    }
+    return ActivityType.cutting;
+  }
+
+  ScheduleProductDraft _productDraftFromLine(String line, int fallbackSequence) {
+    final sequenceMatch = RegExp(r'^(\d+)\.\s+').firstMatch(line);
+    final sequenceNo = int.tryParse(sequenceMatch?.group(1) ?? '') ??
+        fallbackSequence;
+    final withoutSequence = line.replaceFirst(RegExp(r'^\d+\.\s+'), '');
+    final parts = withoutSequence.split(':');
+    final productName = parts.first.trim();
+    final detail = parts.length > 1 ? parts.sublist(1).join(':').trim() : '';
+    final doseMatch = RegExp(
+      r'([\d.]+)\s+([^\s]+)\s+per\s+([\d.]+)\s+([^\s]+)',
+      caseSensitive: false,
+    ).firstMatch(detail);
+    final doseUnit = _normalizeScheduleUnit(doseMatch?.group(2) ?? 'gm');
+    final perWaterUnit = _normalizeScheduleUnit(doseMatch?.group(4) ?? 'liter');
+    final category = _selectedType == ScheduleType.nutrition
+        ? ProductCategory.nutrition
+        : ProductCategory.pesticides;
+
+    return ScheduleProductDraft(
+      productId: 'restored_${productName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      productName: productName.isEmpty ? 'Selected Product' : productName,
+      categoryId: category.value,
+      categoryLabel: category.displayName,
+      manufacturer: '',
+      dose: doseMatch?.group(1) ?? '',
+      doseUnit: doseUnit,
+      perWaterQuantity: doseMatch?.group(3) ?? '',
+      perWaterUnit: perWaterUnit,
+      sequenceNo: sequenceNo,
+    );
+  }
+
+  String _normalizeScheduleUnit(String value) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'litre' || normalized == 'liter') return 'liter';
+    if (normalized == 'grams' || normalized == 'gram') return 'gm';
+    if (normalized == 'milliliter' || normalized == 'millilitre') return 'ml';
+    return normalized.isEmpty ? 'gm' : normalized;
+  }
+
+  WaterMethod _waterMethodFromLabel(String value) {
+    final normalized = value.toLowerCase();
+    if (normalized.contains('flood')) return WaterMethod.flooding;
+    if (normalized.contains('nutrition') ||
+        normalized.contains('fertigation')) {
+      return WaterMethod.fertigation;
+    }
+    return WaterMethod.drip;
   }
 
   Widget _buildProductSection() {
@@ -324,6 +507,17 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
               });
             },
           ),
+          if (!_isAlreadyApplied) ...[
+            const SizedBox(height: AppSpacing.smMd),
+            _DueDateCard(
+              selectedDate: _dueDate,
+              onTap: () async {
+                final value = await _showDueDatePrompt();
+                if (!mounted || value == null) return;
+                setState(() => _dueDate = value);
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -560,7 +754,6 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     setState(() {
       _selectedType = type;
       _productError = null;
-      _productSearchController.clear();
       _searchResults = const [];
     });
   }
@@ -627,7 +820,14 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
       activityState.activities,
       _scheduleDate,
     );
-    final activity = detectedActivity ?? activityState.activeActivity;
+    final savedActivity = _selectedActivityId == null
+        ? _activityForType(activityState.activities, _selectedActivityType)
+        : activityState.activities
+            .where((activity) => activity.id == _selectedActivityId)
+            .firstOrNull;
+    final activity = _isEditMode
+        ? savedActivity ?? detectedActivity ?? activityState.activeActivity
+        : detectedActivity ?? activityState.activeActivity;
     if (activity != null) {
       setState(() {
         _selectedActivityType = activity.type;
@@ -678,6 +878,7 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   }
 
   void _addProduct(ProductEntity product) {
+    if (!mounted) return;
     if (_products.any((item) => item.productId == product.id)) {
       setState(() => _productError = 'This product is already added.');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -687,8 +888,6 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     }
     final defaultUnit =
         product.dosage.toLowerCase().contains('ml') ? 'ml' : 'gm';
-    FocusScope.of(context).unfocus();
-    Navigator.of(context).pop();
     _openProductConfigSheet(
       ScheduleProductDraft(
         productId: product.id,
@@ -717,40 +916,45 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     _openProductConfigSheet(_products[index], index: index);
   }
 
-  void _openProductSearchSheet() {
+  Future<void> _openProductSearchSheet() async {
     setState(() {
       _productError = null;
-      _productSearchController.clear();
       _searchResults = const [];
     });
-    showModalBottomSheet<void>(
+    final selectedProduct = await showModalBottomSheet<ProductEntity>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      backgroundColor: DashboardStyle.of(context).surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSpacing.radiusHuge),
-        ),
+      showDragHandle: true,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.72,
       ),
       builder: (context) => StatefulBuilder(
         builder: (context, setSheetState) => ProductSearchBottomSheet(
-          controller: _productSearchController,
           results: _searchResults,
           isLoading: _isSearching,
-          onChanged: (query) =>
-              _searchProducts(query, () => setSheetState(() {})),
-          onSelected: _addProduct,
+          onChanged: (query) => _searchProducts(query, () {
+            if (context.mounted) setSheetState(() {});
+          }),
+          onSelected: (product) => Navigator.of(context).pop(product),
           addedProductIds:
               _products.map((product) => product.productId).toSet(),
-          focusNode: _productSearchFocusNode,
         ),
       ),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _productSearchFocusNode.requestFocus();
-    });
+    _searchDebounce?.cancel();
+    if (!mounted || selectedProduct == null) return;
+
+    // showModalBottomSheet returns its result before the reverse transition has
+    // completely left the screen. Let that Material motion finish so product
+    // configuration replaces search instead of briefly stacking above it.
+    await Future<void>.delayed(const Duration(milliseconds: 220));
+    if (!mounted) return;
+    _addProduct(selectedProduct);
   }
 
   void _openProductConfigSheet(
@@ -761,14 +965,15 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     var showErrors = false;
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      backgroundColor: DashboardStyle.of(context).surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSpacing.radiusHuge),
-        ),
+      showDragHandle: true,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.72,
       ),
       builder: (context) {
         return StatefulBuilder(
@@ -781,6 +986,8 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                 setSheetState(() => showErrors = true);
                 return;
               }
+              Navigator.of(context).pop();
+              if (!mounted) return;
               setState(() {
                 if (index == null) {
                   _products = [..._products, draft];
@@ -791,7 +998,6 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                 }
                 _productError = null;
               });
-              Navigator.of(context).pop();
             },
           ),
         );
@@ -871,7 +1077,14 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   Future<bool?> _confirmEarlierActivityWindow(ActivityEntity activity) {
     return showModalBottomSheet<bool>(
       context: context,
-      backgroundColor: DashboardStyle.of(context).surface,
+      isDismissible: true,
+      enableDrag: true,
+      showDragHandle: true,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.44,
+      ),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSpacing.radiusHuge),
@@ -1040,7 +1253,7 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   }
 
   Future<void> _submit() async {
-    if (ref.read(scheduleNotifierProvider).isCreating) return;
+    if (_isSaving) return;
     FocusScope.of(context).unfocus();
 
     final plots = ref.read(plotNotifierProvider).plots;
@@ -1074,9 +1287,10 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
 
     final formValid = _formKey.currentState?.validate() ?? false;
     final productValid = !_usesProducts ||
+        (_isEditMode && _products.isEmpty) ||
         (_products.isNotEmpty && _products.every(_isProductComplete));
 
-    if (_usesProducts && _products.isEmpty) {
+    if (_usesProducts && _products.isEmpty && !_isEditMode) {
       setState(() => _productError = 'Add at least one product');
     } else if (_usesProducts && !productValid) {
       setState(() => _productError = 'Complete dose details for every product');
@@ -1139,16 +1353,28 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
       combinationName: _usesProducts ? _combinationName : '',
     );
 
-    final success =
-        await ref.read(scheduleNotifierProvider.notifier).createSchedule(
+    final description =
+        request.legacyDescription.isEmpty ? null : request.legacyDescription;
+    final title = _scheduleTitle(request);
+    final success = _isEditMode
+        ? await ref.read(scheduleNotifierProvider.notifier).updateSchedule(
+              originalSchedule: widget.initialSchedule!,
               plotId: request.plotId,
               plotName: _selectedPlotName,
               type: request.scheduleType,
-              title: _scheduleTitle(request),
+              title: title,
               scheduledDate: request.scheduleDate,
-              description: request.legacyDescription.isEmpty
-                  ? null
-                  : request.legacyDescription,
+              description: description,
+              activityIds: [request.activityId],
+              isCompleted: _isAlreadyApplied,
+            )
+        : await ref.read(scheduleNotifierProvider.notifier).createSchedule(
+              plotId: request.plotId,
+              plotName: _selectedPlotName,
+              type: request.scheduleType,
+              title: title,
+              scheduledDate: request.scheduleDate,
+              description: description,
               activityIds: [request.activityId],
               isCompleted: _isAlreadyApplied,
             );
@@ -1156,7 +1382,9 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     if (!mounted) return;
     if (!success) {
       final message = ref.read(scheduleNotifierProvider).errorMessage ??
-          'Failed to create schedule';
+          (_isEditMode
+              ? 'Failed to update schedule'
+              : 'Failed to create schedule');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
@@ -1167,7 +1395,7 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     }
 
     var irrigationHistoryCreated = true;
-    if (request.scheduleType == ScheduleType.nutrition) {
+    if (!_isEditMode && request.scheduleType == ScheduleType.nutrition) {
       irrigationHistoryCreated =
           await ref.read(scheduleNotifierProvider.notifier).createSchedule(
                 plotId: request.plotId,
@@ -1201,7 +1429,9 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
       SnackBar(
         content: Text(
           irrigationHistoryCreated
-              ? 'Schedule created successfully'
+              ? _isEditMode
+                  ? 'Schedule updated successfully'
+                  : 'Schedule created successfully'
               : 'Nutrition saved, but irrigation history could not be added.',
         ),
         backgroundColor: irrigationHistoryCreated
@@ -1217,6 +1447,9 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     }
     if (request.scheduleType == ScheduleType.water) {
       return request.waterMethod?.displayName ?? 'Irrigation';
+    }
+    if (_isEditMode && request.combinationName.isEmpty) {
+      return widget.initialSchedule!.title;
     }
     return request.combinationName;
   }
@@ -1302,9 +1535,16 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
 
     return showModalBottomSheet<DateTime>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
+      showDragHandle: true,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.52,
+      ),
       builder: (sheetContext) {
         DateTime? selectedDate = _dueDate == null
             ? null
@@ -1342,8 +1582,6 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Center(child: DashboardDragHandle()),
-                const SizedBox(height: AppSpacing.smMd),
                 Text(
                   'Select Due Date',
                   style: AppTypography.titleLarge(context).copyWith(
@@ -1763,45 +2001,32 @@ class _WaterDurationInput extends StatelessWidget {
 
 class _AppBar extends StatelessWidget {
   const _AppBar({
-    required this.onClose,
-    required this.onSave,
+    required this.title,
   });
 
-  final VoidCallback onClose;
-  final VoidCallback? onSave;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xs,
-        AppSpacing.xs,
+        AppSpacing.screenHorizontal,
         AppSpacing.sm,
-        AppSpacing.xs,
+        AppSpacing.screenHorizontal,
+        AppSpacing.smMd,
       ),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Close',
-            onPressed: onClose,
-            icon: const Icon(Icons.close_rounded),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.titleLarge(context).copyWith(
+            color: cs.onSurface,
+            fontWeight: FontWeight.bold,
           ),
-          Expanded(
-            child: Text(
-              'Add Schedule',
-              style: AppTypography.titleLarge(context).copyWith(
-                color: cs.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          IconButton.filledTonal(
-            tooltip: 'Save schedule',
-            onPressed: onSave,
-            icon: const Icon(Icons.check_rounded),
-          ),
-        ],
+        ),
       ),
     );
   }

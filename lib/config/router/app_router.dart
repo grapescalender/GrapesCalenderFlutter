@@ -4,6 +4,8 @@ import '../../features/auth/presentation/pages/farmer_registration_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/domain/services/auth_service.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/home/presentation/pages/market_page.dart';
+import '../../features/home/presentation/pages/plots_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/schedule/presentation/pages/related_schedule_page.dart';
 import '../../features/schedule/presentation/pages/schedule_page.dart';
@@ -17,6 +19,8 @@ class RouteNames {
   static const String login = '/login';
   static const String farmerRegistration = '/register/farmer';
   static const String home = '/home';
+  static const String plots = '/plots';
+  static const String market = '/market';
   static const String schedule = '/schedule';
   static const String viewAllSchedules = '/schedules/all';
   static const String relatedSchedules = '/schedules/related';
@@ -32,6 +36,8 @@ class AppRoutes {
   static const String login = RouteNames.login;
   static const String farmerRegistration = RouteNames.farmerRegistration;
   static const String home = RouteNames.home;
+  static const String plots = RouteNames.plots;
+  static const String market = RouteNames.market;
   static const String schedule = RouteNames.schedule;
   static const String viewAllSchedules = RouteNames.viewAllSchedules;
   static const String relatedSchedules = RouteNames.relatedSchedules;
@@ -88,6 +94,16 @@ GoRouter createAppRouter(AuthService authService) {
             name: 'home',
           ),
           GoRoute(
+            path: RouteNames.plots,
+            builder: (context, state) => const PlotsPage(),
+            name: 'plots',
+          ),
+          GoRoute(
+            path: RouteNames.market,
+            builder: (context, state) => const MarketPage(),
+            name: 'market',
+          ),
+          GoRoute(
             path: RouteNames.schedule,
             builder: (context, state) => const SchedulePage(),
             name: 'schedule',
@@ -136,14 +152,14 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: child,
-        bottomNavigationBar: _MainBottomNav(),
+        bottomNavigationBar: const _MainBottomNav(),
       );
 }
 
 /// Bottom navigation bar widget
 /// Separated to avoid context access issues
 class _MainBottomNav extends StatelessWidget {
-  const _MainBottomNav({super.key});
+  const _MainBottomNav();
 
   @override
   Widget build(BuildContext context) {
@@ -169,19 +185,19 @@ class _MainBottomNav extends StatelessWidget {
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       destinations: const [
         NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home_rounded),
+          icon: Icon(Icons.dashboard_outlined),
+          selectedIcon: Icon(Icons.dashboard_rounded),
           label: 'Dashboard',
         ),
         NavigationDestination(
-          icon: Icon(Icons.calendar_month_outlined),
-          selectedIcon: Icon(Icons.calendar_month_rounded),
-          label: 'Schedules',
+          icon: Icon(Icons.agriculture_outlined),
+          selectedIcon: Icon(Icons.agriculture_rounded),
+          label: 'Plots',
         ),
         NavigationDestination(
-          icon: Icon(Icons.bar_chart_outlined),
-          selectedIcon: Icon(Icons.bar_chart_rounded),
-          label: 'Plots',
+          icon: Icon(Icons.trending_up_outlined),
+          selectedIcon: Icon(Icons.trending_up_rounded),
+          label: 'Market',
         ),
         NavigationDestination(
           icon: Icon(Icons.inventory_2_outlined),
@@ -199,10 +215,8 @@ class _MainBottomNav extends StatelessWidget {
 
   int _getSelectedIndex(String currentLocation) {
     if (currentLocation == RouteNames.home) return 0;
-    if (currentLocation == RouteNames.schedule ||
-        currentLocation.startsWith('/schedules')) return 1;
-    if (currentLocation == RouteNames.activity ||
-        currentLocation.startsWith('/activities')) return 2;
+    if (currentLocation == RouteNames.plots) return 1;
+    if (currentLocation == RouteNames.market) return 2;
     if (currentLocation == RouteNames.products) return 3;
     if (currentLocation == RouteNames.profile) return 4;
     return 0;
@@ -217,10 +231,10 @@ class _MainBottomNav extends StatelessWidget {
         router.go(RouteNames.home);
         break;
       case 1:
-        router.go(RouteNames.schedule);
+        router.go(RouteNames.plots);
         break;
       case 2:
-        router.go(RouteNames.activity);
+        router.go(RouteNames.market);
         break;
       case 3:
         router.go(RouteNames.products);

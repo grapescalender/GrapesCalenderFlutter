@@ -13,6 +13,8 @@ import '../providers/schedule_providers.dart';
 import '../providers/schedule_state.dart';
 import '../utils/schedule_filter_utils.dart';
 import '../widgets/add_schedule_popup.dart';
+import '../widgets/schedule_action_menu.dart';
+import '../widgets/schedule_delete_bottom_sheet.dart';
 import '../widgets/schedule_context_message.dart';
 import '../widgets/schedule_detail_popup.dart';
 import '../widgets/schedule_filter_chip.dart';
@@ -403,6 +405,14 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
             key: ValueKey('schedule_${schedule.id}'),
             schedule: schedule,
             pruningDate: selectedPlot?.pruningDate,
+            actionMenu: ScheduleActionMenu(
+              onSelected: (action) => _handleScheduleAction(
+                context,
+                action,
+                schedule,
+                selectedPlot,
+              ),
+            ),
             onTap: () => _showScheduleDetail(
               context,
               schedule,
@@ -412,6 +422,29 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
         },
       ),
     );
+  }
+
+  void _handleScheduleAction(
+    BuildContext context,
+    ScheduleAction action,
+    ScheduleEntity schedule,
+    PlotEntity? selectedPlot,
+  ) {
+    switch (action) {
+      case ScheduleAction.view:
+        _showScheduleDetail(
+          context,
+          schedule,
+          pruningDate: selectedPlot?.pruningDate,
+        );
+        return;
+      case ScheduleAction.edit:
+        _showEditScheduleForm(schedule, selectedPlot?.name);
+        return;
+      case ScheduleAction.delete:
+        _showDeleteConfirmation(context, schedule);
+        return;
+    }
   }
 
   /// Show Schedule Detail Popup
@@ -437,12 +470,68 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
   void _showAddScheduleForm(String plotId, String plotName) {
     showModalBottomSheet<void>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AddSchedulePopup(
         plotId: plotId,
         plotName: plotName,
       ),
+    );
+  }
+
+  void _showEditScheduleForm(ScheduleEntity schedule, String? plotName) {
+    showModalBottomSheet<void>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddSchedulePopup(
+        plotId: schedule.plotId,
+        plotName: schedule.plotName.isEmpty
+            ? plotName ?? schedule.plotId
+            : schedule.plotName,
+        initialSchedule: schedule,
+      ),
+    );
+  }
+
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    ScheduleEntity schedule,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+    final deleted = await showModalBottomSheet<bool>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ScheduleDeleteBottomSheet(
+        onConfirm: () async {
+          final success = await ref
+              .read(scheduleNotifierProvider.notifier)
+              .deleteSchedule(schedule);
+          if (!success && mounted) {
+            final message = ref.read(scheduleNotifierProvider).errorMessage ??
+                'Failed to delete schedule';
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: errorColor,
+              ),
+            );
+          }
+          return success;
+        },
+      ),
+    );
+    if (!mounted || deleted != true) return;
+    ScaffoldMessenger.of(this.context).showSnackBar(
+      const SnackBar(content: Text('Schedule deleted.')),
     );
   }
 }

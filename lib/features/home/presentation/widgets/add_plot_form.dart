@@ -5,6 +5,7 @@ import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../providers/plot_notifier.dart';
 
 /// Add Plot Form Widget
@@ -53,31 +54,15 @@ class _AddPlotFormState extends ConsumerState<AddPlotForm> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: cs.outline,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenHorizontal,
+              padding: const EdgeInsets.only(
+                left: AppSpacing.screenHorizontal,
+                top: AppSpacing.xs,
+                right: AppSpacing.screenHorizontal,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Add Plot',
-                    style: AppTypography.headlineMedium(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
+              child: const DashboardSheetHeader(
+                title: 'Add Plot',
+                subtitle: 'Enter the details for your grape plot.',
               ),
             ),
             const SizedBox(height: AppSpacing.lg),

@@ -61,6 +61,8 @@ class _FarmerRegistrationPageState
   int? _selectedSeasonPlotId;
   int? _editingPlotIndex;
   bool _plotAddedSuccess = false;
+  bool _isPlotFormVisible = true;
+  int _plotSuccessGeneration = 0;
   List<int> _startedSeasonPlotIds = [];
   List<PlotRegistrationModel> _addedPlots = [];
 
@@ -229,6 +231,7 @@ class _FarmerRegistrationPageState
   Widget _buildProfileStep() => Form(
         key: _profileFormKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _textField(_farmerNameController, 'Farmer Name', Icons.person),
             _gap(),
@@ -240,6 +243,8 @@ class _FarmerRegistrationPageState
             _gap(),
             DropdownButtonFormField<String>(
               initialValue: _preferredLanguage,
+              isExpanded: true,
+              menuMaxHeight: 320,
               decoration: const InputDecoration(
                 labelText: 'Preferred Language',
                 prefixIcon: Icon(Icons.language_rounded),
@@ -267,119 +272,35 @@ class _FarmerRegistrationPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Add your grape plots',
-              style: AppTypography.titleLarge(context).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'You can add one or more plots now. More plots can be added later.',
-              style: AppTypography.labelLarge(context).copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
             if (_addedPlots.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.md),
               _buildAddedPlots(context),
+              const SizedBox(height: AppSpacing.md),
             ],
             if (_plotAddedSuccess) ...[
-              const SizedBox(height: AppSpacing.md),
               _buildPlotSuccessMessage(context),
+              const SizedBox(height: AppSpacing.md),
             ],
-            const SizedBox(height: AppSpacing.md),
-            _textField(_plotNameController, 'Plot Name', Icons.agriculture),
-            _gap(),
-            _textField(
-              _areaController,
-              'Area',
-              Icons.square_foot_rounded,
-              keyboardType: TextInputType.number,
-            ),
-            _gap(),
-            _textField(_varietyController, 'Variety', Icons.grass_rounded),
-            _gap(),
-            _textField(_soilTypeController, 'Soil Type', Icons.terrain_rounded),
-            _gap(),
-            _textField(_rootTypeController, 'Root Type', Icons.account_tree),
-            _gap(),
-            _textField(
-              _plantationYearController,
-              'Plantation Year',
-              Icons.calendar_today_outlined,
-              keyboardType: TextInputType.number,
-            ),
-            _gap(),
-            Row(
-              children: [
-                Expanded(
-                  child: _textField(
-                    _latitudeController,
-                    'Latitude',
-                    Icons.my_location,
-                    keyboardType: TextInputType.number,
-                    isRequired: false,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _textField(
-                    _longitudeController,
-                    'Longitude',
-                    Icons.explore_outlined,
-                    keyboardType: TextInputType.number,
-                    isRequired: false,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppButton.secondary(
-              label: 'Use Current Location',
-              icon: Icons.near_me_outlined,
-              isFullWidth: true,
-              onPressed: _useCurrentLocation,
-            ),
-            if (_latitudeController.text.isEmpty ||
-                _longitudeController.text.isEmpty) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Location helps with market and distance-based analysis.',
-                style: AppTypography.labelLarge(context).copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            AppButton.primary(
-              label: _editingPlotIndex == null ? 'Save Plot' : 'Update Plot',
-              icon: Icons.save_outlined,
-              isFullWidth: true,
-              size: AppButtonSize.large,
-              isLoading: _isLoading,
-              onPressed: _savePlot,
-            ),
-            if (_addedPlots.isNotEmpty && _plotAddedSuccess) ...[
-              const SizedBox(height: AppSpacing.sm),
-              AppButton.secondary(
-                label: 'Add Another Plot',
-                icon: Icons.add_rounded,
-                isFullWidth: true,
-                onPressed: _clearPlotForm,
-              ),
-              const SizedBox(height: AppSpacing.sm),
+            if (_isPlotFormVisible) ...[
+              _buildPlotFormFields(context),
+              const SizedBox(height: AppSpacing.lg),
               AppButton.primary(
-                label: 'Continue',
-                icon: Icons.arrow_forward_rounded,
+                label: _editingPlotIndex == null ? 'Save Plot' : 'Update Plot',
+                icon: Icons.save_outlined,
                 isFullWidth: true,
                 size: AppButtonSize.large,
-                onPressed: _continueToSeasonSetup,
+                isLoading: _isLoading,
+                onPressed: _savePlot,
               ),
+              if (_addedPlots.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                TextButton(
+                  onPressed: _cancelPlotForm,
+                  child: const Text('Cancel'),
+                ),
+              ],
             ] else if (_addedPlots.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.sm),
               AppButton.primary(
-                label: 'Continue',
+                label: 'Continue to Season',
                 icon: Icons.arrow_forward_rounded,
                 isFullWidth: true,
                 size: AppButtonSize.large,
@@ -388,6 +309,89 @@ class _FarmerRegistrationPageState
             ],
           ],
         ),
+      );
+
+  Widget _buildPlotFormFields(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _textField(_plotNameController, 'Plot Name', Icons.agriculture),
+          _gap(),
+          _textField(
+            _areaController,
+            'Area',
+            Icons.square_foot_rounded,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+          _gap(),
+          _textField(_varietyController, 'Variety', Icons.grass_rounded),
+          _gap(),
+          _textField(_soilTypeController, 'Soil Type', Icons.terrain_rounded),
+          _gap(),
+          _textField(_rootTypeController, 'Root Type', Icons.account_tree),
+          _gap(),
+          _textField(
+            _plantationYearController,
+            'Plantation Year',
+            Icons.calendar_today_outlined,
+            keyboardType: TextInputType.number,
+          ),
+          _gap(),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final latitudeField = _textField(
+                _latitudeController,
+                'Latitude',
+                Icons.my_location,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                isRequired: false,
+              );
+              final longitudeField = _textField(
+                _longitudeController,
+                'Longitude',
+                Icons.explore_outlined,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                isRequired: false,
+              );
+
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  children: [
+                    latitudeField,
+                    const SizedBox(height: AppSpacing.md),
+                    longitudeField,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: latitudeField),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(child: longitudeField),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppButton.secondary(
+            label: 'Use Current Location',
+            icon: Icons.near_me_outlined,
+            isFullWidth: true,
+            onPressed: _useCurrentLocation,
+          ),
+          if (_latitudeController.text.isEmpty ||
+              _longitudeController.text.isEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Location helps with market and distance-based analysis.',
+              style: AppTypography.labelLarge(context).copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
       );
 
   Widget _buildSeasonStep(BuildContext context) => Form(
@@ -402,6 +406,8 @@ class _FarmerRegistrationPageState
             DropdownButtonFormField<int>(
               initialValue: _selectedSeasonPlotId ??
                   (_addedPlots.isNotEmpty ? _addedPlots.first.plotId : null),
+              isExpanded: true,
+              menuMaxHeight: 320,
               decoration: const InputDecoration(
                 labelText: 'Select Plot for Season',
                 prefixIcon: Icon(Icons.agriculture_rounded),
@@ -431,6 +437,8 @@ class _FarmerRegistrationPageState
             _gap(),
             DropdownButtonFormField<String>(
               initialValue: _currentCycle,
+              isExpanded: true,
+              menuMaxHeight: 320,
               decoration: const InputDecoration(
                 labelText: 'Current Cycle',
                 prefixIcon: Icon(Icons.repeat_rounded),
@@ -463,16 +471,16 @@ class _FarmerRegistrationPageState
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            _nextButton(_saveSeason, label: 'Start Season for Selected Plot'),
-            if (_startedSeasonPlotIds.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.sm),
-              AppButton.secondary(
-                label: 'Start Season for Another Plot',
-                icon: Icons.add_rounded,
-                isFullWidth: true,
-                onPressed: _selectNextPlotWithoutSeason,
+            if (!_allPlotsHaveSeason) ...[
+              const SizedBox(height: AppSpacing.lg),
+              _nextButton(
+                _saveSeason,
+                label: _startedSeasonPlotIds.isEmpty
+                    ? 'Start Season'
+                    : 'Start Season for Next Plot',
               ),
+            ],
+            if (_startedSeasonPlotIds.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),
               AppButton.primary(
                 label: 'Go to Dashboard',
@@ -484,6 +492,12 @@ class _FarmerRegistrationPageState
             ],
           ],
         ),
+      );
+
+  bool get _allPlotsHaveSeason =>
+      _addedPlots.isNotEmpty &&
+      _addedPlots.every(
+        (plot) => _startedSeasonPlotIds.contains(plot.plotId),
       );
 
   Widget _buildSuccessStep(BuildContext context) {
@@ -526,12 +540,27 @@ class _FarmerRegistrationPageState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Added Plots: ${_addedPlots.length}',
-          style: AppTypography.labelLarge(context).copyWith(
-            color: cs.primary,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Added Plots: ${_addedPlots.length}',
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (!_isPlotFormVisible)
+              FilledButton.tonalIcon(
+                onPressed: _openNewPlotForm,
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: const Text('Add Plot'),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: AppSpacing.sm),
         ..._addedPlots.asMap().entries.map(
@@ -731,6 +760,7 @@ class _FarmerRegistrationPageState
           _otpVerified = state != FarmerOnboardingState.mobileNotVerified;
           _otpSent = _otpVerified;
           _stepIndex = _stepIndexForState(state);
+          _isPlotFormVisible = _addedPlots.isEmpty;
         });
       },
     );
@@ -878,11 +908,12 @@ class _FarmerRegistrationPageState
           updatedPlot,
           ..._addedPlots.skip(_editingPlotIndex! + 1),
         ];
-        _plotAddedSuccess = true;
         _editingPlotIndex = null;
+        _isPlotFormVisible = false;
         _isLoading = false;
       });
-      _clearPlotForm(clearSuccess: false);
+      _resetPlotFormControllers();
+      _showPlotSuccess();
       return;
     }
 
@@ -900,7 +931,7 @@ class _FarmerRegistrationPageState
       (response) {
         setState(() {
           _skippedPlot = false;
-          _plotAddedSuccess = true;
+          _isPlotFormVisible = false;
           final savedPlot = PlotRegistrationModel(
             plotId: response.plotId,
             plotName: request.plotName,
@@ -916,7 +947,8 @@ class _FarmerRegistrationPageState
           _addedPlots = [..._addedPlots, savedPlot];
           _selectedSeasonPlotId ??= response.plotId;
         });
-        _clearPlotForm(clearSuccess: false);
+        _resetPlotFormControllers();
+        _showPlotSuccess();
       },
     );
   }
@@ -938,7 +970,7 @@ class _FarmerRegistrationPageState
     );
   }
 
-  void _clearPlotForm({bool clearSuccess = true}) {
+  void _resetPlotFormControllers() {
     _plotNameController.clear();
     _areaController.clear();
     _varietyController.clear();
@@ -947,11 +979,32 @@ class _FarmerRegistrationPageState
     _plantationYearController.clear();
     _latitudeController.clear();
     _longitudeController.clear();
+  }
+
+  void _openNewPlotForm() {
+    _resetPlotFormControllers();
     setState(() {
       _editingPlotIndex = null;
-      if (clearSuccess) {
-        _plotAddedSuccess = false;
-      }
+      _plotAddedSuccess = false;
+      _isPlotFormVisible = true;
+    });
+  }
+
+  void _cancelPlotForm() {
+    _resetPlotFormControllers();
+    setState(() {
+      _editingPlotIndex = null;
+      _plotAddedSuccess = false;
+      _isPlotFormVisible = _addedPlots.isEmpty;
+    });
+  }
+
+  void _showPlotSuccess() {
+    final generation = ++_plotSuccessGeneration;
+    setState(() => _plotAddedSuccess = true);
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (!mounted || generation != _plotSuccessGeneration) return;
+      setState(() => _plotAddedSuccess = false);
     });
   }
 
@@ -968,6 +1021,7 @@ class _FarmerRegistrationPageState
     setState(() {
       _editingPlotIndex = index;
       _plotAddedSuccess = false;
+      _isPlotFormVisible = true;
     });
   }
 
@@ -983,6 +1037,7 @@ class _FarmerRegistrationPageState
             _addedPlots.isNotEmpty ? _addedPlots.first.plotId : null;
       }
       _plotAddedSuccess = false;
+      _isPlotFormVisible = _addedPlots.isEmpty;
     });
   }
 
@@ -1035,14 +1090,6 @@ class _FarmerRegistrationPageState
         _showMessage('Season started for selected plot');
       },
     );
-  }
-
-  void _selectNextPlotWithoutSeason() {
-    final nextPlot = _addedPlots.firstWhere(
-      (plot) => !_startedSeasonPlotIds.contains(plot.plotId),
-      orElse: () => _addedPlots.first,
-    );
-    setState(() => _selectedSeasonPlotId = nextPlot.plotId);
   }
 
   Future<void> _pickPruningDate(BuildContext context) async {

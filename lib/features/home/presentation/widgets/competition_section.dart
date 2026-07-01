@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../core/design_system/spacing/app_spacing.dart';
 import '../../../../core/design_system/typography/app_typography.dart';
+import '../../../../shared/widgets/dashboard_design.dart';
 import '../providers/plot_notifier.dart';
 import '../../domain/entities/plot_entity.dart';
 
@@ -559,90 +560,70 @@ class _CompactVarietyButton extends StatelessWidget {
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSpacing.radiusHuge),
-        ),
+      useRootNavigator: true,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      showDragHandle: true,
+      backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxWidth: 640,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.72,
       ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.smMd,
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.lg,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.outline,
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusFull),
-                        ),
+            return DashboardBottomSheetFrame(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const DashboardSheetHeader(
+                    title: 'Select Varieties',
+                    subtitle: 'Choose varieties to compare on the dashboard.',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Wrap(
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
+                    children: [
+                      FilterChip(
+                        label: const Text('All'),
+                        selected: draft.length == allVarieties.length,
+                        onSelected: (selected) {
+                          setSheetState(() {
+                            draft
+                              ..clear()
+                              ..addAll(selected ? allVarieties : const []);
+                          });
+                        },
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'Select Varieties',
-                      style: AppTypography.titleLarge(context)
-                          .copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        FilterChip(
-                          label: const Text('All'),
-                          selected: draft.length == allVarieties.length,
+                      ...allVarieties.map(
+                        (variety) => FilterChip(
+                          label: Text(variety),
+                          selected: draft.contains(variety),
                           onSelected: (selected) {
                             setSheetState(() {
-                              draft
-                                ..clear()
-                                ..addAll(selected ? allVarieties : const []);
+                              if (selected) {
+                                draft.add(variety);
+                              } else {
+                                draft.remove(variety);
+                              }
                             });
                           },
                         ),
-                        ...allVarieties.map(
-                          (variety) => FilterChip(
-                            label: Text(variety),
-                            selected: draft.contains(variety),
-                            onSelected: (selected) {
-                              setSheetState(() {
-                                if (selected) {
-                                  draft.add(variety);
-                                } else {
-                                  draft.remove(variety);
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          onChanged(draft);
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Apply'),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      onChanged(draft);
+                    },
+                    child: const Text('Apply'),
+                  ),
+                ],
               ),
             );
           },
