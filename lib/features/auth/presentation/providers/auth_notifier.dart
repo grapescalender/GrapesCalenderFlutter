@@ -66,12 +66,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.authenticated(
       UserEntity(
         id: now.microsecondsSinceEpoch.toString(),
-        username: hasPlot ? 'registered_farmer' : 'registered_farmer_no_plot',
-        email: '$mobileNumber@example.com',
+        username: '',
+        email: '',
         phoneNumber: mobileNumber,
         firstName: firstName,
         lastName: lastName,
-        farmName: 'Table Grapes Farm',
+        farmName: '',
         createdAt: now,
         updatedAt: now,
       ),

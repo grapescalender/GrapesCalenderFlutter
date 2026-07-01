@@ -50,14 +50,15 @@ class PlotNotifier extends StateNotifier<PlotState> {
 
   /// Generate mock plots for development
   List<PlotEntity> _generateMockPlots() {
-    if (_username == 'nodata' || _username == 'registered_farmer_no_plot') {
+    if (_username == 'nodata') {
       return [];
     }
 
     final onboardingData = _onboardingData;
-    if (_username == 'registered_farmer' &&
-        onboardingData != null &&
-        onboardingData.hasPlot) {
+    if (onboardingData != null && !onboardingData.hasPlot) {
+      return [];
+    }
+    if (onboardingData != null && onboardingData.hasPlot) {
       final now = DateTime.now();
       if (onboardingData.plots.isNotEmpty) {
         return onboardingData.plots.map((plot) {

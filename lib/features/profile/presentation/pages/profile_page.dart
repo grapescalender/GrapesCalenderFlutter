@@ -181,11 +181,25 @@ class ProfilePage extends ConsumerWidget {
 }
 
 // ── Profile Header ────────────────────────────────────────────────────────────
-class _ProfileHeader extends StatelessWidget {
+class _ProfileHeader extends ConsumerWidget {
   const _ProfileHeader();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authNotifierProvider).maybeWhen(
+          authenticated: (value) => value,
+          orElse: () => null,
+        );
+    final fullName = user?.fullName.trim();
+    final displayName =
+        fullName == null || fullName.isEmpty ? 'Farmer' : fullName;
+    final contact = user?.email.trim().isNotEmpty == true
+        ? user!.email.trim()
+        : user?.phoneNumber.trim().isNotEmpty == true
+            ? user!.phoneNumber.trim()
+            : 'Contact not available';
+    final initial = displayName.characters.first.toUpperCase();
+
     return Container(
       padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal,
           AppSpacing.lg, AppSpacing.screenHorizontal, AppSpacing.lg),
@@ -210,7 +224,7 @@ class _ProfileHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
             ),
             child: Center(
-              child: Text('S',
+              child: Text(initial,
                   style: AppTypography.headlineMedium(context).copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -223,11 +237,11 @@ class _ProfileHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Farmer Name',
+                Text(displayName,
                     style: AppTypography.headlineMedium(context)
                         .copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text('farmer@example.com',
+                Text(contact,
                     style: AppTypography.labelLarge(context)
                         .copyWith(color: AppColors.onSurface)),
                 const SizedBox(height: AppSpacing.sm),
@@ -277,11 +291,25 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 // ── Farm Info Card ────────────────────────────────────────────────────────────
-class _FarmInfoCard extends StatelessWidget {
+class _FarmInfoCard extends ConsumerWidget {
   const _FarmInfoCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authNotifierProvider).maybeWhen(
+          authenticated: (value) => value,
+          orElse: () => null,
+        );
+    final farmName = user?.farmName.trim().isNotEmpty == true
+        ? user!.farmName.trim()
+        : 'Farm details not added';
+    final locationParts = [
+      if (user?.city.trim().isNotEmpty == true) user!.city.trim(),
+      if (user?.state.trim().isNotEmpty == true) user!.state.trim(),
+    ];
+    final location =
+        locationParts.isEmpty ? 'Location not added' : locationParts.join(', ');
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
@@ -310,12 +338,12 @@ class _FarmInfoCard extends StatelessWidget {
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                     )),
-                Text('Table Grapes Farm',
+                Text(farmName,
                     style: AppTypography.titleLarge(context).copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryDark,
                     )),
-                Text('Maharashtra, India',
+                Text(location,
                     style: AppTypography.labelLarge(context).copyWith(
                       color: AppColors.primary,
                     )),

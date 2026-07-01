@@ -27,17 +27,30 @@ import 'sticky_save_action.dart';
 import 'product_search_bottom_sheet.dart';
 import 'product_config_bottom_sheet.dart';
 
+enum ScheduleFormMode {
+  create,
+  edit,
+  copy,
+}
+
 class AddSchedulePopup extends ConsumerStatefulWidget {
   const AddSchedulePopup({
     required this.plotId,
     required this.plotName,
     this.initialSchedule,
+    this.mode,
     super.key,
-  });
+  }) : assert(
+          mode == null ||
+              mode == ScheduleFormMode.create ||
+              initialSchedule != null,
+          'Edit and copy modes require an initial schedule.',
+        );
 
   final String plotId;
   final String plotName;
   final ScheduleEntity? initialSchedule;
+  final ScheduleFormMode? mode;
 
   @override
   ConsumerState<AddSchedulePopup> createState() => _AddSchedulePopupState();
@@ -70,7 +83,13 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
   bool _isSearching = false;
   String? _productError;
 
-  bool get _isEditMode => widget.initialSchedule != null;
+  ScheduleFormMode get _mode =>
+      widget.mode ??
+      (widget.initialSchedule == null
+          ? ScheduleFormMode.create
+          : ScheduleFormMode.edit);
+  bool get _isEditMode => _mode == ScheduleFormMode.edit;
+  bool get _isCopyMode => _mode == ScheduleFormMode.copy;
   bool get _isSaving {
     final state = ref.read(scheduleNotifierProvider);
     return state.isCreating;
@@ -168,7 +187,11 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
             child: Column(
               children: [
                 _AppBar(
-                  title: _isEditMode ? 'Edit Schedule' : 'Add Schedule',
+                  title: switch (_mode) {
+                    ScheduleFormMode.create => 'Add Schedule',
+                    ScheduleFormMode.edit => 'Edit Schedule',
+                    ScheduleFormMode.copy => 'Copy Schedule',
+                  },
                 ),
                 Expanded(
                   child: Form(
@@ -185,12 +208,25 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (_mode != ScheduleFormMode.create) ...[
+                            _ScheduleModeBanner(
+                              icon: _isCopyMode
+                                  ? Icons.content_copy_rounded
+                                  : Icons.edit_rounded,
+                              text: _isCopyMode
+                                  ? 'Copying from ${widget.initialSchedule!.plotName.isEmpty ? widget.plotName : widget.initialSchedule!.plotName}'
+                                  : 'Editing existing schedule',
+                            ),
+                            const SizedBox(height: AppSpacing.smMd),
+                          ],
                           // 1. Plot Selection and Summary Hero
                           AnimatedPlotSummaryCard(
                             plotSelector: CompactPlotSelector(
                               plots: availablePlots,
                               selectedPlotId: selectedPlot.id,
                               onPlotChanged: _changePlot,
+                              enabled: !_isEditMode,
+                              label: _isCopyMode ? 'Copy To' : 'Selected Plot',
                             ),
                             plotName: selectedPlot.name,
                             dayAfterPruning:
@@ -200,6 +236,15 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                             productCount: _products.length,
                             pruningDate: selectedPlot.pruningDate,
                           ),
+                          if (_isEditMode) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              'Plot cannot be changed while editing.',
+                              style: AppTypography.bodyMedium(context).copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: AppSpacing.smMd),
 
                           // 2. Schedule Details Section
@@ -255,10 +300,16 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
                 StickySaveAction(
                   isSaving: isSaving,
                   onSave: canSubmit ? _submit : null,
-                  label: _isEditMode ? 'Update Schedule' : 'Save Schedule',
-                  loadingLabel: _isEditMode
-                      ? 'Updating Schedule...'
-                      : 'Saving Schedule...',
+                  label: switch (_mode) {
+                    ScheduleFormMode.create => 'Save Schedule',
+                    ScheduleFormMode.edit => 'Update Schedule',
+                    ScheduleFormMode.copy => 'Save Copy',
+                  },
+                  loadingLabel: switch (_mode) {
+                    ScheduleFormMode.create => 'Saving Schedule...',
+                    ScheduleFormMode.edit => 'Updating Schedule...',
+                    ScheduleFormMode.copy => 'Saving Copy...',
+                  },
                 ),
               ],
             ),
@@ -376,10 +427,11 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
     return ActivityType.cutting;
   }
 
-  ScheduleProductDraft _productDraftFromLine(String line, int fallbackSequence) {
+  ScheduleProductDraft _productDraftFromLine(
+      String line, int fallbackSequence) {
     final sequenceMatch = RegExp(r'^(\d+)\.\s+').firstMatch(line);
-    final sequenceNo = int.tryParse(sequenceMatch?.group(1) ?? '') ??
-        fallbackSequence;
+    final sequenceNo =
+        int.tryParse(sequenceMatch?.group(1) ?? '') ?? fallbackSequence;
     final withoutSequence = line.replaceFirst(RegExp(r'^\d+\.\s+'), '');
     final parts = withoutSequence.split(':');
     final productName = parts.first.trim();
@@ -395,7 +447,8 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
         : ProductCategory.pesticides;
 
     return ScheduleProductDraft(
-      productId: 'restored_${productName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      productId:
+          'restored_${productName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
       productName: productName.isEmpty ? 'Selected Product' : productName,
       categoryId: category.value,
       categoryLabel: category.displayName,
@@ -1431,7 +1484,9 @@ class _AddSchedulePopupState extends ConsumerState<AddSchedulePopup> {
           irrigationHistoryCreated
               ? _isEditMode
                   ? 'Schedule updated successfully'
-                  : 'Schedule created successfully'
+                  : _isCopyMode
+                      ? 'Schedule copied successfully'
+                      : 'Schedule created successfully'
               : 'Nutrition saved, but irrigation history could not be added.',
         ),
         backgroundColor: irrigationHistoryCreated
@@ -2026,6 +2081,52 @@ class _AppBar extends StatelessWidget {
             color: cs.onSurface,
             fontWeight: FontWeight.bold,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScheduleModeBanner extends StatelessWidget {
+  const _ScheduleModeBanner({
+    required this.icon,
+    required this.text,
+  });
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.smMd,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: cs.secondaryContainer,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: cs.onSecondaryContainer),
+            const SizedBox(width: AppSpacing.xs),
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.labelLarge(context).copyWith(
+                  color: cs.onSecondaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

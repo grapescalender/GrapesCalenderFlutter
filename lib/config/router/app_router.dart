@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/auth/domain/entities/onboarding_routing_state.dart';
+import '../../features/auth/domain/usecases/onboarding_route_resolver.dart';
+import '../../features/auth/presentation/pages/app_launch_page.dart';
 import '../../features/auth/presentation/pages/farmer_registration_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/domain/services/auth_service.dart';
@@ -16,8 +19,12 @@ import '../../features/products/presentation/pages/product_knowledge_page.dart';
 
 /// Route names for navigation
 class RouteNames {
+  static const String launch = '/launch';
   static const String login = '/login';
   static const String farmerRegistration = '/register/farmer';
+  static const String profileSetup = '/onboarding/profile';
+  static const String plotSetup = '/onboarding/plots';
+  static const String seasonSetup = '/onboarding/season';
   static const String home = '/home';
   static const String plots = '/plots';
   static const String market = '/market';
@@ -33,6 +40,7 @@ class RouteNames {
 
 /// App Routes - Alias for RouteNames for convenience
 class AppRoutes {
+  static const String launch = RouteNames.launch;
   static const String login = RouteNames.login;
   static const String farmerRegistration = RouteNames.farmerRegistration;
   static const String home = RouteNames.home;
@@ -50,25 +58,53 @@ class AppRoutes {
 
 /// Go Router configuration
 GoRouter createAppRouter(AuthService authService) {
+  final onboardingResolver = OnboardingRouteResolver(
+    authService: authService,
+  );
+
   return GoRouter(
-    initialLocation: RouteNames.login,
+    initialLocation: RouteNames.launch,
     redirect: (context, state) async {
       final path = state.uri.path;
-      final isPublicRoute =
-          path == RouteNames.login || path == RouteNames.farmerRegistration;
-      final loggedIn = await authService.isLoggedIn();
+      final onboardingState = await onboardingResolver.resolve();
 
-      if (!loggedIn && !isPublicRoute) {
-        return RouteNames.login;
+      if (onboardingState == OnboardingRoutingState.unauthenticated) {
+        return path == RouteNames.login || path == RouteNames.farmerRegistration
+            ? null
+            : RouteNames.login;
       }
 
-      if (loggedIn && path == RouteNames.login) {
+      final requiredPath = switch (onboardingState) {
+        OnboardingRoutingState.unauthenticated => RouteNames.login,
+        OnboardingRoutingState.profilePending => RouteNames.profileSetup,
+        OnboardingRoutingState.plotPending => RouteNames.plotSetup,
+        OnboardingRoutingState.seasonPending => RouteNames.seasonSetup,
+        OnboardingRoutingState.completed => RouteNames.home,
+      };
+      final onboardingPaths = {
+        RouteNames.farmerRegistration,
+        RouteNames.profileSetup,
+        RouteNames.plotSetup,
+        RouteNames.seasonSetup,
+      };
+
+      if (onboardingState != OnboardingRoutingState.completed) {
+        return path == requiredPath ? null : requiredPath;
+      }
+
+      if (path == RouteNames.launch ||
+          path == RouteNames.login ||
+          onboardingPaths.contains(path)) {
         return RouteNames.home;
       }
-
       return null;
     },
     routes: [
+      GoRoute(
+        path: RouteNames.launch,
+        builder: (context, state) => const AppLaunchPage(),
+        name: 'launch',
+      ),
       // Authentication routes
       GoRoute(
         path: RouteNames.login,
@@ -79,6 +115,21 @@ GoRouter createAppRouter(AuthService authService) {
         path: RouteNames.farmerRegistration,
         builder: (context, state) => const FarmerRegistrationPage(),
         name: 'farmerRegistration',
+      ),
+      GoRoute(
+        path: RouteNames.profileSetup,
+        builder: (context, state) => const FarmerRegistrationPage(),
+        name: 'profileSetup',
+      ),
+      GoRoute(
+        path: RouteNames.plotSetup,
+        builder: (context, state) => const FarmerRegistrationPage(),
+        name: 'plotSetup',
+      ),
+      GoRoute(
+        path: RouteNames.seasonSetup,
+        builder: (context, state) => const FarmerRegistrationPage(),
+        name: 'seasonSetup',
       ),
 
       // Main app routes with shell navigation

@@ -10,12 +10,16 @@ class CompactPlotSelector extends StatelessWidget {
     required this.plots,
     required this.selectedPlotId,
     required this.onPlotChanged,
+    this.enabled = true,
+    this.label = 'Selected Plot',
     super.key,
   });
 
   final List<PlotEntity> plots;
   final String selectedPlotId;
   final ValueChanged<String> onPlotChanged;
+  final bool enabled;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +32,7 @@ class CompactPlotSelector extends StatelessWidget {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: InkWell(
-        onTap: () => _openSelector(context),
+        onTap: enabled ? () => _openSelector(context) : null,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         child: Container(
           width: double.infinity,
@@ -61,7 +65,7 @@ class CompactPlotSelector extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Selected Plot',
+                label,
                 style: AppTypography.labelLarge(context).copyWith(
                   color: Colors.white.withValues(alpha: 0.72),
                   fontWeight: FontWeight.w600,
@@ -82,8 +86,10 @@ class CompactPlotSelector extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(
-                    Icons.keyboard_arrow_down_rounded,
+                  Icon(
+                    enabled
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.lock_outline_rounded,
                     color: Colors.white,
                     size: AppSpacing.lg,
                   ),

@@ -7,6 +7,7 @@ import '../../../../core/design_system/typography/app_typography.dart';
 enum ScheduleAction {
   view,
   edit,
+  copy,
   delete,
 }
 
@@ -44,6 +45,12 @@ class ScheduleActionMenu extends StatelessWidget {
           action: ScheduleAction.edit,
           icon: Icons.edit_rounded,
           label: 'Edit Schedule',
+        ),
+        _item(
+          context,
+          action: ScheduleAction.copy,
+          icon: Icons.content_copy_rounded,
+          label: 'Copy Schedule',
         ),
         _item(
           context,

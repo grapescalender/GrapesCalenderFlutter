@@ -45,19 +45,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     ); // Simulate network delay
 
     // Hardcoded credentials for development
-    const mockUsers = {
-      'admin': _MockAuthUser(
-        password: 'password',
-        firstName: 'John',
-        lastName: 'Doe',
-        farmName: 'Green Valley Farm',
-      ),
-      'nodata': _MockAuthUser(
-        password: 'password',
-        firstName: 'No',
-        lastName: 'Data',
-        farmName: 'Empty Test Farm',
-      ),
+    const developmentCredentials = {
+      'admin': 'password',
+      'nodata': 'password',
     };
 
     // Validate credentials
@@ -65,26 +55,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw const AuthenticationException('Username and password are required');
     }
 
-    final mockUser = mockUsers[username];
+    final expectedPassword = developmentCredentials[username];
 
     // Check hardcoded credentials
-    if (mockUser == null || password != mockUser.password) {
+    if (expectedPassword == null || password != expectedPassword) {
       throw const AuthenticationException('Invalid username or password');
     }
 
-    // Return mock user
+    // Until the real endpoint is connected, keep development authentication
+    // data neutral so test identities never leak into customer-facing UI.
     return UserModel(
       id: '1',
-      username: username,
-      email: '$username@example.com',
-      phoneNumber: '+1234567890',
-      firstName: mockUser.firstName,
-      lastName: mockUser.lastName,
-      farmName: mockUser.farmName,
-      address: '123 Farm Road',
-      city: 'Farm City',
-      state: 'Farm State',
-      zipCode: '12345',
+      username: '',
+      email: '',
+      phoneNumber: '',
+      firstName: 'Farmer',
+      lastName: '',
+      farmName: '',
+      address: '',
+      city: '',
+      state: '',
+      zipCode: '',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -108,18 +99,4 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // TODO: Implement refresh token API call
     throw UnimplementedError('Refresh token not implemented');
   }
-}
-
-class _MockAuthUser {
-  const _MockAuthUser({
-    required this.password,
-    required this.firstName,
-    required this.lastName,
-    required this.farmName,
-  });
-
-  final String password;
-  final String firstName;
-  final String lastName;
-  final String farmName;
 }

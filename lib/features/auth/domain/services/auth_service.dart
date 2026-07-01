@@ -55,12 +55,12 @@ class AuthService {
     return AuthState.authenticated(
       UserEntity(
         id: userId ?? '',
-        username: 'registered_farmer',
-        email: mobileNumber.isEmpty ? '' : '$mobileNumber@example.com',
+        username: '',
+        email: '',
         phoneNumber: mobileNumber,
         firstName: 'Farmer',
         lastName: '',
-        farmName: 'Table Grapes Farm',
+        farmName: '',
         createdAt: now,
         updatedAt: now,
       ),

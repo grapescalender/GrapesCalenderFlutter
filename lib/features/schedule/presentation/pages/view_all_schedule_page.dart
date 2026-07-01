@@ -441,6 +441,9 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
       case ScheduleAction.edit:
         _showEditScheduleForm(schedule, selectedPlot?.name);
         return;
+      case ScheduleAction.copy:
+        _showCopyScheduleForm(schedule, selectedPlot?.name);
+        return;
       case ScheduleAction.delete:
         _showDeleteConfirmation(context, schedule);
         return;
@@ -494,6 +497,25 @@ class _ViewAllSchedulePageState extends ConsumerState<ViewAllSchedulePage> {
             ? plotName ?? schedule.plotId
             : schedule.plotName,
         initialSchedule: schedule,
+        mode: ScheduleFormMode.edit,
+      ),
+    );
+  }
+
+  void _showCopyScheduleForm(ScheduleEntity schedule, String? plotName) {
+    showModalBottomSheet<void>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddSchedulePopup(
+        plotId: schedule.plotId,
+        plotName: schedule.plotName.isEmpty
+            ? plotName ?? schedule.plotId
+            : schedule.plotName,
+        initialSchedule: schedule,
+        mode: ScheduleFormMode.copy,
       ),
     );
   }

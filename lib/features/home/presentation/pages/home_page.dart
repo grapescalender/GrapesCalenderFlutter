@@ -6,6 +6,9 @@ import '../../../../core/design_system/theme/app_branding.dart';
 import '../../../../core/design_system/colors/app_colors.dart';
 import '../../../../shared/responsive/responsive_utils.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../../auth/presentation/pages/app_launch_page.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../activity/presentation/widgets/activity_section.dart';
 import '../../../activity/presentation/providers/activity_providers.dart';
 import '../../../schedule/presentation/widgets/schedule_section.dart';
@@ -27,15 +30,28 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authNotifierProvider).maybeWhen(
+          authenticated: (value) => value,
+          orElse: () => null,
+        );
+    if (user == null) {
+      return const AppLaunchPage();
+    }
+
     return SafeArea(
       child: LayoutBuilder(
         builder: (context, constraints) =>
-            _buildBody(context, constraints, ref),
+            _buildBody(context, constraints, ref, user),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, BoxConstraints _, WidgetRef ref) {
+  Widget _buildBody(
+    BuildContext context,
+    BoxConstraints _,
+    WidgetRef ref,
+    UserEntity user,
+  ) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = ResponsiveUtils.isTablet(context);
     final isSmallPhone = screenWidth < 360;
@@ -72,7 +88,13 @@ class HomePage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ─────────────────────────────────────────────
-          _buildHeader(context, isTablet, isSmallPhone, horizontalPadding),
+          _buildHeader(
+            context,
+            isTablet,
+            isSmallPhone,
+            horizontalPadding,
+            user,
+          ),
           const SizedBox(height: AppSpacing.smMd),
 
           if (dashboardState.phase == DashboardViewPhase.noPlot &&
@@ -587,6 +609,7 @@ class HomePage extends ConsumerWidget {
     bool isTablet,
     bool isSmallPhone,
     double horizontalPadding,
+    UserEntity user,
   ) {
     final cs = Theme.of(context).colorScheme;
     final branding = Theme.of(context).extension<AppBranding>()!;
@@ -696,7 +719,7 @@ class HomePage extends ConsumerWidget {
                 ),
                 backgroundColor: cs.onPrimary.withValues(alpha: 0.14),
                 child: Text(
-                  'S',
+                  _userInitial(user),
                   style: AppTypography.bodyLarge(context).copyWith(
                     color: cs.onPrimary,
                     fontWeight: FontWeight.w600,
@@ -718,6 +741,15 @@ class HomePage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _userInitial(UserEntity user) {
+    final name = user.firstName.trim();
+    if (name.isNotEmpty) {
+      return name.characters.first.toUpperCase();
+    }
+    final username = user.username.trim();
+    return username.isEmpty ? 'F' : username.characters.first.toUpperCase();
   }
 
   /// Header Icon Button - Responsive

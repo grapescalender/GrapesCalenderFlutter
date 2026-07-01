@@ -6,6 +6,7 @@ import 'core/constants/app_constants.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/design_system/theme/app_theme_provider.dart';
 import 'config/providers/app_providers.dart' show goRouterProvider;
+import 'features/auth/presentation/pages/app_launch_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +64,7 @@ class MyApp extends ConsumerWidget {
         themeMode: themeMode,
         locale: locale,
         supportedLocales: AppLocales.supportedLocales,
-        home: const SizedBox.shrink(),
+        home: const AppLaunchPage(),
       ),
       error: (_, __) => MaterialApp(
         title: 'Smart Farm Pruning Manager',
@@ -73,7 +74,7 @@ class MyApp extends ConsumerWidget {
         themeMode: themeMode,
         locale: locale,
         supportedLocales: AppLocales.supportedLocales,
-        home: const SizedBox.shrink(),
+        home: const AppLaunchPage(),
       ),
     );
   }

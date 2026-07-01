@@ -31,9 +31,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill with hardcoded credentials for development
-    _usernameController = TextEditingController(text: 'admin');
-    _passwordController = TextEditingController(text: 'password');
+    _usernameController = TextEditingController();
+    _passwordController = TextEditingController();
   }
 
   @override
@@ -74,9 +73,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
         next.maybeWhen(
           authenticated: (user) {
-            // Navigate to home on successful login
+            // Resolve persisted onboarding before rendering a protected page.
             if (context.mounted) {
-              context.go(AppRoutes.home);
+              context.go(AppRoutes.launch);
             }
           },
           error: (message) {
